@@ -20,7 +20,7 @@ description: 어느 따뜻한 봄날이 나에게도 오겠지...
 
 # List of links in the navigation bar
 navbar-links:
-  HOME: ""
+  HOME: "index"
   About Me: "aboutme"
   Category: "category"
   Tags: "tags"
