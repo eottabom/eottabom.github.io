@@ -5,7 +5,6 @@ description: "Git Commit Message Convention"
 excerpt: "협업과 코드 유지보수 가독성을 높히는 커밋 메시지 규칙에 대해서 알아보자"
 category: Git
 comments: true
-tags: git
 ---
 
 ### Git Commit Message Convention

@@ -5,7 +5,6 @@ description: "Git branch management strategy"
 excerpt: "Git을 기반으로 프로젝트를 효율적으로 관리하기"
 category: Git
 comments: true
-tags: git
 ---
 
 ### Git branch management strategy
