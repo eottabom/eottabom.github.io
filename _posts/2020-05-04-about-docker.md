@@ -9,8 +9,8 @@ comments: true
 
 ### Docker란?
 2013년 3월 PyCon Conference에서 dotCould의 창업자인 `Solomon Hykes` 가 [The future of Linux Containers](https://www.youtube.com/watch?v=wW9CAH9nSLs&feature=youtu.be)
-라는 세션을 발표하면서 공개가 되었다. <br>
-기존 리눅스에 있는 컨테이너 기술을 활용한 기술로, 애플리케이션을 컨테이너로 좀 더 쉽게 사용할 수 있게 만든 오픈 소스 프로젝트이다. <br>
+라는 세션을 발표하면서 공개가 되었다. 
+기존 리눅스에 있는 컨테이너 기술을 활용한 기술로, 애플리케이션을 컨테이너로 좀 더 쉽게 사용할 수 있게 만든 오픈 소스 프로젝트이다. 
 쉽게 말해, Docker는 `컨테이너 기반의 오픈 소스 가상화 플랫폼` 이다. <br>
 
 <br>
