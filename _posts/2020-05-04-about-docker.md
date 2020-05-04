@@ -45,10 +45,10 @@ sysbench 라는 벤치마크 도구를 사용해서 성능 측정한 결과로, 
 ### Docker Architecture
 <img class="post_image" src="{{site.baseurl}}/img/post/docker/docker-architecture.png" />
 
-> Client : Docker Container를 관리하고 실행하기 위해 Deamon과 상호 작용하는 Binary 파일
-> Registry : Docker image가 저장된 장소
-> Daemon : Host에 설치되어 Docker Container를 관리하는 Daemon 프로세스, Client와 상호 작용
-> Image : Docker Daemon을 통해 Container로 실행 가능하도록 필요한 프로그램, 라이브러리, 소스 등이 설치된 파일
+> Client : Docker Container를 관리하고 실행하기 위해 Deamon과 상호 작용하는 Binary 파일 <br>
+> Registry : Docker image가 저장된 장소 <br>
+> Daemon : Host에 설치되어 Docker Container를 관리하는 Daemon 프로세스, Client와 상호 작용 <br>
+> Image : Docker Daemon을 통해 Container로 실행 가능하도록 필요한 프로그램, 라이브러리, 소스 등이 설치된 파일 <br>
 > Container : Image를 실행한 상태 
 
 <br>
