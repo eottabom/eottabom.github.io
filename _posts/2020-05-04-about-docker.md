@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Docker 기본 개념"
+title: "[Docker] Docker 기본 개념"
 description: "About Docker"
 excerpt: "Docker란? 무엇인가?"
 category: Docker
