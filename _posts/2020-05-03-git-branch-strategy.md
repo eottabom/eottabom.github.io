@@ -8,6 +8,7 @@ comments: true
 ---
 
 ### Git branch management strategy
+----
 많은 개발자들이 Git을 접해보았을 것이지만, Git 브랜칭 전략에 대해서는 다소 생소할 것이다. <br>
 개인이 사용할 때에는 큰 지장은 없겠지만, 협업을 할 때에는 많은 이슈를 발생시킬 가능성이 존재한다. <br>
 무분별하게 생겨나는 branch로 인해서 어느 branch가 최신인지 헷갈릴 수도 있고, <br>
@@ -22,6 +23,7 @@ comments: true
 <br>
 ----
 ### 1. Git flow
+----
 `Vincent Driessen`이 약 10년 전 제안한 Git의 workflow 디자인에 기반한 브랜칭 모델이다. <br>
 현재는 Git으로 개발할 때 거의 표준과 같이 사용되는 방법론이다. <br>
 
@@ -50,7 +52,7 @@ Git flow에 대해서 검색하면 많이 접할 수 있는, Git flow 흐름에 
 <br>
 ----
 ### 2. Github flow
-
+----
 <img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/github-flow.png" />
 
 Github flow는 `master` 브랜치가 릴리즈에 있어서 절대적인 역할을 한다. <br>
@@ -62,7 +64,7 @@ github flow는 CI가 필수적이다. <br>
 <br>
 ----
 ### 3. Gitlab flow
-
+----
 <img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/gitlab-flow.png" />
 
 `production` 브랜치는 gitflow의 `master` 브랜치와 같은 역할을 한다. <br>
@@ -76,6 +78,7 @@ gitflow와 github flow의 특징들만 가져온 느낌...
 <br>
 ----
 ### Reference
+----
 > [A successful Git branching model](https://nvie.com/posts/a-successful-git-branching-model/) <br>
 > [Understanding the GitHub flow](https://guides.github.com/introduction/flow/) <br>
 > [Introduction to GitLab Flow](https://docs.gitlab.com/ee/topics/gitlab_flow.html)

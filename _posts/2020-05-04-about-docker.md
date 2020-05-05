@@ -8,6 +8,7 @@ comments: true
 ---
 
 ### Docker란?
+----
 2013년 3월 PyCon Conference에서 dotCould의 창업자인 `Solomon Hykes` 가 [The future of Linux Containers](https://www.youtube.com/watch?v=wW9CAH9nSLs&feature=youtu.be)
 라는 세션을 발표하면서 공개가 되었다. 
 기존 리눅스에 있는 컨테이너 기술을 활용한 기술로, 애플리케이션을 컨테이너로 좀 더 쉽게 사용할 수 있게 만든 오픈 소스 프로젝트이다. 
@@ -16,6 +17,7 @@ comments: true
 <br>
 ----
 ### Docker가 주목 받는 이유?
+----
 ```text
 1. 가상 머신보다 가벼운 컨테이너로 효율적인 리소스 활용
 2. 이미지 빌드, 배포, 롤백으로 서비스의 상태 관리
@@ -26,6 +28,7 @@ comments: true
 <br>
 ----
 ### Vms VS Containers
+----
 <img class="post_image" src="{{site.baseurl}}/img/post/docker/containers-vms.png" />
 
 | Vms | Container |
@@ -43,6 +46,7 @@ sysbench 라는 벤치마크 도구를 사용해서 성능 측정한 결과로, 
 <br>
 ---- 
 ### Docker Architecture
+----
 <img class="post_image" src="{{site.baseurl}}/img/post/docker/docker-architecture.png" />
 
 > Client : Docker Container를 관리하고 실행하기 위해 Deamon과 상호 작용하는 Binary 파일 <br>
@@ -54,5 +58,6 @@ sysbench 라는 벤치마크 도구를 사용해서 성능 측정한 결과로, 
 <br>
 ---- 
 ### Reference
+----
 > [초보를 위한 도커 안내서 - 도커란 무엇인가?](https://subicura.com/2017/01/19/docker-guide-for-beginners-1.html) <br>
 > [도커 Docker 기초 확실히 다지기](https://futurecreator.github.io/2018/11/16/docker-container-basics/)

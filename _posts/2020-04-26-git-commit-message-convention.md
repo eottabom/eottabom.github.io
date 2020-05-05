@@ -8,6 +8,7 @@ comments: true
 ---
 
 ### Git Commit Message Convention
+----
 커밋 메시지는 따로 정해진 룰이 없다. <br>
 하지만 프로젝트 안에서 원칙을 정하고 일관적으로 작성해야 혼란을 줄일 수 있다. <br>
 처음에는 많이 힘들고, 시간이 걸리겠지만... <br>
@@ -17,6 +18,7 @@ comments: true
 <br><br>
 ----
 ### Q. Git 커밋 메시지를 잘 쓰려고 노력하는 이유는?
+----
 1. 커밋 로그의 가독성
 2. 협업과 리뷰 프로세스
 3. 코드 유지 보수
@@ -24,6 +26,7 @@ comments: true
 <br><br>
 ----
 ### 1. The seven rules of a grate Git commit message
+----
 Chris Beams의 [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)에서는 7가지의 약속을 제안하고 있다.
 
 > Rule 1. Separate subject from body with a blank line <br>
@@ -37,6 +40,7 @@ Chris Beams의 [How to Write a Git Commit Message](https://chris.beams.io/posts/
 <br><br>
 ----
 ### 2. Udacity Git Commit Message Style Guide
+----
 Udacity라는 교육 기관에서는 Git Commit Message Style을 가이드로 제시하고 있다.
  
 #### Message Structure
@@ -59,6 +63,7 @@ Udacity라는 교육 기관에서는 Git Commit Message Style을 가이드로 �
 <br><br>
 ----
 ### 3. Angular JS Git Commit Message Conventions
+----
 Angular JS는 커밋 메시지에 대한 규칙이 정해져 있는 것 같다. 
 
 #### Message Structure
@@ -82,6 +87,7 @@ scope 대신에 domain 등을 쓰면 직관적으로 보일 수 있다는 장점
 
 ----
 ### Reference
+----
 > [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/) <br>
 > [Udacity Git Commit Message Style Guide](https://udacity.github.io/git-styleguide/) <br>
 > [AngularJS Git Commit Message Conventions](https://docs.google.com/document/d/1QrDFcIiPjSLDn3EL15IJygNPiHORgU1_OOAqWjiDU5Y/edit)
