@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[Git] Git 브랜칭 전략"
+title: "Git 브랜칭 전략"
 description: "Git branch management strategy"
 excerpt: "Git을 기반으로 프로젝트를 효율적으로 관리하기"
 category: Git

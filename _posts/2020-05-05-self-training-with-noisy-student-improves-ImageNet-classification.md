@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "[Paper] Self-training with Noisy student improves ImageNet classification"
+title: "Self-training with Noisy student improves ImageNet classification"
 description: "Student Model에 Noise를 주입 후 자가 학습하여 ImageNet classification 성능 향상에 대한 논문 리뷰"
 excerpt: "Student Model에 Noise를 주입 후 자가 학습하여 ImageNet classification 성능 향상"
 category: Paper
