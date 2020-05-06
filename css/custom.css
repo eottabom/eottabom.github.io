@@ -15,3 +15,56 @@
 .category_container .tag-entry {
     margin: 0 0 15px 15px;
 }
+.other_posts {
+    padding: 0 25px;
+    margin: 0 auto;
+    clear: both;
+    display: block;
+}
+
+.other_posts table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    width: 100% !important;
+    margin-top: 10px !important;
+    display: table;
+    border-spacing: 2px;
+    border-color: grey;
+}
+
+.other_posts_header {
+    border-bottom: 1px solid #E5E5E5 !important;
+}
+
+.other_posts_header > h4 {
+    line-height: 170%;
+    color: #737373 !important;
+    font-size: 13px;
+    margin: 0;
+    padding: 2px 0 6px !important;
+    display: inline-block;
+}
+
+.other_posts_header .link_button {
+    float: right;
+    color: #808080;
+    font-size: 13px !important;
+    border-collapse: collapse;
+    padding: 4px 4px 0 0;
+}
+
+.other_posts_title {
+    text-align: left;
+    font-size: 12px;
+    font-weight: normal;
+    word-break: break-all;
+    line-height: 2;
+    padding: 4px 8px 4px !important;
+    display: table-cell;
+    vertical-align: inherit;
+    border-collapse: collapse;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: normal;
+    overflow: hidden;
+}
