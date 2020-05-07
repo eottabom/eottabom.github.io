@@ -12,7 +12,7 @@ comments: true
 [Utterances](https://utteranc.es/)는 Github Issue 기반으로 comment를 작성할 수 있게 한다.
 
 <br>
-----
+
 ### Utterances의 장점과 사용하게 된 이유
 ----
 다른 네이버나 tistory 블로그를 운영(?)하였을 때에는 자체적인 댓글 기능이 있어서 신경을 쓰지 않았다.

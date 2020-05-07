@@ -21,7 +21,7 @@ comments: true
 3. Gitlab Flow
 
 <br>
-----
+
 ### 1. Git flow
 ----
 `Vincent Driessen`이 약 10년 전 제안한 Git의 workflow 디자인에 기반한 브랜칭 모델이다. <br>
@@ -50,7 +50,7 @@ Git flow에 대해서 검색하면 많이 접할 수 있는, Git flow 흐름에 
 위의 순서를 반복적으로 진행하면서, Git workflow를 관리해주는 원리이다.
 
 <br>
-----
+
 ### 2. Github flow
 ----
 <img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/github-flow.png" />
@@ -62,7 +62,7 @@ Github flow는 `master` 브랜치가 릴리즈에 있어서 절대적인 역할�
 github flow는 CI가 필수적이다. <br>
 
 <br>
-----
+
 ### 3. Gitlab flow
 ----
 <img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/gitlab-flow.png" />
@@ -76,7 +76,7 @@ gitflow와 github flow의 특징들만 가져온 느낌...
 단, 이런 Git branching 전략이 있다는 것을 알고, 상황에 맞춰서 활용 할 줄 아는 것은 개발자의 역량이지 않을까... 
 
 <br>
-----
+
 ### Reference
 ----
 > [A successful Git branching model](https://nvie.com/posts/a-successful-git-branching-model/) <br>

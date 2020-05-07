@@ -11,7 +11,7 @@ comments: true
 [EfficientNet](https://arxiv.org/pdf/1905.11946.pdf) 기반으로 ImageNet 데이터넷에 대해서 State-of-the-art(SOTA)를 갱신한 논문입니다.
 
 <br>
-----
+
 ### 연구 배경 및 목적 
 ----
 + 연구 배경
@@ -21,7 +21,7 @@ comments: true
     - 라벨링이 없는 이미지를 사용하여 최신 ImageNet 데이터 셋에 대한 정확도와 Robustness에 대한 검증
     
 <br>
-----
+
 ### 제안하는 알고리즘
 ----
 ![Self-training Algorithm]({{site.baseurl}}/img/post/paper/self-training/self-training.jpg) <br>
@@ -36,7 +36,7 @@ comments: true
 
 
 <br>
----- 
+ 
 ### 실험 방법
 ----
 + Datasets
@@ -83,7 +83,7 @@ comments: true
     - EfficientNet-L2을 Teacher Model로 사용 다른 EfficientNet-L2 Student Model 학습
 
 <br>
-----    
+    
 ### 실험 결과
 ---- 
 + ImageNet 결과
@@ -111,7 +111,7 @@ comments: true
     
 
 <br>  
-----
+
 ### 결론
 ----
 > 라벨링이 없는 이미지를 사용하여 최신 ImageNet 모델의 정확성과 견고성을 크게 향상 <br>

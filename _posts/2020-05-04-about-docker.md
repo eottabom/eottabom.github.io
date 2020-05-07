@@ -15,7 +15,7 @@ comments: true
 쉽게 말해, Docker는 `컨테이너 기반의 오픈 소스 가상화 플랫폼` 이다. <br>
 
 <br>
-----
+
 ### Docker가 주목 받는 이유?
 ----
 ```text
