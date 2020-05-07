@@ -24,12 +24,12 @@ comments: true
 
 ### 제안하는 알고리즘
 ----
-![Self-training Algorithm](../img/post/paper/self-training/self-training.jpg) <br>
+![Self-training Algorithm]({{site.baseurl}}/img/post/paper/self-training/self-training.jpg) <br>
 <div style="text-align: center;">
     < Self-training Algorithm >
 </div>
 
-![Algorithm](../img/post/paper/self-training/self-training-model.png) <br>
+![Algorithm]({{site.baseurl}}/img/post/paper/self-training/self-training-model.png) <br>
 <div style="text-align: center;">
     < Self-training >
 </div>
@@ -90,10 +90,10 @@ comments: true
     - Noisy Student for EfficientNet B0-B7 without Iterative Training <br>
      → Noisy Student가 포함된 EfficientNet은 모든 모델 크기에 대해서 약 0.8% 성능이 향상
      
-![ImageNetResult](../img/post/paper/self-training/ImageNetResult.png) <br>
+![ImageNetResult]({{site.baseurl}}/img/post/paper/self-training/ImageNetResult.png) <br>
 <br>
 + Robustness Results on ImageNet-A, ImageNet-C, ImageNet-P
-![RobustnessResult](../img/post/paper/self-training/RobustnessResult.png) <br>
+![RobustnessResult]({{site.baseurl}}/img/post/paper/self-training/RobustnessResult.png) <br>
     - 모델의 신빙성, Robustness 측정을 위한 벤치마크 test set인 ImageNet-A,C,P를 이용한 실험
     - ImageNet-A : 기존 Classification network들이 공통적으로 어려워하는 실제 Natural Images로 만든 데이터셋
     - ImageNet-C,P : 이미지에 blurring, fogging, rotation, scaling 등 흔히 발생할 수 있는 Corruption과 Perturbation을 적용시켜 만든 데이터셋
@@ -104,7 +104,7 @@ comments: true
       Noisy Student를 적용하면 훨씬 더 견고해짐을 검증
 <br><br><br>        
 + Adversarial Robustness Results
-![AdversarialRobustnessResults](../img/post/paper/self-training/AbversarialRobustnessResult.png) <br>
+![AdversarialRobustnessResults]({{site.baseurl}}/img/post/paper/self-training/AbversarialRobustnessResult.png) <br>
     - Adversarial Attack에 얼마나 robust 하게 버티는지 평가한 실험
     - Adversarial Attack에 많이 사용되는 FGSM 공격을 EfficientNet에 가했을 때의 성능 측정
     - EfficientNet에 Noisy Student 알고리즘 적용했을 때의 성능을 측정하여 비교

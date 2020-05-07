@@ -36,7 +36,7 @@ comments: true
 
 Git flow에 대해서 검색하면 많이 접할 수 있는, Git flow 흐름에 관한 이미지이다. <br>
 
-<img class="post_image" src="../img/post/gitBranch/gitflow.png" />
+<img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/gitflow.png" />
 
 이 흐름에 대한 순서를 요약하면...
 > 1. 기준이 되는 `master` 브랜치에 `develop` 브랜치를 생성한다. <br>
@@ -53,7 +53,7 @@ Git flow에 대해서 검색하면 많이 접할 수 있는, Git flow 흐름에 
 
 ### 2. Github flow
 ----
-<img class="post_image" src="../img/post/gitBranch/github-flow.png" />
+<img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/github-flow.png" />
 
 Github flow는 `master` 브랜치가 릴리즈에 있어서 절대적인 역할을 한다. <br>
 `master` 브랜치는 항상 최신 버전을 유지하고, 무조건적으로 stable 한 상태를 담보한다. <br>
@@ -65,7 +65,7 @@ github flow는 CI가 필수적이다. <br>
 
 ### 3. Gitlab flow
 ----
-<img class="post_image" src="../img/post/gitBranch/gitlab-flow.png" />
+<img class="post_image" src="{{site.baseurl}}/img/post/gitBranch/gitlab-flow.png" />
 
 `production` 브랜치는 gitflow의 `master` 브랜치와 같은 역할을 한다. <br>
 `preduction` 브랜치가 항상 최신이지 않아도 된다는 점에서 차이점이고, <br>

@@ -29,13 +29,13 @@ comments: true
 1. `Utterances` 사이트 에 접속 [https://utteranc.es/](https://utteranc.es/)
 2. configuration 에서 repo 설정을 한다. <br>
 `사용자명/저장소이름`, ex) `eottabom/eottabom.github.io`  <br>
-![configuration](../img/post/utterances/configuration.png) 
+![configuration]({{site.baseurl}}/img/post/utterances/configuration.png) 
 <br>
 
 
 3. Blog ↔️ Issue Mapping 설정 <br>
 본인이 원하는 내용을 선택하면 된다. <br>
-![issue-mapping](../img/post/utterances/issue-mapping.png) <br>
+![issue-mapping]({{site.baseurl}}/img/post/utterances/issue-mapping.png) <br>
   (1) 이슈 제목에 페이지 경로 이름이 포함 <br>
   (2) 이슈 제목에 페이지 URL 포함 <br>
   (3) 이슈 제목에 페이지 제목이 포함 <br>
@@ -43,4 +43,4 @@ comments: true
   (5) 특정 번호  <br>
   (6) 이슈 제목에는 특정 용어가 포함 <br><br>
 4. 해당 스크립트 복사 후 post 레이 아웃등 원하는 곳에 `include`
-![copy-script](../img/post/utterances/copy-script.png) <br>
+![copy-script]({{site.baseurl}}/img/post/utterances/copy-script.png) <br>

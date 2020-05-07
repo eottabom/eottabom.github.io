@@ -33,7 +33,7 @@ OverFeat 이라는 CNN에 기반한 `sliding-window detector` 아키텍쳐와 �
 
 ### R-CNN의 세가지 모듈
 ---
-![R-CNN](../img/post/paper/r-cnn/r-cnn.jpg) <br>
+![R-CNN]({{site.baseurl}}/img/post/paper/r-cnn/r-cnn.jpg) <br>
 
 + Grenerating category independent `region proposals` 
     - 카테고리와 무관하게 물체의 영역을 찾는 모듈 
@@ -48,7 +48,7 @@ OverFeat 이라는 CNN에 기반한 `sliding-window detector` 아키텍쳐와 �
 
 ### Region Proposals
 --- 
-![Region-Proposals](../img/post/paper/r-cnn/region-proposals.jpg) <br>
+![Region-Proposals]({{site.baseurl}}/img/post/paper/r-cnn/region-proposals.jpg) <br>
 + `R-CNN`은 `Region Proposal` 단계에서 `Selective Search` 알고리즘을 사용한다. 
 + `Selective Search` 알고리즘은 `Segmentation` 분야에서 많이 쓰이는 알고리즘이다.
     - Selective Search` 알고리즘은 객체와 주변간의 색감(Color), 질감(Texture)차이, 다른 물체에 애워쌓여있는지(Enclosed) 여부 등을 파악해서 다양한 전략으로 물체의 위치를 파악하는 알고리즘이다. 
@@ -58,7 +58,7 @@ OverFeat 이라는 CNN에 기반한 `sliding-window detector` 아키텍쳐와 �
 
 ### CNN(based AlexNet)
 --- 
-![CNN](../img/post/paper/r-cnn/cnn.jpg) <br>
+![CNN]({{site.baseurl}}/img/post/paper/r-cnn/cnn.jpg) <br>
 
 + CNN은 `AlexNet`의 구조을 base로 사용하였다.
 + AlexNet Network 마지막 부분을 Detection을 위한 Class 수 만큼 바꾼다.
@@ -69,11 +69,11 @@ OverFeat 이라는 CNN에 기반한 `sliding-window detector` 아키텍쳐와 �
 
 ### Bounding box regression
 ---
-![Bounding-box-regression](../img/post/paper/r-cnn/bounding-box-regression.jpg) <br> 
+![Bounding-box-regression]({{site.baseurl}}/img/post/paper/r-cnn/bounding-box-regression.jpg) <br> 
 
 + Selective Search로 만들어낸 Bounding Box는 정확하지 않기 때문에 물체를 정확히 감싸도록 조정하는 `선형회귀 모델(Bounding Box Regression)`을 사용한다.
 
-![Bounding-box-regression2](../img/post/paper/r-cnn/bounding-box-regression2.jpg) <br>
+![Bounding-box-regression2]({{site.baseurl}}/img/post/paper/r-cnn/bounding-box-regression2.jpg) <br>
 
 <br><br>
 
