@@ -26,10 +26,10 @@ comments: true
 ```
 
 <br>
-----
+
 ### Vms VS Containers
 ----
-<img class="post_image" src="{{site.baseurl}}/img/post/docker/containers-vms.png" />
+<img class="post_image" src="../img/post/docker/containers-vms.png" />
 
 | Vms | Container |
 |--|--|
@@ -38,16 +38,16 @@ comments: true
 | 용량이 크다 | 견량화되어 가볍다 |
 | 가상화된 하드웨어 및 하이퍼바이저를 통해 처리 오버 헤드 필요 | 가상화 커널 공유 방식으로 각 컨테이너는 개별의 프로세스(오버헤드 x) |
 
-<img class="post_image" src="{{site.baseurl}}/img/post/docker/sysbench.png" />
+<img class="post_image" src="../img/post/docker/sysbench.png" />
 
 sysbench 라는 벤치마크 도구를 사용해서 성능 측정한 결과로, 물리적 시스템과 컨테이너 형 가상화인 Docker의 성능은 모든 항목에서 비슷하다.
 하드웨어 가상화는 `메모리`, `파일 IO`는 `약 2배`, `CPU`는 `약 5배`의 시간이 걸린다. 따라서 `Docker는 물리 머신과 비교해도 성능 저하가 거의 없다.`
 
 <br>
----- 
+
 ### Docker Architecture
 ----
-<img class="post_image" src="{{site.baseurl}}/img/post/docker/docker-architecture.png" />
+<img class="post_image" src="../img/post/docker/docker-architecture.png" />
 
 > Client : Docker Container를 관리하고 실행하기 위해 Deamon과 상호 작용하는 Binary 파일 <br>
 > Registry : Docker image가 저장된 장소 <br>
@@ -56,7 +56,7 @@ sysbench 라는 벤치마크 도구를 사용해서 성능 측정한 결과로, 
 > Container : Image를 실행한 상태 
 
 <br>
----- 
+
 ### Reference
 ----
 > [초보를 위한 도커 안내서 - 도커란 무엇인가?](https://subicura.com/2017/01/19/docker-guide-for-beginners-1.html) <br>
