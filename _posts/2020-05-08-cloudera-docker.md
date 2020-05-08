@@ -136,9 +136,8 @@ COPY create_databases.sql /var/lib/mysql
 
 ## COPY CLOUDERA REPO FILE
 WORKDIR "/root"
-#RUN wget https://archive.cloudera.com/cm5/redhat/6/x86_64/cm/cloudera-manager.repo && \
-#cp cloudera-manager.repo /etc/yum.repos.d/
-COPY cloudera-manager.repo /etc/yum.repos.d
+RUN wget https://archive.cloudera.com/cm5/redhat/6/x86_64/cm/cloudera-manager.repo && \
+cp cloudera-manager.repo /etc/yum.repos.d/
 
 ## INSTALL CLOUDERA MANAGER SERVER PACKAGES
 RUN yum -y install openssl;yum -y install openssl-devel;yum -y install gcc;yum -y install sqlite-devel
