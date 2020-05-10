@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "utterances로 댓글 기능 추가하기"
+title: "Utterances로 댓글 기능 추가하기"
 description: "Adding commemt features with utterances"
 excerpt: "github 이슈 기반으로 연동하는 utterances 댓글 기능 추가"
 category: Etc
