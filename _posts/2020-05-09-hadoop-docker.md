@@ -256,6 +256,8 @@ EXPOSE 50075 50010
 CMD ["/start.sh", "/usr/sbin/sshd"]
 ``` 
 
+<br>
+
 #### 2. Datanode hdfs-site.xml
 ```xml
 <configuration>
