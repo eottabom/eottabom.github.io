@@ -340,12 +340,12 @@ volumes:
   datanode03:
 ```
 
-<br>
-
 #### start
 ```{.bash}
 sudo docker-compose -f docker-compose.yml up -d
 ```
+
+<br>
 
 ### Hadoop 3.0.0-Alpha 1 이후 변경된 포트
 ---
