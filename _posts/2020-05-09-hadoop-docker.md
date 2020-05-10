@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Hadoop Docker 환경 구축하기"
+title: "Docker기반 Hadoop 환경 구축"
 description: "3개의 DataNode와 1개의 NameNode가 각각의 Container로 구성된 Docker 환경을 구성"
 excerpt: "3개의 DataNode와 1개의 NameNode가 각각의 Container로 구성된 Docker 환경을 구성"
 category: Docker
