@@ -32,6 +32,12 @@
           <li><a href="{{ link[1] | relative_url }}">{{ link[0] }}</a></li>
         {%- endif -%}
       {%- endfor -%}
+          <li>
+              <form action="/search/">
+                  <!-- span class="icon"><i class="fa fa-search"></i></span -->
+                  <input type="text" name="q" id="tipue_search_input" pattern=".{1,}" placeholder="SEARCH..." title="At least 1 characters" required="">
+              </form>
+          </li>
       </ul>
     </div>
 
