@@ -1,8 +1,8 @@
 ---
 layout: post
 title: "Kafka Topic을 Hbase에 적재"
-description: "Kafka consumer로 Topic 메시지를 가져와서 해당 메시지들을 Hbas로 적재하기"
-excerpt: "Kafka consumer로 Topic 메시지를 가져와서 해당 메시지들을 Hbas로 적재하기"
+description: "Kafka consumer로 Topic 메시지를 가져와서 해당 메시지들을 Hbase로 적재하기"
+excerpt: "Kafka consumer로 Topic 메시지를 가져와서 해당 메시지들을 Hbase로 적재하기"
 category: Python
 comments: true
 ---
