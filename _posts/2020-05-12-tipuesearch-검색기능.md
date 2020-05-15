@@ -3,13 +3,13 @@ layout: post
 title: "Tipue Search로 블로그 검색 기능 추가하기"
 description: "Tipue Search로 블로그 내의 컨텐츠를 검색하는 기능 추가하기"
 excerpt: "Tipue Search로 블로그 내의 컨텐츠를 검색하는 기능 추가하기"
-category: Study
+category: Jekyll
 comments: true
 ---
 
-`jekyll theme`를 이용하다보니, 문득 많은 컨탠츠가 있으면, 옛날의 컨텐츠를 어떻게 찾지...? 라는 생각이 들었다.
+`jekyll theme`를 이용하다보니, 문득 많은 컨텐츠가 있으면, 옛날의 컨텐츠를 어떻게 찾지...? 라는 생각이 들었다.
 타 블로그 들은 개별적인 검색 기능이 있어서 큰 고민을 하지 않았다. 내가 생각한 것은 이미 수 많은 사람들이 고민하고 이를 해결 했을 것이라는 진리...는 
-역시나 변함이 없었다... [`TipueSearch`](https://tipue.com/search/) 라는 jQuery plugin 인 존재 하고 있었고, 
+역시나 변함이 없었다... [TipueSearch](https://tipue.com/search/) 라는 jQuery plugin 인 존재 하고 있었고, 
 jQuery를 지원하는 브라우저에서 정상적으로 동작한다. 다른 Database 등의 기능이 필요 없다. 속도도 빠른 편이며, 무엇보다 오픈 소스이다.
 `TipueSearch` 를 블로그에 적용하는 방법에 대해서 알아보고, 실제로 적용 시켜보자. 
 
