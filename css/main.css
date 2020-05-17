@@ -382,7 +382,7 @@ footer .theme-by {
 
 @media only screen and (min-width: 768px) {
   .post-preview .post-title {
-    font-size: 36px;
+    font-size: 32px;
   }
 }
 
@@ -524,10 +524,10 @@ footer .theme-by {
     padding: 150px 0;
   }
   .intro-header .page-heading h1 {
-    font-size: 60px;
+    font-size: 40px;
   }
   .intro-header .post-heading h1 {
-    font-size: 50px;
+    font-size: 40px;
   }
   .intro-header.big-img .img-desc {
     font-size: 14px;
