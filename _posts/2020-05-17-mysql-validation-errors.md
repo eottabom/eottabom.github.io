@@ -41,4 +41,6 @@ MySQL의 `Connector/J 3.1` 또는 `Connector/J 5.x JDBC driver`를 사용할 때
 jdbc:mysql://{ip}:{port}/{dbname}?zeroDateTimeBehavior=convertToNull
 ```
 
+<br><br>
+
 > 개인적으로 datebase에 날짜를 insert를 하는 경우에는 특별한 경우가 없는 한, Null 대신에 시스템 날짜를 넣어 주는 것이 더 맞다고 생각한다. <br> 
