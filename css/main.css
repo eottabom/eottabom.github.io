@@ -7,7 +7,7 @@ layout: null
 
 /* --- General --- */
 
-body {
+
   font-family: 'Noto Sans KR', 'Nanum Gothic', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 16px;
   color: #404040;
@@ -382,7 +382,7 @@ footer .theme-by {
 
 @media only screen and (min-width: 768px) {
   .post-preview .post-title {
-    font-size: 36px;
+    font-size: 32px;
   }
 }
 
