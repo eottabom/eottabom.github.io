@@ -9,7 +9,7 @@ layout: null
 
 body {
   font-family: 'Noto Sans KR', 'Nanum Gothic', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   color: #404040;
   position: relative;
   background-color: {{ site.page-col }};
@@ -475,7 +475,7 @@ footer .theme-by {
 }
 .intro-header .post-heading h1 {
   margin-top: 0;
-  font-size: 35px;
+  font-size: 32px;
 }
 .intro-header .page-heading .page-subheading,
 .intro-header .post-heading .post-subheading {
