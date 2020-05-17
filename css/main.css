@@ -9,7 +9,7 @@ layout: null
 
 
   font-family: 'Noto Sans KR', 'Nanum Gothic', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 16px;
+  font-size: 18px;
   color: #404040;
   position: relative;
   background-color: {{ site.page-col }};
@@ -382,7 +382,7 @@ footer .theme-by {
 
 @media only screen and (min-width: 768px) {
   .post-preview .post-title {
-    font-size: 32px;
+    font-size: 36px;
   }
 }
 
@@ -475,7 +475,7 @@ footer .theme-by {
 }
 .intro-header .post-heading h1 {
   margin-top: 0;
-  font-size: 32px;
+  font-size: 35px;
 }
 .intro-header .page-heading .page-subheading,
 .intro-header .post-heading .post-subheading {
