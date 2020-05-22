@@ -23,7 +23,7 @@ comments: true
 
 ### Kafka Producer 생성 및 Kafka consumer console로 메시지 읽기 확인
 ---
-1. Producer
++ Producer
 ```python
 class Producer(threading.Thread):
     def __init__(self):
@@ -44,24 +44,24 @@ class Producer(threading.Thread):
         producer.close()
 ```
 <br>
-2. Server Kafka Consumer
++ Server Kafka Consumer
 ![Server-Kafka-consumer]({{site.baseurl}}/img/post/python/kafka-hbase/kafka-consumer.jpg) <br>
 
 <br>
 
 ### Kafka consumer로 Topic의 메시지를 읽을 수 있는 지 확인
 ---
-Local Consumer(PyCharm)
++ Local Consumer(PyCharm)
 ![read-topic]({{site.baseurl}}/img/post/python/kafka-hbase/read-topic.jpg) <br>
 
 <br>
 
 ### Hbase client 로 Hbase Tables CRD 되는지 확인
 ---
-1. Local(PyCharm console)
++ Local(PyCharm console)
 ![hbase-crd]({{site.baseurl}}/img/post/python/kafka-hbase/hbase-crd.png) <br>
 <br>
-2. Hbase shell
++ Hbase shell
 ![hbase-shell]({{site.baseurl}}/img/post/python/kafka-hbase/hbase-shell.png) <br>
 
 <br>
