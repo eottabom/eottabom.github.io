@@ -6,7 +6,17 @@ layout: null
     {% for post in site.posts %}
     <url>
         <loc>{{ site.url }}{{ post.url }}</loc>
-        <lastmod>{{ post.date | date: "%Y-%m-%d" }}</lastmod>
+	<lastmod>{{ post.date | date: "%Y-%m-%d" }}</lastmod>
+	{% if post.sitemap.changefreq == null %}
+        <changefreq>weekly</changefreq>
+        {% else %}
+        <changefreq>{{ post.sitemap.changefreq }}</changefreq>
+	{% endif %}
+	{% if post.sitemap.priority == null %}
+        <priority>0.5</priority>
+        {% else %}
+        <priority>{{ post.sitemap.priority }}</priority>
+        {% endif %}
     </url>
     {% endfor %}
     {% for page in site.pages %}
