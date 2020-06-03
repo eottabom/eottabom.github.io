@@ -8,10 +8,12 @@ use-site-title: true
 <div class="posts-list">
   {% for post in paginator.posts %}
   {% assign postIndex = {{forloop.index}} %}
-  <article class="post-preview">
-    {% if postIndex == 5 %}
+    {% if postIndex == 6 %}
+      <article class = "post-preview">
       {% include inFeedAdSense.html %}
+      </article>
     {% endif %}
+  <article class="post-preview">
     <a href="{{ post.url | relative_url }}">
 	  <h4 class="post-title">{{ post.title }}</h4>
 
