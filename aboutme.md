@@ -5,13 +5,17 @@ subtitle: Let me introduce myself briefly.
 ---
 
 My name is Yu-keun OH. I have the following skills:
-- Java, Python, Tensorflow, Keras, Elastic stack ... 
+- Java, Python, Tensorflow, Keras, Elastic stack, k8s ... 
 
 ### Experience
+Develop front-end and back-end in other small businesses ... 
 + HYOSUNG ITX
-    + 16.09 ~ 
+    + 16.09 ~ 20.06 
     + Smart Factory Develop Team
-
++ NCSOFT
+    + 20.07 ~
+    + Identity Access Platform Develop Team 
+    
 ### Education
 + Yonsei University
     + 17.09 ~ 20.02 
