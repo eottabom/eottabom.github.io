@@ -104,7 +104,7 @@ Minor Garbage Collection 에 비해 시간이 오래 걸리고 실행 중 프로
 |--|--|--|
 | Extra Options | Xss | 쓰레드 스택 크기(바이트)를 설정. 기본 값은 플랫폼에 따라 다름, (각 Thread에 할당되는 Stack Size 설정) <br> Default: Linux/x64(64bit): 1024KB / macOS(64bit): 1024KB / Oracle Solaris/x64(64bit): 1024KB, / Windows: 기본 값은 가상 메모리에 따라 다름|
 | |  Xms(-XX:InitialHeap Size) | 초기 Heap Size 설정 <br> Default: JVM을 server class로 실행시 초기 heap size는 메모리의 1/64 |
-|  | Xmx(-XX:MaxHeapSize) | 최대 Heap Size 설정 <br> Default: JVM을 server class로 실행시 최대 heap size는 메모리의 1/4 |
+| | Xmx(-XX:MaxHeapSize) | 최대 Heap Size 설정 <br> Default: JVM을 server class로 실행시 최대 heap size는 메모리의 1/4 |
 | Advanced Runtime Options | XX:MaxDirectMemorySize | java.nio 패키지의 최대 총 크기(바이트)를 직접 버퍼 할당으로 설정. <br> JVM이 NIO Direct-buffer 할당의 크기를 자동적으로 선택함을 의미 <br> (default:0)|
 | | XX:ActiveProcessorCount | Garbage Collection 과 ForkJoinPool 과 같은 다양한 작업에 사용할 쓰레드 풀의 크기를 계산하는데 VM이 사용할 CPU 수를 재정의 <br> 이 플래그는 도커 컨테이너에서 여러 Java 프로세스를 실행할 때 CPU 리소스를 분할 하는데 유용|
 | Advanced Garbage Collection Options | XX:MaxMetaspaceSize | 클래스 메타데이터에 할당할 수 있는 최대 기본 메모리 양을 설정. <br> 기본적으로 크기 제한 X, 응용 프로그램의 메타데이터 크기는 응용 프로그램 자체, 실행 중인 다른 응용 프로그램 및 시스템에서 사용할 수 있는 메모리 양에 따라서 달라짐.|
@@ -117,6 +117,7 @@ Minor Garbage Collection 에 비해 시간이 오래 걸리고 실행 중 프로
 큰 틀에서의 Options 구분은 아래와 같다.
 
 | Section | Description |
+|--|--|
 | Extra Options | Java HotSpot Virtual Machine에만 해당 되는 범용 옵션 |
 | Advanced Runtime Options | Java HotSpot VM의 런타임 동작을 제어 |
 | Advanced JIT Compiler Options | Java HotSpot VM에서 수행하는 동적 JIT(Just-In-Time) 컴파일을 제어 |
