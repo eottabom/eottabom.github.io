@@ -3,7 +3,7 @@ layout: post
 title: "PostgreSQL psql:FATAL:role 'postgres' does not exist 해결 방법"
 description: "PostgreSQL psql:FATAL:role 'postgres' does not exist solution"
 excerpt: "Docker 로 PostgreSQL 를 실행했을 때 psql 로 DB 접속시 발생하는 오류 해결 방법"
-category: database
+category: Database
 comments: true
 ---
 
