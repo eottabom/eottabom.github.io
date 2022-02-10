@@ -3,7 +3,7 @@ layout: post
 title: "MySQL Value '0000-00-00' can not be represented as java.sql.Date errors"
 description: "MySQL Validation errors 원인과 해결 방법"
 excerpt: "MySQL Validation errors 원인과 해결 방법"
-category: MySQL
+category: Database
 comments: true
 ---
 
