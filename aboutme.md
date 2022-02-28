@@ -11,10 +11,10 @@ My name is Yu-keun OH. I have the following skills:
 Develop front-end and back-end in other small businesses ... 
 + HYOSUNG ITX
     + 16.09 ~ 20.06 
-    + Smart Factory Develop Team
+    + Smart Factory Development Team
 + NCSOFT
     + 20.07 ~
-    + Identity Access Platform Develop Team 
+    + Identity Access Platform Development Team 
     
 ### Education
 + Yonsei University
