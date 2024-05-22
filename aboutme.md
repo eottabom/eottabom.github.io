@@ -5,7 +5,7 @@ subtitle: Let me introduce myself briefly.
 ---
 
 My name is Yu-keun OH. I have the following skills:
-- Java, Python, Tensorflow, Keras, Elastic stack, k8s ... 
+- Java, Spring, kubernetes, Envoy, Istio, Armeria, Python, Tensorflow, Keras, Elastic stack ... 
 
 ### Experience
 Develop front-end and back-end in other small businesses ... 
@@ -13,8 +13,9 @@ Develop front-end and back-end in other small businesses ...
     + 16.09 ~ 20.06 
     + Smart Factory Development Team
 + NCSOFT
-    + 20.07 ~
-    + Identity Access Platform Development Team 
+    + 20.07 ~ 
+    + Identity Access Platform Development Team (20.07 ~ 22.06)
+    + Contents Platform Development Team (22.06 ~ )
     
 ### Education
 + Yonsei University
