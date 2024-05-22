@@ -9,7 +9,8 @@ comments: true
 
 kubernetes 환경에서 Java Application 의 리소스(`CPU`, `Memory`)는 현재 서비스의 트래픽과 같은..   
 지표 기반으로 조정하는 것이 가장 바람직하다.  
-신규 서비스나 아직 지표를 정확히 알 수 없는 상황에서 어떻게 설정하는 것이 가장 좋은지에 대해서 궁금해서 찾아본 내용들을 정리해보았다. 
+신규 서비스나 아직 지표를 정확히 알 수 없는 상황에서  
+어떻게 설정하는 것이 가장 좋은지에 대해서 궁금해서 찾아본 내용들을 정리해보았다. 
 
 ### Best Practices: Java Memory Arguments for Containers
 
@@ -60,6 +61,8 @@ ex) -Xms=500M -Xmx=500m
 
 [Best Practices for Java Apps on Kubernetes](https://piotrminkowski.com/2023/02/13/best-practices-for-java-apps-on-kubernetes/) 일부 내용  
 
+<br>
+
 #### 1. Don't Set Limits Too Low  
  
 + CPU, Memory 는 Limit 을 너무 낮게 설정하지 마라.  
@@ -94,6 +97,8 @@ Non Heap = Direct Memory + Metaspace + Reserved Code Cache + (Thread Stack * Thr
 ---
 
 [Kubernetes and the JVM](https://xebia.com/blog/kubernetes-and-the-jvm/) 의 일부 내용  
+
+<br>
 
 > If the JVM runs out of memory, it may result in the application crashing or other unexpected behavior. To avoid this, it's essential to set appropriate requests and limits for memory
 
@@ -151,9 +156,9 @@ ex) JVM 에 사용 가능한 메모리가 4GB 일 때 = XX:MaxMetaspaceSize=256M
 
 <br><br><br>
 
-## 그 외에도..
+### 그 외에도..
 
-<br>
+<br><br>
 
 ### alibaba cloud - Best practices for jvm heap size configuration
 
@@ -288,7 +293,8 @@ Azure Spring App 은 기본적으로 heap memory size 가 50~80% 으로 설정�
 * 일반적인 1GB memory, 2 CPU java 어플리케이션에는 병렬 GC 를 사용해라.
 
 * 힙이 약 2~4GB 인 경우 G1(JDK < 17) /Z GC(JDK +17) 로 전환하는 것이 좋다.
-
+ 
+<br><br>
 
 ## 위의 내용들을 정리하자면...
 
