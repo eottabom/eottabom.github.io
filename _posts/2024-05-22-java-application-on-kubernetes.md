@@ -336,7 +336,7 @@ ex) -xms = -xmx
 <br><br>
 
 
-**개인적인 생각**
+**개인적인 생각**  
 request / limit memory, cpu 를 설정하는 것이 좋다.  
 -xss(ThreadStackSize) 는 default 값이 1M 이므로 굳이 설정하지 않아도 좋다.  
 xms / -xmx 을 동일한 값으로 설정하는 것이 좋다  
