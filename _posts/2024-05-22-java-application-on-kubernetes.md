@@ -98,9 +98,8 @@ Non Heap = Direct Memory + Metaspace + Reserved Code Cache + (Thread Stack * Thr
 
 [Kubernetes and the JVM](https://xebia.com/blog/kubernetes-and-the-jvm/) 의 일부 내용  
 
-<br>
-
-> If the JVM runs out of memory, it may result in the application crashing or other unexpected behavior. To avoid this, it's essential to set appropriate requests and limits for memory
+> If the JVM runs out of memory, it may result in the application crashing or other unexpected behavior.
+> To avoid this, it's essential to set appropriate requests and limits for memory
 
 #### Request, Limits and the JVM
 + request, limit 메모리 보다 작은 `-Xmx` 을 설정한다.
@@ -142,6 +141,8 @@ ex) JVM 에 사용 가능한 메모리가 4GB 일 때 = XX:MaxMetaspaceSize=256M
 ---
 
 [Some best practices when running JVM on the Kubernetes cluster](https://softwaremill.com/jvm-and-kubernetes-walk-into-a-bar/)
+
+<br>
 
 #### 1. request / limit 설정을 하자. 
 <br>
