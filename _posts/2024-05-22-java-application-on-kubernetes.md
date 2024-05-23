@@ -314,7 +314,7 @@ ex) -xms = -xmx
 
 <br>
 
-### 3) -xms, -xmx 보다는 MaxRAMPercentage 를 준다. (일부는 -xms, -xmx 와 같이 세밀한 값을 주는게 좋다고 말한다.)  
+### 3) -xms, -xmx 보다는 MaxRAMPercentage 를 준다. (일부는 -xms, -xmx 와 같이 세밀한 값을 주는게 좋다고 말함)  
 * MaxRAMPercentage 옵션을 주면 -xmx 옵션은 무시된다. (InitialRAMPercentage 옵션을 주면 -xms 는 무시됨)  
 * 상황에 따라서 달라지겠지만, <span style="color:blud"> 대부분 70.0 ~75.0 정도로 권장 </span> 하고 많은 리소스를 낭비 하지 않는다.  
 * 단, open jdk 17 부터 가능함 (원래는 jdk 8 부터 사용가능했지만, 버그가 있었고, jdk 13 에서 수정됨)  
