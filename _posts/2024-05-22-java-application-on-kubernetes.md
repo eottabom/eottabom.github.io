@@ -335,17 +335,15 @@ ex) -xms = -xmx
 
 <br><br>
 
-### 개인적인 생각
 
----
-
-+ request / limit memory, cpu 를 설정하는 것이 좋다.
-+ -xss(ThreadStackSize) 는 default 값이 1M 이므로 굳이 설정하지 않아도 좋다.
-+ -xms / -xmx 을 동일한 값으로 설정하는 것이 좋다
-  - 단, 최대 힙 크기를 고정한다면 request / limit memory 의 60 ~ 80% 으로 맞추자.
-+ QoS Guarantedd 인 Pod 를 생성하자
-+ livenessProbe, readnessProbe 를 설정하자.
-+ ActiveProcessorCount 플래그를 설정하는 것이 좋다.
+**개인적인 생각**
+request / limit memory, cpu 를 설정하는 것이 좋다.  
+-xss(ThreadStackSize) 는 default 값이 1M 이므로 굳이 설정하지 않아도 좋다.  
+xms / -xmx 을 동일한 값으로 설정하는 것이 좋다  
+(단, 최대 힙 크기를 고정한다면 request / limit memory 의 60 ~ 80% 으로 맞추자.)  
+QoS Guarantedd 인 Pod 를 생성하자  
+livenessProbe, readnessProbe 를 설정하자.  
+ActiveProcessorCount 플래그를 설정하는 것이 좋다.  
 {: .notice--info}
 
 <br><br>
