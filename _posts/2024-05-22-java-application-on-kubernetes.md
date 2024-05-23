@@ -3,7 +3,7 @@ layout: post
 title: "Java Application on kubernetes"
 description: "Java Application on kubernetes"
 excerpt: "컨테이너 환경에서의 Java Application 설정 관련 Best Practices 에 대해서 알아보자."
-category: Java, Kubernetes
+category: Java
 comments: true
 ---
 
