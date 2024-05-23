@@ -294,9 +294,9 @@ Azure Spring App 은 기본적으로 heap memory size 가 50~80% 으로 설정�
 
 * 힙이 약 2~4GB 인 경우 G1(JDK < 17) /Z GC(JDK +17) 로 전환하는 것이 좋다.
  
-<br><br>
+<br><br><br>
 
-## 위의 내용들을 정리하자면...
+## 위의 내용을 정리하면 !!
 
 ---
 
@@ -333,6 +333,19 @@ ex) -xms = -xmx
 
 
 <br><br>
+
+### 개인적인 생각
++ request / limit memory, cpu 를 설정하는 것이 좋다.
++ -xss(ThreadStackSize) 는 default 값이 1M 이므로 굳이 설정하지 않아도 좋다.
++ -xms / -xmx 을 동일한 값으로 설정하는 것이 좋다
+  - 단, 최대 힙 크기를 고정한다면 request / limit memory 의 60 ~ 80% 으로 맞추자.
++ QoS Guarantedd 인 Pod 를 생성하자
++ livenessProbe, readnessProbe 를 설정하자.
++ ActiveProcessorCount 플래그를 설정하는 것이 좋다.
+
+<br><br>
+
+
 
 ### Reference
 
