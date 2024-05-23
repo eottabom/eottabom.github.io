@@ -346,6 +346,7 @@ ex) -xms = -xmx
 + QoS Guarantedd 인 Pod 를 생성하자
 + livenessProbe, readnessProbe 를 설정하자.
 + ActiveProcessorCount 플래그를 설정하는 것이 좋다.
+{: .notice--info}
 
 <br><br>
 
