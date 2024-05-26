@@ -77,6 +77,8 @@ apply plugin: 'io.spring.javaformatter'
 
 #### Step1) IntelliJ > settings > Plugins > Marketplace 에서 `CheckStyle-IDEA` 을 다운 받아서 설치한다.
 
+![check-style]({{site.baseurl}}/img/post/java/spring-formatter/check-style.png) <br>
+
 <br>
 
 
