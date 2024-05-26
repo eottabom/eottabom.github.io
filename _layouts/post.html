@@ -92,3 +92,10 @@ layout: base
 <hr>
 
 {% include comments.html %}
+
+<script>
+  $(window).scroll(function() {
+    var scrollY = ($(window).scrollTop() / ($(document).height() - $(window).height()) * 100).toFixed(3);
+    $("#bar").css({"width" : scrollY + "%"});
+  });
+</script>
