@@ -2,3 +2,4 @@ _site/
 
 .gitignore
 .idea/compiler.xml
+.idea/checkstyle-idea.xml
