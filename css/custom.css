@@ -109,6 +109,16 @@
     box-shadow: 0 1px 1px rgba(214, 127, 5, 0.25);
 }
 
+#notice--note {
+    margin: 2em 0 !important;
+    padding: 1em;
+    color: #343434;
+    text-indent: initial;
+    background-color: rgb(235, 229, 248);
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(110, 24, 243, 0.25);
+}
+
 #bar {
     position: fixed;
     top: 0px; left: 0px;
