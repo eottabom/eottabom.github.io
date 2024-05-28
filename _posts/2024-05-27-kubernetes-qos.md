@@ -9,8 +9,7 @@ comments: true
 
 <div id ="notice--info">
 
-    kubernetes 에서는 Pod 에 대한 QoS(Quality of Service) 클래스를 제공하고 있고, <br>
-    QoS 에 대해서 간략하게 정리
+    🐱 kubernetes 에서는 Pod 에 대한 QoS(Quality of Service) 클래스를 제공하고 있고, QoS 에 대해서 간략하게 정리
 
 </div>
 
@@ -28,7 +27,12 @@ QoS 는 Resource Requests 리소스 상한을 정하는 **Resource Limits** 조�
 |Guaranteed| <span style="color:blue"> **우선순위가 높고** </span>, <br> Limits 를 넘지 않는 한 kill 되지 않음이 보장    | 모든 Container 의 Request 와 Limit 이 설정 되어 있고, <br> 각각 Container 의 Request 와 Limit 이 일치하는 경우|
 
 
-<br> 
+<br>
+
+![qos]({{site.baseurl}}/img/post/kubernetes/qos/qos.png)
+
+
+<br>
 
 #### Case
 
@@ -204,6 +208,7 @@ OOM Killer 에 의해서 선택될 확률이 높아진다.
 
 <div id="notice--success">
     
+    🍏 <span style="font-weight: bold!important; font-style: italic; font-size: 18px; color:green"> Tips </span> <br> 
     <span style="font-weight: bold!important;"> Guaranteed Qos </span> 를 갖는 Pod 의 Container 는 
     <span style="font-weight: bold!important;"> OOM Killer </span> 에 의해서 거의 선택되지 않는다. <br>
     <span style="font-weight: bold!important;"> BestEffort Qos </span> 를 갖는 Pod 의 Container 는 
@@ -243,7 +248,7 @@ Pod3 에 있는 리소스들을 Pod1 이 필요한 만큼의 리소스를 할당
 
 <div id="notice--warning">
 
-    Pod2와 Pod3이 사용하는 메모리에 따라서 eviction 순서가 바뀔 수 있다.
+    🏷️ Pod2와 Pod3이 사용하는 메모리에 따라서 eviction 순서가 바뀔 수 있다.
 
 </div>
 

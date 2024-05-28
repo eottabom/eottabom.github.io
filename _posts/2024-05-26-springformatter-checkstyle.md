@@ -8,9 +8,11 @@ comments: true
 ---
 
 <div id ="notice--info">
-    IntelliJ 에서 Spring formatter 와 Check Style 을 이용해서 일관성 있는 코드 작성하기 <br>
+
+    🐱 IntelliJ 에서 Spring formatter 와 Check Style 을 이용해서 일관성 있는 코드 작성하기 <br>
     팀 내 Code Convention 이 있겠지만, Spring formatter 와 Check Style 을 적용하면 <br>
     일관성 있는 코드 작성하기 편해진다.
+
 </div>
 
 
@@ -26,8 +28,10 @@ IntelliJ > settings > Plugins 에서 다운 받은 Spring formatter 를 추가�
 설치한 Plugin 은 아래 3가지 조건 중에 하나라도 만족 하는 경우 활성화 (![enbale]({{site.baseurl}}/img/post/java/spring-formatter/enable.png)) 된다.
 
 <div id="notice--note">
+
     📘 <span style="font-weight: bold!important;"> Note </span> <br> 
     <a href="https://github.com/spring-io/spring-javaformat?tab=readme-ov-file#intellij-idea"> IntelliJ-IDEA 참고 </a>
+
 </div>
 
 #### 1) .springjavaformatconfig 파일이 존재하는 경우
