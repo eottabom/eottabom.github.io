@@ -730,7 +730,7 @@ class PointFactory
 <br>
 
 ### 19. 함수(객체를 반환하는 메서드)는 반환하는 이름을 따서 명명해야 하며 프로시저(void 메서드)는 수행하는 작업을 따라 이름을 지정해야 한다
-**Functions (methods returning an object) should be named after what they return and procedures (void methods) after what they do.**
+**Functions (methods returning an object) should be named after what they return and procedures (void methods) after what they do.**  
 리턴 타입이 void 인 메서드의 경우(procedures) 에는 **무엇을 처리하는지** 를 이름에 쓰는 것이 좋으며,  
 object 타입이나 자료형과 같이 리턴 타입이 있는 메서드(functions) 의 경우는 **처리 후 무엇을 리턴하는 지** 를 이름에 쓰는 것이 좋다.  
 
