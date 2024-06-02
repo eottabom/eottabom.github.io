@@ -56,9 +56,6 @@ int daysSinceCreation;
 int daysSinceModification;
 int fileAgeInDays;
 </pre>
-
-<br>
-
 🖐 주석이 필요하다면 의도를 분명히 드러내지 못했다는 것이다.  
 
 <br>
@@ -85,8 +82,8 @@ public List&#60;Cell&#62; getFlaggedCells() {
 }
 </pre>
 
-<span style="color:red">나쁜 코드</span> 의 경우는 해당 코드를 읽는 사람에게 **가정** 을 바란다는 점이다.    
-<span style="color:blue">좋은 코드</span> 의 경우는 어떤 의도인지를 명확하게 드러낸다.
+<span style="color:red"><b>나쁜 코드</b></span> 의 경우는 해당 코드를 읽는 사람에게 **가정**을 바란다는 점이다.    
+<span style="color:blue"><b>좋은 코드</b></span> 의 경우는 어떤 의도인지를 명확하게 드러낸다.
 
 <br>
 
@@ -98,13 +95,14 @@ public List&#60;Cell&#62; getFlaggedCells() {
 #### 1) 널리 쓰이는 의미가 있는 단어를 다른 의미로 사용하지 말자
 <pre class="prettyprint lang-java">
 // Bad
+// 아래와 같은 naming 들은 의미가 불명확하다.
 int hp;
 int ax;
 int sco;
 </pre>
 
-위와 같은 naming 들은 의미가 불명확하다.  
-예를 들어 hp 는 hypotenuse 직각 삼각형의 빗변을 약어로 썼다고 하면,(사실 주석이나, 누군가가 말을 해주지 않는다면), 그 의미가 불명확하다.  
+예를 들어 hp 는 hypotenuse 직각 삼각형의 빗변을 약어로 썼다고 하면,  
+<b>(사실 주석이나, 누군가가 말을 해주지 않는다면)<b>, 그 의미가 불명확하다.  
 
 <br>
 
@@ -116,7 +114,7 @@ int accountList;
 String[] accountList = {"yukeun", "tester"}
 </pre>
 
-실제 List 가 아닌 이상 xxxList 와 같이 변수명을 붙이지 말고, accountGroup, bunchOfAccounts, accounts 등으로 명명하자.  
+실제 List 가 아닌 이상 xxxList 와 같이 변수명을 붙이지 말고, `accountGroup`, `bunchOfAccounts`, `accounts` 등으로 명명하자.  
 Collection 인 경우 xxxList 보다는 `accounts` 와 같은 **복수형**을 쓰는게 더 좋다.  
 
 <br>
@@ -128,8 +126,8 @@ XYZControllerForEfficientHandlingOfStrings;
 XTZControllerForEfficientStorageOfStrings;
 </pre>
 
-XYZControllerForEfficientHandlingOfStrings 와 XTZControllerForEfficientStorageOfStrings 의 차이점을 찾아내는데, 시간이 오래 걸린다.  
-비슷한 이름을 사용하지 않도록 유의하자.
+`XYZControllerForEfficientHandlingOfStrings` 와 `XTZControllerForEfficientStorageOfStrings` 의 차이점을 찾아내는데,  
+시간이 오래 걸린다. 비슷한 이름을 사용하지 않도록 유의하자.
 
 <br>
 
@@ -198,7 +196,7 @@ String theMessage;
 
 <br>
 
-### 발음하기 쉬운 이름을 사용하라 (Use Pronounceable Names)
+### 4. 발음하기 쉬운 이름을 사용하라 (Use Pronounceable Names)
 많은 의미를 담은 단어를 사용할 수록 좋다.  
 
 <pre class="prettyprint lang-java">
@@ -221,7 +219,7 @@ class Customer {
 
 <br>
 
-### 4. 검색하기 쉬운 이름을 사용하라 (Use Searchable Names)
+### 5. 검색하기 쉬운 이름을 사용하라 (Use Searchable Names)
 <pre class="prettyprint lang-java">
 // Bad
 // 여기에서 34, 4, 5 를 코드에서 찾기 어렵다.
@@ -244,7 +242,7 @@ for (int j=0; j &#60; NUMBER_OF_TASKS; j++) {
 
 <br>
 
-### 5. 인코딩을 피하라 (Avoid Encodings)
+### 6. 인코딩을 피하라 (Avoid Encodings)
 
 <br>
 
@@ -289,14 +287,14 @@ public class Part {
 
 <br>
 
-### 6. 자신의 기억력을 자랑하지 마라 (Avoid Mental Mapping)
+### 8. 자신의 기억력을 자랑하지 마라 (Avoid Mental Mapping)
 다른 사람이 머릿속으로 한 번 더 생각해 변환해야 할 만한 변수명을 쓰지마라.  
 (ex. URL 에서 호스트와 프로토콜을 제외한 소문자 주소를 r 이라는 변수로 명명하는 일)  
 똑똑한 프로그래머와 전문가 프로그래머를 나누는 기준 한가지는 **Clarity(명료함)** 이다.  
 
 <br>
 
-### 7. 클래스 이름 (Class Names)
+### 8. 클래스 이름 (Class Names)
 
 <br>
 
@@ -316,7 +314,7 @@ Customer, WikiPage, Account, AddressParser ...
 
 <br>
 
-### 8. 메서드 이름 (Method Names)
+### 9. 메서드 이름 (Method Names)
 
 <br>
 
@@ -343,7 +341,7 @@ Complex fulcrumPoint = Complex.FromRealNumber(23.0);
 
 <br>
 
-### 9. 기발한 이름은 피해라 (Don't Be Cute)
+### 10. 기발한 이름은 피해라 (Don't Be Cute)
 특정 문화에서만 사용되는 이름보다는 의도를 분명히 표현한 이름을 사용하자.  
 
 <pre class="prettyprint lang-java">
@@ -362,14 +360,14 @@ kill()
 
 <br>
 
-### 10. 한 개념에 한 단어를 사용하라 (Pick One Word per Concept)
+### 11. 한 개념에 한 단어를 사용하라 (Pick One Word per Concept)
 fetch, retrieve, get  
 controller, manager, driver  
 이런 단어들을 혼용해서 사용하지 말고, 한 단어를 선택했으면 그 단어를 고수해서 명명해라.  
 
 <br>
 
-### 11. 말 장난 하지 마라 (Don't Pun)
+### 12. 말 장난 하지 마라 (Don't Pun)
 의미론적으로 행동이 다른 상황이나, 일반적으로 부르는 이름이 같은데,  
 행위가 다르다면, 다른 단어를 사용하는 것이 좋다.
 <br>
@@ -386,18 +384,18 @@ public List&#60;Element&#62; append(Element element) // append or insert
 
 <br>
 
-### 12. 해법 영역에서 가져온 이름을 사용하라 (Use Solution Domain Names)
+### 13. 해법 영역에서 가져온 이름을 사용하라 (Use Solution Domain Names)
 전산용어, 알고리즘 이름, 패턴 이름, 수학 용어 등을 사용하자.  
 개발자라면 당연히 알고 있을 `JobQueue`, `AccountVisitor(Visitor pattern)` 등을 사용하지 않을 이유가 없다.  
 
 <br>
 
-### 13. 문제 영역에서 가져온 이름을 사용하라 (Use Problem Domain Names)
+### 14. 문제 영역에서 가져온 이름을 사용하라 (Use Problem Domain Names)
 적절한 해법 영역의 용어가 없거나, 문제 영역과 관련이 깊은 용어의 경우 문제 영역 용어를 사용하라  
 
 <br>
 
-### 14. 의미 있는 맥락을 추가하라 (Add Meaningful Context) 
+### 15. 의미 있는 맥락을 추가하라 (Add Meaningful Context) 
 클래스, 함수, namespace 등으로 감싸서 맥락(Context) 를 표현하라.  
 그래도 불분명하다면 접두어를 사용해라  
 
@@ -465,7 +463,7 @@ public class GuessStatisticsMessage {
 
 <br>
 
-### 15. 불필요한 맥락을 없애라 (Don't Add Gratuitous Context)
+### 16. 불필요한 맥락을 없애라 (Don't Add Gratuitous Context)
 예를 들어 Gas Station Delux 라는 어플리케이션을 작성한다고 해서 클래스 이름 앞에 GSD 를 붙이지 말자.  
 접두어를 붙이는 경우 모듈의 재사용 관점에서도 좋지 못하다. 재사용 하려면 이름을 바꾸어야 한다.  
 (ex. GSDAccountAddress 대신 Address 라고만 해도 충분하다.)  
