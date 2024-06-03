@@ -996,7 +996,8 @@ id 를 가져오는 이름 규칙이 있었다면 이러한 난잡한 코드가 
     <p style='margin-top:1em;'>
         <b>🍏️ About </b>
     </p>
-    개발자의 글쓰기 라는 책의 함수 이름 짓는 가장 쉬운 방법에 대한 내용
+    <a href = "https://t1.daumcdn.net/cfile/tistory/998378465C7B49A329"개발자의 글쓰기</a>
+    라는 책의 함수 이름 짓는 가장 쉬운 방법에 대한 내용
     <p style='margin-top:1em;'/>
 
 </div>
