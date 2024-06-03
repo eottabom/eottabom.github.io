@@ -987,6 +987,114 @@ id 를 가져오는 이름 규칙이 있었다면 이러한 난잡한 코드가 
 
 <br>
 
+# 함수 이름 짓는 가장 쉬운 방법
+
+--- 
+
+<div id ="notice--success">
+
+    <p style='margin-top:1em;'>
+        <b>🍏️ About </b>
+    </p>
+    개발자의 글쓰기 라는 책의 함수 이름 짓는 가장 쉬운 방법에 대한 내용
+    <p style='margin-top:1em;'/>
+
+</div>
+
+<br>
+
+### 이름을 짓는 쉬운 절차
+
+#### 1) 함수가 할 일을 육하 원칙을 준수해서 한글로 적는다.
+
+"사용자가 이름을 입력하고 등록 버튼을 클릭하면,  
+시스템이 사용자 이름을 input 태그에서 가져와서 이름 입력 여부와 글자 수를 확인한 뒤,  
+입력이 안 되었으면 스크립트를 중단하고 input 태그를 활성화하여 사용자가 쓸 수 있게 하고,  
+글자 수가 한글 두 글자 이하면 확인을 요청하여 사용자가 확인 할 수 있게 한다."  
+
+<br>
+
+#### 2) 시스템이 할 일만 남기고 나머지는 없앤다.
+
+"<span style="color:red; text-decoration:line-through;">사용자가 이름을 입력하고 등록 버튼을 클릭하면,  
+시스템이 </span> 사용자 이름을 input 태그에서 가져와서 이름 입력 여부와 글자 수를 확인한 뒤,  
+입력이 안 되었으면 스크립트를 중단하고 input 태그를 활성화하여 <span style="color:red; text-decoration:line-through;">사용자가 쓸 수 있게 하고,</span>  
+글자 수가 한글 두 글자 이하면 확인을 요청하여 <span style="color:red; text-decoration:line-through;">사용자가 확인 할 수 있게 한다."</span>  
+
+
+<br>
+
+#### 3) 문장을 조각내고 불필요한 설명을 없앤다.
+
+사용자 이름을 input 태그에서 가져온다.  
+사용자 이름의 <span style="color:red; text-decoration:line-through;">입력 여부</span>와 글자 수를 확인한다.  
+입력이 안 되었으면 <span style="color:red; text-decoration:line-through;">스크립트를 중단하고</span> input 태그를 활성화 한다.  
+글자 수가 한글 두 글자 이하면 확인을 요청한다.  
+
+<br>
+
+#### 4) 논리적인 문장으로 바꾼다.
+사용자 이름을 input 태그에서 가져온다.  
+사용자 이름의 글자 수를 확인한다.  
+만약 글자 수가 0(=null) 이면 input 태그를 활성화 한다.  
+만약 글자 수가 1 or 2 면 사용자에게 확인을 요청한다.  
+
+<br>
+
+#### 5) 1함수 1업무 규칙에 따라 함수를 결정한다.
+(함수1) 사용자 이름을 input 태그에서 가져온다.  
+(함수2) 사용자 이름의 글자 수가 2글자 이하면 다음과 같이 처리한다.  
+→ 만약 글자수가 0(=null) 이면 input 태그를 활성화한다.  
+→ 만약 글자수가 1 or 2 면 사용자에게 확인을 요청한다.  
+
+<br>
+
+#### 6) 함수 문장을 영어로 바꾼다.
+(함수1) 사용자 이름을 input 태그에서 가져온다.  
+→ get user's name from the text input field  
+(함수2) 사용자 이름의 글자 수가 2글자 이하면 다음과 같이 처리한다.  
+→ do something if user's name contains under 2 characters  
+
+<br>
+
+#### 7) 이해하는 데 크게 관계 없는 단어를 없앤다.
+
+<br>
+
+#### 8) 필요하다면 짧고 포괄적인 단어로 바꾼다.
+(함수1) get user's name from the text input field  
+→ get user name from input field  
+(함수2) do something if user's name contains under 2 characters  
+→ check if user name contains under 2 characters  
+
+<br>
+
+#### 9) 띄어쓰기를 없애고 두 번째 단어부터는 첫 글자를 대문자로 바꾼다.
+(함수1) getUserNameFromInputField  
+(함수2) checkIfUserNameContainsUnder2Characters  
+
+<br>
+
+#### 10) 함수를 사용할 때 의미상 없어도 되는 단어를 없앤다.
+(함수1) getUserNameFromField()  
+(함수2) checkUserNameUnder2Characters()  
+
+<br>
+
+### SMART 한 방법으로 변수 이름 짓기
+easy to **S**earch : 검색하기 쉽고  
+easy to **M**ix : 조합하기 쉽고  
+easy to **A**gree : 수긍하기 쉽고  
+easy to **R**emember : 기억하기 쉽고  
+easy to **T**ype : 입력하기 쉽고  
+
+<br>
+
+## 변수명 지어주는 사이트
+https://www.curioustore.com/#!/
+
+<br><br>
+
 <div id="notice--success">
 
     <p style='margin-top:1em;'>
