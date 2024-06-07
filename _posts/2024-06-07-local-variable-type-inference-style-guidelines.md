@@ -164,7 +164,7 @@ for (var item : items) ...
 
 <br>
 
-### G3. 이니셜라이저가 충분한 정볼르 제공하는 경우는 var 를 고려해라.
+### G3. 이니셜라이저가 충분한 정보를 제공하는 경우는 var 를 고려해라.
 **Consider var when the initializer provides sufficient information to the reader.**
 
  로컬 변수는 생성자를 통해 초기화 되는 경우가 많다. 생성되는 클래스의 이름은 왼쪽에 명시적 유형으로 반복된다. Type 이름이 긴 경우 `var` 를 사용하면 정보 손실 없이 간결하게 표현할 수 있다.  
