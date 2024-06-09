@@ -3,7 +3,7 @@ layout: post
 title: "Local Variable Type Inference Style Guidelines"
 description: "Local Variable Type Inference Style Guidelines"
 excerpt: "지역 변수 유형 추론 타입인 'var' 를 사용하는 방법"
-category: Java
+category: [Java, Clean Code]
 comments: true
 ---
 
@@ -460,7 +460,19 @@ try (var inputStream = socket.getInputStream();
 `var` 를 사용하면 복잡함이 줄어들고, 더 중요한 정보를 돋보이게 하며 코드를 개선할 수 있다.  
 반면, 무분별한 `var` 를 사용하면 반대가 될 수 있다. 적절하게 사용한다면 코드 개선에 도움이 되고 코드를 더 짧고 명확하게 만들 수 있다.
 
+<br><br>
 
+<div id="notice--success">
+
+    <p style='margin-top:1em;'>
+      <b> 📗 개인적인 생각 </b> 
+    </p>
+    📣 무분별한 <b> var </b> 를 사용하는 것은 오히려 가독성에 저해가 될 수 있다. <br>
+    📣 결국엔 <b> var </b> 를 사용하기 위해서는 <b> 의미 전달</b> 이 될 수 있는 네이밍을 사용 해야 한다. <br>
+    📣 새로운 기술이나 문법이 나왔다고 무지성으로 쓰는 것보다는 역시 알고 쓰는 것이 중요한 것 같다.
+    <p style='margin-top:1em;' />
+
+</div>
 
 <br><br>
 
