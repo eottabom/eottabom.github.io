@@ -460,7 +460,7 @@ try (var inputStream = socket.getInputStream();
 `var` 를 사용하면 복잡함이 줄어들고, 더 중요한 정보를 돋보이게 하며 코드를 개선할 수 있다.  
 반면, 무분별한 `var` 를 사용하면 반대가 될 수 있다. 적절하게 사용한다면 코드 개선에 도움이 되고 코드를 더 짧고 명확하게 만들 수 있다.
 
-<br><br>
+<br>
 
 <div id="notice--success">
 
