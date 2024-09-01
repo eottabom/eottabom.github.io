@@ -465,6 +465,8 @@ class SomeClass {
 }
 </pre>
 
+<br><br>
+
 #### Best practices for final in method parameters
 
 --- 
