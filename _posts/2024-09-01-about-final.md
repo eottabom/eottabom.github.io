@@ -581,8 +581,8 @@ public void someMethod() {
 
 ---
 
-[final Variables](https://docs.oracle.com/javase/specs/jls/se8/html/jls-4.html#jls-4.12)
-[Best practices for using final keyword in Java](https://sg.wantedly.com/companies/bebit/post_articles/366756)
+* [final Variables](https://docs.oracle.com/javase/specs/jls/se8/html/jls-4.html#jls-4.12)
+* [Best practices for using final keyword in Java](https://sg.wantedly.com/companies/bebit/post_articles/366756)
 
 
 <br>
