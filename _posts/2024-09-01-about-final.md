@@ -95,6 +95,12 @@ public static String concatFinalStrings() {
 |BenchmarkRunner.finalStrings|avgt|5|0.340|± 0.004|ns/op|
 |BenchmarkRunner.nonFinalStrings|avgt|5|4.404|± 0.188|ns/op|
 
+<div id="notice--warning">
+
+    🏷️ <a href="https://github.com/eottabom/lego-piece/tree/main/benchmark">벤치 마크 결과 보기(클릭)</a>
+
+</div>
+
 <br>
 
 해당 메서드들을 컴파일해서 `javap` 커맨드로 바이트코드를 확인해보면,  
@@ -387,6 +393,13 @@ benchmark 결과로는 `final` method 가 성능이 조금 더 좋은 것을 알
 JIT 컴파일러는 메서드가 오버라이드 되지 않는다고 판단되면 `final` 메서드처럼 최적화 한다.
 (JIT 컴파일러가 인라인 최적화 할 때 메서드 호출 오버헤드를 없애기 때문)  
 따라서, 간단한 연산을 하는 메서드의 경우는 오버헤드가 미미하여 `final` 의 효과가 크게 드러나지 않을 수 있다.
+
+<div id="notice--warning">
+
+    🏷️ <a href="https://github.com/eottabom/lego-piece/tree/main/benchmark">벤치 마크 결과 보기(클릭)</a>
+
+</div>
+
 
 <br>
 <br>
