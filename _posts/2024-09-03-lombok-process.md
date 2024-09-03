@@ -326,6 +326,115 @@ public void compile(Collection&#60;JavaFileObject&#62; sourceFileObjects,
 }
 </pre>
 
+<br>
+
+위와 같은 과정을 거쳐서 아래의 코드를 컴파일하면,
+
+<pre class="prettyprint lang-java">
+@Data
+public class User {
+
+	private String id;
+
+	private String name;
+
+}
+</pre>
+
+<br>
+
+아래와 같은 결과가 나온다.
+
+<br>
+
+<pre class="prettyprint lang-java">
+public class User {
+private String id;
+private String name;
+
+    @Generated
+    public User() {
+    }
+
+    @Generated
+    public String getId() {
+        return this.id;
+    }
+
+    @Generated
+    public String getName() {
+        return this.name;
+    }
+
+    @Generated
+    public void setId(final String id) {
+        this.id = id;
+    }
+
+    @Generated
+    public void setName(final String name) {
+        this.name = name;
+    }
+
+    @Generated
+    public boolean equals(final Object o) {
+        if (o == this) {
+            return true;
+        } else if (!(o instanceof User)) {
+            return false;
+        } else {
+            User other = (User)o;
+            if (!other.canEqual(this)) {
+                return false;
+            } else {
+                Object this$id = this.getId();
+                Object other$id = other.getId();
+                if (this$id == null) {
+                    if (other$id != null) {
+                        return false;
+                    }
+                } else if (!this$id.equals(other$id)) {
+                    return false;
+                }
+
+                Object this$name = this.getName();
+                Object other$name = other.getName();
+                if (this$name == null) {
+                    if (other$name != null) {
+                        return false;
+                    }
+                } else if (!this$name.equals(other$name)) {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+    }
+
+    @Generated
+    protected boolean canEqual(final Object other) {
+        return other instanceof User;
+    }
+
+    @Generated
+    public int hashCode() {
+        int PRIME = true;
+        int result = 1;
+        Object $id = this.getId();
+        result = result * 59 + ($id == null ? 43 : $id.hashCode());
+        Object $name = this.getName();
+        result = result * 59 + ($name == null ? 43 : $name.hashCode());
+        return result;
+    }
+
+    @Generated
+    public String toString() {
+        String var10000 = this.getId();
+        return "User(id=" + var10000 + ", name=" + this.getName() + ")";
+    }
+}
+</pre>
 
 <br><br>
 
