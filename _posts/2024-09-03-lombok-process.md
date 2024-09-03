@@ -43,7 +43,6 @@ comments: true
 
 </div>
 
-
 <pre class="prettyprint lang-java">
        ASSIGN
       /      \
@@ -103,13 +102,13 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 
 #### 4. 컴파일 과정에서의 Annotation Processing 및 Syntax Tree 접근
 * Annotation Processing 시작
-    * 컴파일 과정에서 `Enter` 및 `MemberEnter` 단계가 완료된 후, `Annotation Processing `이 시작되어 Lombok 이 AST 를 수정한다.
+  * 컴파일 과정에서 `Enter` 및 `MemberEnter` 단계가 완료된 후, `Annotation Processing `이 시작되어 Lombok 이 AST 를 수정한다.
 * Syntax Tree 접근
-    * `com.sun.source.tree.*` 패키지를 통해 생성된 Syntax Tree 에 접근할 수 있다.
+  * `com.sun.source.tree.*` 패키지를 통해 생성된 Syntax Tree 에 접근할 수 있다.
 * Data Model
-    * `com.sun.tools.javac.code.*` 패키지 내 클래스들은 자바 코드의 의미론적 정보를 제공하며, 이는 `Enter`, `MemberEnter`, `Annotation Visitor` 단계에서 생성된다.
+  * `com.sun.tools.javac.code.*` 패키지 내 클래스들은 자바 코드의 의미론적 정보를 제공하며, 이는 `Enter`, `MemberEnter`, `Annotation Visitor` 단계에서 생성된다.
 * 컴파일러 재시작
-    * `Annotation Processing` 중에 새로운 파일이 생성될 경우, 컴파일이 재시작 될 수 있다.
+  * `Annotation Processing` 중에 새로운 파일이 생성될 경우, 컴파일이 재시작 될 수 있다.
 
 
 <br><br><br>
@@ -209,6 +208,7 @@ Lombok 은 컴파일 과정의 `Annotation Processing` 단계에서 동작하여
 
 위의 과정을 JavaCompiler 코드를 보면 아래와 같다. [(코드보러가기)](https://github.com/openjdk/jdk/blob/03ba37e60ce08def6afd172efc1cdbbcc856c633/src/jdk.compiler/share/classes/com/sun/tools/javac/main/JavaCompiler.java#L910)
 
+<br>
 
 <pre class="prettyprint lang-java">
 public void compile(Collection&#60;JavaFileObject&#62; sourceFileObjects,
@@ -435,6 +435,22 @@ private String name;
     }
 }
 </pre>
+
+<br>
+
+<div id="notice--success">
+
+    <p style='margin-top:1em;'>
+      <b> 📗 요약 </b> 
+    </p>
+    🖐 Lombok 은 컴파일 과정 중 <b> Annotation Processing </b> 영역에서 동작한다. <br>
+    🖐 <b> 컴파일러 동작 방식 </b>
+       준비 및 초기화 ➡ 구문 분석 ➡ Enter ➡ MemberEnter ➡ Annotation Visitor / Annotation Processing <br> 
+       ➡ 의미 분석 ➡ Desugar ➡ Generate ➡ 바이트 코드 생성 및 출력
+    <p style='margin-top:1em;' />
+
+</div>
+
 
 <br><br>
 
