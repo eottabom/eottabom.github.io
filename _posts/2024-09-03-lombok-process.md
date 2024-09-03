@@ -18,19 +18,30 @@ comments: true
 
 </div>
 
-![lombok-process]({{site.baseurl}}/img/post/lombok/lombok-process.png)
+<br>
+
+## 컴파일 과정에서 Lombok 동작 Flow
+
+---
+
+<div style="text-align: center;">
+  <img src="{{site.baseurl}}/img/post/lombok/lombok-process.png" alt="lombok-process" />
+</div>
+
+<br>
 
 전체적인 흐름은 위와 같고, Lombok 은 컴파일 단계에서 `Annotation Processing` 에서 수행된다.
 
+<br><br>
 
 ## Lombok 동작 원리
 
 ---
 
 #### 1. javac 가 소스 파일을 파싱하여 AST(Abstract Syntax Tree, 추상 구문 트리) 를 만든다.
-* 소스 파일 읽기
+* **소스 파일 읽기**
     * `javac` (자바 컴파일러)는 먼저 입력된 자바 소스 파일(`.java` 확장자를 가진 일반 텍스트 파일)을 읽는다.
-* 파싱(Parsing)
+* **파싱(Parsing)**
     * 소스 파일을 읽은 후 `javac` 는 이를 구문 분석(parser) 를 통해 AST 로 변환한다.
 
 
@@ -63,13 +74,13 @@ comments: true
 <br>
 
 #### 2. Lombok 의 Annotation Processor 가 AST 를 수정하고 새로운 노드(소스 코드)를 추가한다.
-* Annotation Processing
+* **Annotation Processing**
   * `javac`는 소스 코드를 컴파일하는 과정에서 어노테이션을 처리하기 위해서 `Annotaion Processing` 단계를 거친다. Lombok 은 이 과정에서 동작한다.
-* Lombok 의 Annotation Processor
+* **Lombok 의 Annotation Processor**
   * Lombok 은 자체적으로 제공하는 `Annotation Processor` 를 통해 AST 를 수정하고,
-* Lombok 의 Annotation handler
+* **Lombok 의 Annotation handler**
   * `Annotation handler` 로 어노테이션에 따라 필요한 코드를 추가하고, 이로 인해 AST 가 다시 수정된다.
-* AST 수정
+* **AST 수정**
   * Lombok 은 AST 에서 특정 위치를 찾아 노드를 추가하거나 기존 노드를 수정한다.
   * 예를 들어, `@Getter` 가 필드 `private int age;` 에 붙어 있으면, Lombok 은 해당 클래스의 AST 에 `public int getAge() { return this.age; }` 라는 메서드 노드를 삽입한다.
 
@@ -86,7 +97,7 @@ comments: true
 
 #### 3. javac 는 Lombok 에 의해 수정된 AST 를 기반으로 Byte Code 를 생성한다.
 Lombok 의 Annotation Processing 이 완료된 직후의 시점.  
-* Byte Code 생성
+* **Byte Code 생성**
   * 수정된 AST 를 기반으로 `javac` 는 바이트 코드를 생성하고 `.class` 파일로 저장한다.
   * Lombok 에 의해 추가된 코드도 이 과정에서 바이트 코드로 변환된다
 
@@ -101,13 +112,13 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 <br>
 
 #### 4. 컴파일 과정에서의 Annotation Processing 및 Syntax Tree 접근
-* Annotation Processing 시작
+* **Annotation Processing 시작**
   * 컴파일 과정에서 `Enter` 및 `MemberEnter` 단계가 완료된 후, `Annotation Processing `이 시작되어 Lombok 이 AST 를 수정한다.
-* Syntax Tree 접근
+* **Syntax Tree 접근**
   * `com.sun.source.tree.*` 패키지를 통해 생성된 Syntax Tree 에 접근할 수 있다.
-* Data Model
+* **Data Model**
   * `com.sun.tools.javac.code.*` 패키지 내 클래스들은 자바 코드의 의미론적 정보를 제공하며, 이는 `Enter`, `MemberEnter`, `Annotation Visitor` 단계에서 생성된다.
-* 컴파일러 재시작
+* **컴파일러 재시작**
   * `Annotation Processing` 중에 새로운 파일이 생성될 경우, 컴파일이 재시작 될 수 있다.
 
 
@@ -118,13 +129,13 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 ---
 
 #### 1. 준비 및 초기화
-* 준비 프로세스
+* **준비 프로세스**
   * 컴파일러의 초기화 단계에서 플러그인 주석 프로세서가 초기화된다.
 
 <br>
 
 #### 2. 구문 분석 (Parsing)
-* Parse 단계
+* **Parse 단계**
   * 자바 소스 파일을 읽고 구문 분석하여 토큰 시퀀스 결과를 추상 구문 트리(AST) 노드에 매핑한다.
   * Lexical Analysis: 문자 스트림을 토큰(심볼)으로 변환한다.
   * Parsing: 토큰 순서에 따라 추상 구문 트리를 구성하고, 이를 기반으로 후속 작업을 위한 구문 트리를 구축한다.
@@ -132,7 +143,7 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 <br>
 
 #### 3. Enter 단계
-* EnterTrees:
+* **EnterTrees**
   * 심볼 테이블을 채우는 과정으로, 클래스와 인터페이스의 기본 구조를 파악하고 심볼 테이블을 구축한다.
   * 첫 번째 단계: 모든 클래스를 해당 범위에 등록한다.
   * 두 번째 단계: 각 클래스 심볼의 MemberEnter 객체를 사용하여 클래스, 슈퍼 클래스, 인터페이스의 매개변수를 결정한다.
@@ -140,7 +151,7 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 <br>
 
 #### 4. MemberEnter 단계
-* 클래스 멤버 스캔
+* **클래스 멤버 스캔**
   * 각 클래스의 멤버들(필드, 메서드, 생성자 등)을 스캔하고, 이들에 대한 심볼 정보를 심볼 테이블에 등록한다.
   * 타입 체킹 및 상수 폴딩
   * 멤버들의 타입을 검증하고, 상수 값을 계산하여 최적화한다.
@@ -148,7 +159,7 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 <br>
 
 #### 5. Annotation Visitor 및 Annotation Processing
-* Annotate 단계
+* **Annotate 단계**
   * 어노테이션을 스캔하고, 어노테이션 프로세서를 호출하여 어노테이션이 지시하는 작업을 처리한다.
   * Annotation Processor: 어노테이션 프로세서가 동작하며, AST 를 수정하거나 새로운 코드를 삽입한다.
 
@@ -164,31 +175,31 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 <br>
 
 #### 6. 의미 분석 (Semantic Analysis)
-* Attribute 단계
+* **Attribute 단계**
   * 의미 분석을 통해 변수 선언, 타입 일치 여부 등을 확인하며, 상수 접기 작업이 이루어진다.
-* Flow 단계
+* **Flow 단계**
   * 데이터 및 제어 흐름 분석을 통해 프로그램의 논리를 검증한다.
   * 변수 사용 전 할당 여부, 메서드 경로에서의 반환 값 존재 여부, 예외 처리의 적절성 등을 확인한다.
 
 <br>
 
 #### 7. Desugar
-* Desugar 단계
+* **Desugar 단계**
   * 구문적 설탕(syntactic sugar)을 제거하고, 내부 클래스, 클래스 리터럴, 단언, foreach 루프 등을 처리하여 AST 를 재작성한다.
 
 <br>
 
-#### 8. Generate 및 바이트 코드 생성
-* Generate 단계
+#### 8. Generate
+* **Generate 단계**
   * 바이트코드를 생성하고, 인스턴스 생성자 메서드(<init>)와 클래스 생성자 메서드(<clinit>)를 추가한다.
   * 문자열 추가 작업을 StringBuffer 나 StringBuilder 로 변환한다.
 
 <br>
 
 #### 9. 바이트 코드 생성 및 출력
-* 바이트 코드 생성 (Class Generation 단계)
+* **바이트 코드 생성 (Class Generation 단계)**
   * `javac` 는 수정된 AST 를 바탕으로 `.class` 파일에 들어갈 바이트 코드를 생성한다.
-* 출력 (Output)
+* **출력 (Output)**
   * 생성된 바이트 코드를 `.class` 파일로 저장하며, 이 `.class` 파일은 최종적으로 JVM 에 의해 실행된다.
 
 <br>
@@ -444,9 +455,9 @@ private String name;
       <b> 📗 요약 </b> 
     </p>
     🖐 Lombok 은 컴파일 과정 중 <b> Annotation Processing </b> 영역에서 동작한다. <br>
-    🖐 <b> 컴파일러 동작 방식 </b>
-       준비 및 초기화 ➡ 구문 분석 ➡ Enter ➡ MemberEnter ➡ Annotation Visitor / Annotation Processing <br> 
-       ➡ 의미 분석 ➡ Desugar ➡ Generate ➡ 바이트 코드 생성 및 출력
+    🖐 <b> 컴파일러 동작 방식 </b> <br>
+       준비 및 초기화 ➡ 구문 분석 ➡ Enter ➡ MemberEnter ➡ Annotation Visitor / Annotation Processing ➡ 의미 분석 <br> 
+      ➡ Desugar ➡ Generate ➡ 바이트 코드 생성 및 출력
     <p style='margin-top:1em;' />
 
 </div>
@@ -458,8 +469,8 @@ private String name;
 
 ---
 
-[Lombok은 어떻게 동작되나? 간단정리](https://free-strings.blogspot.com/2015/12/lombok.html)
-[10 minutes to teach you how to hack the Java compiler](https://www.programmersought.com/article/42205547853/)
+* [Lombok은 어떻게 동작되나? 간단정리](https://free-strings.blogspot.com/2015/12/lombok.html)
+* [10 minutes to teach you how to hack the Java compiler](https://www.programmersought.com/article/42205547853/)
 
 
 <br>
