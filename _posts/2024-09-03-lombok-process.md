@@ -48,10 +48,13 @@ comments: true
 
 <div id="notice--note">
 
-    📘 <span style="font-weight: bold!important;"> Note </span> <br> 
-    소스 코드는 문법적인 구조로 변환되어 트리 형태로 나타난다. <br>
-    예를 들어, `int a = b + 5;` 라는 코드가 있을 때, <br>
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 소스 코드는 문법적인 구조로 변환되어 트리 형태로 나타난다. <br>
+    ✏️  예를 들어, `int a = b + 5;` 라는 코드가 있을 때, <br>
     AST 로 변환하면 `ASSIGN`(할당), `VAR a`(변수), `ADD`(덧셈), `VAR b`(변수), `CONST 5`(상수) 등의 노드로 구성된 트리가 만들어진다.
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -65,10 +68,13 @@ comments: true
 
 <div id="notice--note">
 
-    📘 <span style="font-weight: bold!important;"> Note - AST(Abstract Syntax Tree, 추상 구문 트리) 의 구성</span> <br> 
-    노드(Node) : AST 의 각 노드는 프로그램의 특정 요소(예: 변수, 연산자, 함수 호출 등)을 나타냄 <br>
-    리프(Leaf) : 리프는 더 이상 나뉘지 않는 트리의 끝 부분으로, 보통 변수명이나 상수와 같은 기본 단위를 나타냄 <br>
-    자식 노드(Children) : 각 노드는 다른 여러 자식 노드를 가질 수 있으며, 이는 해당 요소의 구성 요소를 나타냄
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note - AST(Abstract Syntax Tree, 추상 구문 트리) 의 구성 </b> 
+    </p>
+    ✏️ 노드(Node) : AST 의 각 노드는 프로그램의 특정 요소(예: 변수, 연산자, 함수 호출 등)을 나타냄 <br>
+    ✏️ 리프(Leaf) : 리프는 더 이상 나뉘지 않는 트리의 끝 부분으로, 보통 변수명이나 상수와 같은 기본 단위를 나타냄 <br>
+    ✏️ 자식 노드(Children) : 각 노드는 다른 여러 자식 노드를 가질 수 있으며, 이는 해당 요소의 구성 요소를 나타냄
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -87,10 +93,13 @@ comments: true
 
 <div id="notice--note">
 
-    📘 <span style="font-weight: bold!important;"> Note </span> <br> 
-    이 과정에서 `javac` (컴파일러) 는 Lombok 이 지정한 어노테이션을 붙은 코드를 찾고, Lombok 은 해당 부분의 AST(Abstract Syntax Tree, 추상 구문 트리) 를 조작한다. <br>
-    예를 들어서 `@Getter` 어노테이션이 있는 필드에 대해서 Lombok 은 해당 클래스에 자동으로 getter 메서드를 생성하고, <br>
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 이 과정에서 `javac` (컴파일러) 는 Lombok 이 지정한 어노테이션을 붙은 코드를 찾고, Lombok 은 해당 부분의 AST(Abstract Syntax Tree, 추상 구문 트리) 를 조작한다. <br>
+    ✏️ 예를 들어서 `@Getter` 어노테이션이 있는 필드에 대해서 Lombok 은 해당 클래스에 자동으로 getter 메서드를 생성하고, <br>
     AST(Abstract Syntax Tree, 추상 구문 트리) 에 새로운 메서드 노드를 추가한다.
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -104,9 +113,12 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 
 <div id="notice--note">
 
-    📘 <span style="font-weight: bold!important;"> Note</span> <br>
-    최종 바이트 코드는 자바 프로그램의 실행 논리를 포함하며, 런타임이 JVM 이 이 바이트 코드를 실행한다. <br>
-    Lombok 에 의해 생성된 메서드나 필드 역시 바이트 코드로 변환되어 최종 `.class` 파일에 포함된다.
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 최종 바이트 코드는 자바 프로그램의 실행 논리를 포함하며, 런타임이 JVM 이 이 바이트 코드를 실행한다. <br>
+    ✏️ Lombok 에 의해 생성된 메서드나 필드 역시 바이트 코드로 변환되어 최종 `.class` 파일에 포함된다.
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -168,8 +180,11 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 
 <div id="notice--note">
 
-    📘 <span style="font-weight: bold!important;"> Note</span> <br>
-    이때, Lombok 과 같은 라이브러리들이 동작한다. <br>
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 이때, Lombok 과 같은 라이브러리들이 동작한다. <br>
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -207,8 +222,11 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
 
 <div id="notice--note">
 
-    📘 <span style="font-weight: bold!important;"> Note</span> <br>
-    소스 파일 → AST 생성 → Annotation Processing(Lombok) → AST 수정 → 바이트 코드 생성 → .class 파일 생성 및 출력 
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 소스 파일 → AST 생성 → Annotation Processing(Lombok) → AST 수정 → 바이트 코드 생성 → .class 파일 생성 및 출력 
+    <p style='margin-top:1em;' />
 
 </div>
 

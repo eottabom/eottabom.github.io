@@ -99,6 +99,7 @@ public static String concatFinalStrings() {
 <div id="notice--warning">
 
     🏷️ <a href="https://github.com/eottabom/lego-piece/tree/main/benchmark">벤치 마크 결과 보기(클릭)</a>
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -398,6 +399,7 @@ JIT 컴파일러는 메서드가 오버라이드 되지 않는다고 판단되�
 <div id="notice--warning">
 
     🏷️ <a href="https://github.com/eottabom/lego-piece/tree/main/benchmark">벤치 마크 결과 보기(클릭)</a>
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -495,8 +497,11 @@ class SomeClass {
 
 <div id="notice--note">
 
-    <p style="font-weight: bold!important;"> 📘 Note </p>
-    따라서 전체 프로젝트에서 사용되지 않는다면, 굳이 매개변수에 final 을 사용할 필요가 없다.
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 따라서 전체 프로젝트에서 사용되지 않는다면, 굳이 매개변수에 final 을 사용할 필요가 없다.
+    <p style='margin-top:1em;' />
 
 </div>
 
@@ -513,8 +518,11 @@ final 이 필드의 객체를 불변으로 만들지는 않지만, 최소한 참
 
 <div id="notice--note">
 
-    <p style="font-weight: bold!important;"> 📘 Note </p>
-    타당한 이유로 필드를 다시 할당 해야 한다고 확신하지 않는 한 클래스의 모든 필드에 final 을 사용해라.
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ 타당한 이유로 필드를 다시 할당 해야 한다고 확신하지 않는 한 클래스의 모든 필드에 final 을 사용해라.
+    <p style='margin-top:1em;' />
 
 </div>
 
