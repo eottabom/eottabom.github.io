@@ -469,7 +469,7 @@ private String name;
 <br>
 
 <div style="text-align: center;">
-  <img src="{{site.baseurl}}/img/post/lombok/lombok-generate-code.png" alt="lombok-process" />
+  <img src="{{site.baseurl}}/img/post/lombok/lombok-generate-code.png" alt="lombok-generate-code" />
 </div>
 
 <br>
