@@ -225,7 +225,7 @@ Lombok 의 Annotation Processing 이 완료된 직후의 시점.
     <p style='margin-top:1em;'> 
       <b> 📘 Note </b> 
     </p>
-    ✏️ 소스 파일 → AST 생성 → Annotation Processing(Lombok) → AST 수정 → 바이트 코드 생성 → .class 파일 생성 및 출력 
+    ✏️ 소스 파일 → AST 생성 → Annotation Processing(Lombok) → AST 수정 → 바이트 코드 생성 → .class 파일 생성/출력 
     <p style='margin-top:1em;' />
 
 </div>
