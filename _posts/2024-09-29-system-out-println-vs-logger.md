@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Logger vs System.out.println (feat. 코드 까보기)"
-description: "Logger vs System.out.println (Dig into the code)"
+title: "Logger vs System.out.println"
+description: "Logger vs System.out.println"
 excerpt: "로거와 System.out.println 를 비교해보고, 왜 System.out.println 을 프러덕션 코드에서 사용하면 안되는지에 대해서 알아보자."
 category: Java
 comments: true
