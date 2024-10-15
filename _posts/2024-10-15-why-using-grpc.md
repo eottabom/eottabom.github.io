@@ -266,6 +266,20 @@ MSA 구조와 같이 서버간 통신이 빈번하게 일어나서 데이터를 
 * Client 가 여러 요청을 동시에 보내도, 각 요청이 독립적으로 처리되어서 **Head-of-Line Blocking** 문제를 해결한다.
 * 각 스트림에 **우선 순위** 를 할당하여 중요한 리소스 먼저 전송할 수 있다.
 
+<div id="notice--note">
+
+    <p style='margin-top:1em;'> 
+      <b> 📘 Note </b> 
+    </p>
+    ✏️ Head-of-Line Blocking 이 해결 되었다는 것은, Application Layer 에서 Head-of-Line Blocking 이 해결되었다는 것이다. <br>
+    ✏️ HTTP/2 도 결국엔 TCP 위에서 동작하기 때문에 Transport Layer 에서의 Head-of-Line Blocking 이 존재한다. <br>
+    ➡️ TCP 는 순서 보장을 위한 프로토콜이라 중간에 패킷 손실되면, 손실된 패킷을 다시 전송받을 때까지 나머지 패킷의 처리가 지연 <br>
+    ➡️ 하나의 TCP 연결에서 여러 요청이 stream 으로 요청이 된다고 해도 중간에 패킷 손실되면, 지연이 발생한다는 의미 <br>
+    ✏️ Head-of-Line Blocking 문제는 UDP 기반의 QUIC 프로토콜(HTTP/3) 에서 해결가능하다. 
+    <p style='margin-top:1em;' />
+
+</div>
+
 ### 2) Header 압축 (HPACK)
 
 <div style="text-align: center;">
