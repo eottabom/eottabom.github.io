@@ -102,7 +102,7 @@ MSA 구조와 같이 서버간 통신이 빈번하게 일어나서 데이터를 
 
 <br>
 
-### TCP Connection Termination Process (3-way handshake)
+### TCP Connection Termination Process (4-way handshake)
 
 <br>
 
