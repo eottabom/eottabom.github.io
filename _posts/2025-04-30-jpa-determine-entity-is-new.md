@@ -181,6 +181,12 @@ Database 에는 해당 ID 가 존재하지 않지만, 신규 Entity 임에도 �
 |ID가 존재하지만 실제 DB 에는 없음 | merge() 호출 → 실패 가능성 / 비효율                |
 |ID 를 직접 설정한 신규 Entity| Persistable&#60;T&#62; + isNew() 로 명시 필요 |
 
+<div id="notice--warning">
+
+    🏷️ <a href="https://github.com/eottabom/let-me-code/tree/main/src/main/java/com/eottabom/letmecode/example/_01_jpa_entity">예제 코드 보러가기 (클릭)</a> <br>
+
+</div>
+
 
 <br><br>
 
