@@ -1,0 +1,8 @@
+_site/
+
+.gitignore
+.idea/**
+
+node_modules
+package-lock.json
+.next
