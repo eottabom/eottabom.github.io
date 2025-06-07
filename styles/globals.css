@@ -1,0 +1,50 @@
+@import 'prism-themes/themes/prism-vsc-dark-plus.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white text-gray-900 font-display leading-relaxed;
+}
+
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.prose pre code {
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.prose pre {
+  padding: 1rem;
+  border-radius: 0.5rem;
+}
+
+.prose {
+  max-width: 100% !important;
+}
+
+.prose {
+  font-size: 1rem;
+  line-height: 2;
+}
+
+.prose p {
+  font-size: 1rem !important;
+  line-height: 2 !important;
+}
+
+.prose li,
+.prose table,
+.prose code {
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+}
+
+

@@ -1,0 +1,191 @@
+---
+title: "Spring Data JPA - 새로운 Entity 판별"
+date: "2025-04-30"
+tags: ["Spring", "JPA"]
+summary: "How does Spring Data JPA Determine if an Entity is New?"
+description: "Spring Data JPA 에서 Entity 가 새로운 것인지 판단하는 방법에 대해서 알아보자."
+---
+
+:::info
+Spring Data JPA 를 사용하다보면 save() 메서드 호출 시 내부적으로 persist() 를 호출할지, merge() 를 호출 할 지 결정하게 된다. <br/>
+이 결정은 해당 Entity 가 새로운 Entity 인지 여부에 따라 결정되는데, Spring Data JPA 는 Entity 가 새로운지 어떻게 판단하는지 알아보자.
+:::
+
+---
+
+### 신규 Entity 판단 방식
+
+Spring Data JPA 는 내부적으로 `JpaEntityInformation` 의 `isNew(T entity)` 메서드를 호출해서 판단한다.
+
+```java
+@Override
+public boolean isNew(T entity) {
+    if (versionAttribute.isEmpty()
+        || versionAttribute.map(Attribute::getJavaType).map(Class::isPrimitive).orElse(false)) {
+        return super.isNew(entity);
+    }
+    BeanWrapper wrapper = new DirectFieldAccessFallbackBeanWrapper(entity);
+    return versionAttribute.map(it -> wrapper.getPropertyValue(it.getName()) == null).orElse(true);
+}
+```
+
+* `@Version` 필드가 있다면 → 해당 버전 필드 값이 null 인지 여부로 판단
+* `@Version` 필드가 없다면 → `@Id` 필드가 null 이거나, primitive 타입일 경우, 0인지 여부로 판단
+
+:::note
+즉, ID 가 null 이면 **신규 Entity 로 간주**하여 **persist()** 가 호출된다.
+:::
+
+---
+
+### 직접 ID 를 지정한 경우의 동작
+
+ID를 직접 지정하고 `save()` 를 호출하면, JPA 는 해당 Entity 가 기존에 존재한다고 판단하여 merge()를 수행한다. <br />
+이때 실제 Database 에 해당 ID가 존재하지 않으면, <BlueText> SELECT 쿼리는 0건을 반환하고 </BlueText> <br />
+JPA 는 병합용 엔티티를 새로 생성하여 INSERT 를 시도하거나, 제약 조건 위반으로 예외가 발생할 수 있다. <br />
+<RedText> 결국, 신규 Entity 임에도 JPA 는 기존 데이터처럼 인식하게 되어, 의도치 않은 UPDATE 또는 INSERT 실패로 이어질 수 있다 </RedText>
+
+
+:::note
+**merge** 는 **UPDATE** 뿐만 아니라, **INSERT** 도 가능하지만, <br />
+직접 ID 가 지정된 신규 엔티티에는 매우 위험하다.
+:::
+
+이를 해결 하기 위한 방법으로는 `Persistable<T>` 인터페이스를 구현하면 된다.
+
+```java
+// User.class
+
+@Entity
+@Table(name = "users")
+@EntityListeners(UserEntityListener.class)
+public class User implements Persistable<String> {
+
+	@Id
+	private String id;
+
+	private String name;
+
+	private boolean isNew = true;
+
+	protected User() {
+
+	}
+
+	public User(String id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
+	@Override
+	public String getId() {
+		return this.id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	@Override
+	public boolean isNew() {
+		return this.isNew;
+	}
+
+	public void setIsNew(boolean isNew) {
+		this.isNew = isNew;
+	}
+
+}
+
+// UserEntityListener.class
+
+public class UserEntityListener {
+	@PostPersist
+	@PostLoad
+	public void setNotNew(User user) {
+		System.out.println("@PostPersist/@PostLoad called");
+		user.setIsNew(false);
+	}
+
+}
+```
+
+---
+
+### persist() vs merge()
+
+|구분|persist()|merge()|
+|--|--|--|
+|동작|새로운 Entity 를 영속성 컨텍스트에 등록|준영속 객체를 병합하여 관리|
+|SELECT 쿼리|❌|✅ 먼저 조회 후 merge|
+|ID 필요 여부|❌|✅|
+|성능|빠름 (직접 INSERT)|느릴수 있다 (SELECT + UPDATE)|
+
+:::note
+신규 객체를 merge() 로 처리하면 불필요한 SELECT 쿼리가 발생하고 성능 저하 가능성이 존재하게 된다.
+:::
+
+---
+
+### 신규 Entity 판단이 중요한 이유는 무엇일까?
+
+Spring Data JPA 의 `SimpleJpaRepository` 는 `save()` 에서 다음과 같이 동작한다.
+
+```java
+@Transactional
+public <S extends T> S save(S entity) {
+    if (entityInformation.isNew(entity)) {
+        entityManager.persist(entity); // INSERT
+        return entity;
+    } else {
+        return entityManager.merge(entity); // SELECT → UPDATE, 존재하면 UPDATE 없으면 INSERT 가능성 있음
+    }
+}
+```
+
+ID 를 직접 설정했지만, `isNew()` 는 false 가 되어, `merge()` 를 호출하게 되고, <br />
+Database 에는 해당 ID 가 존재하지 않지만, 신규 Entity 임에도 불구하고, `SELECT` 후 `UPDATE` 를 하게 되어 (이 때, database 조회) 실패 또는 데이터 무결성 오류가 발생할 수 있고, 비효율적이다.
+
+
+:::note
+정확한 isNew() 제어는 성능, 정합성, 쿼리 효율성 측면에서 매우 중요하다.
+:::
+
+---
+
+### 요약
+
+|상황| 처리방식                                     |
+|--|------------------------------------------|
+|ID 없거나 null → 신규 Entity | persist()                                |
+|ID가 존재하지만 실제 DB 에는 없음 | merge() 호출 → 실패 가능성 / 비효율                |
+|ID 를 직접 설정한 신규 Entity| Persistable&#60;T&#62; + isNew() 로 명시 필요 |
+
+
+:::tip
+<a href="https://github.com/eottabom/let-me-code/tree/main/src/main/java/com/eottabom/letmecode/example/_01_jpa_entity">예제 코드 보러가기 (클릭)</a>
+:::
+
+<br/><br/>
+
+:::success
+💡 <b>정리</b><br />
+Spring Data JPA 는 내부적으로 isNew() 를 통해서 신규 Entity 여부를 판단한다. <br />
+ID 는 존재하지만 실제 DB 에 없는 경우 SELECT + UPDATE 후 merge 를 하므로 정합성이 떨어질 수 있고, 비효율적이다. <br />
+ID 를 직접 설정했을 경우는 Persistable + isNew() 로 명시하는 것이 필요하다. <br />
+:::
+
+
+---
+
+### 📚 Reference
+
+
+* [Spring Docs - JpaEntityInformation](https://docs.spring.io/spring-data/jpa/docs/current/api/org/springframework/data/jpa/repository/support/JpaEntityInformation.html)
+* [Spring Docs - entity-persistence](https://docs.spring.io/spring-data/jpa/reference/jpa/entity-persistence.html)
+
+<br/><br/>

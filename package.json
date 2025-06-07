@@ -1,0 +1,36 @@
+{
+  "name": "eottabom.github.io",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "lucide-react": "^0.268.0",
+    "next": "14.0.4",
+    "next-mdx-remote": "4.3.0",
+    "next-themes": "^0.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "rehype-autolink-headings": "6.1.1",
+    "rehype-prism-plus": "^1.6.0",
+    "prism-themes": "^1.9.0",
+    "rehype-slug": "5.0.1",
+    "remark-directive": "2.0.1",
+    "remark-gfm": "3.0.1",
+    "@fortawesome/fontawesome-free": "^6.5.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
+    "@types/node": "22.15.29",
+    "@types/react": "^18.2.65",
+    "@types/react-dom": "^18.2.21",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "5.8.3"
+  }
+}
