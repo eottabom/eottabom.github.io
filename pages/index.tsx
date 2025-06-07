@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { GetStaticProps } from 'next';
-import { getSortedPostsDataWithContent } from '../lib/posts';
+import {getPostsMetaOnly, getSortedPostsDataWithContent} from '../lib/posts';
 import AdSense from '../components/AdSense';
 
 const gradients = [
@@ -21,7 +20,6 @@ type Post = {
   title: string;
   summary?: string;
   description?: string;
-  mdxSource: MDXRemoteSerializeResult<Record<string, unknown>>;
 };
 
 type HomeProps = {
@@ -29,7 +27,6 @@ type HomeProps = {
   gradientsForPosts: string[];
 };
 
-// Fisher-Yates 셔플
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -40,12 +37,11 @@ function shuffle<T>(array: T[]): T[] {
 }
 
 export const getStaticProps: GetStaticProps<HomeProps> = async () => {
-  const allPostsData = await getSortedPostsDataWithContent();
+  const allPostsData = getPostsMetaOnly();
   const [latest, ...restAll] = allPostsData;
 
   const rest = restAll.filter((post) => post.id !== latest.id).slice(0, 3);
 
-  // 서버에서 고정된 랜덤 gradient 선택 (중복 방지)
   const gradientsForPosts = shuffle(gradients).slice(0, rest.length);
 
   return {

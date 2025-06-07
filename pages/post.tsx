@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import { GetStaticProps } from 'next';
-import { getSortedPostsDataWithContent } from '../lib/posts';
-import { MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { getPostsMetaOnly } from '../lib/posts';
 
 type Post = {
   id: string;
@@ -11,7 +10,6 @@ type Post = {
   summary?: string;
   description?: string;
   tags?: string[];
-  mdxSource: MDXRemoteSerializeResult;
 };
 
 type Props = {
@@ -20,7 +18,7 @@ type Props = {
 };
 
 export const getStaticProps: GetStaticProps<Props> = async () => {
-  const posts = await getSortedPostsDataWithContent();
+  const posts = getPostsMetaOnly();
 
   const postsByTag: Record<string, Post[]> = {};
   const tagCounts: Record<string, number> = {};

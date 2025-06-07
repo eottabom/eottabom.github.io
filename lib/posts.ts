@@ -105,3 +105,26 @@ export async function getSortedPostsDataWithContent(): Promise<PostData[]> {
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 }
+
+export type PostMeta = PostFrontmatter & {
+  id: string;
+};
+
+export function getPostsMetaOnly(): PostMeta[] {
+  const allFiles = getAllMdxFiles();
+
+  const allPostsMeta: PostMeta[] = allFiles.map((fullPath) => {
+    const id = extractIdFromFilename(fullPath);
+    const fileContents = fs.readFileSync(fullPath, 'utf8');
+    const { data } = matter(fileContents);
+
+    return {
+      id,
+      ...(data as PostFrontmatter),
+    };
+  });
+
+  return allPostsMeta.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+}
