@@ -47,4 +47,26 @@ body {
   line-height: 1.5 !important;
 }
 
+.custom-quote {
+  @apply border-l-4 border-gray-300 pl-4 italic text-gray-800;
+}
+
+.custom-quote footer {
+  @apply text-right mt-2 font-medium text-sm text-gray-500;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+@layer utilities {
+  .fix-matching-spacing {
+    margin-top: -1px;
+    letter-spacing: -0.01em;
+  }
+}
 
