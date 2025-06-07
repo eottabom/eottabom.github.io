@@ -1,6 +1,8 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Briefcase, GraduationCap, Award, Info } from 'lucide-react';
+import {Briefcase, GraduationCap, Award, Info, List} from 'lucide-react';
+import Link from "next/link";
+import { Home } from 'lucide-react';
 
 export default function About() {
   return (
@@ -94,6 +96,14 @@ export default function About() {
 
         </div>
       </main>
+
+      <Link
+          href="/"
+          className="fixed bottom-6 right-6 z-50 bg-white border border-gray-300 rounded-lg shadow-md p-3 hover:shadow-lg transition"
+          aria-label="홈으로 가기"
+      >
+        <Home className="w-6 h-6 text-gray-800"/>
+      </Link>
 
       <Footer />
     </div>
