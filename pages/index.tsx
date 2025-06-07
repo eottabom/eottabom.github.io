@@ -2,8 +2,9 @@ import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { GetStaticProps } from 'next';
-import {getPostsMetaOnly, getSortedPostsDataWithContent} from '../lib/posts';
+import {getPostsMetaOnly} from '../lib/posts';
 import AdSense from '../components/AdSense';
+import TopNotice from "../components/TopNotice";
 
 const gradients = [
   'from-pink-500 via-red-500 to-orange-400',
@@ -58,6 +59,7 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
 
   return (
     <>
+      <TopNotice />
       <div className="min-h-screen">
         <Header isDark={false} />
 

@@ -52,7 +52,7 @@ export default function PostPage({ postsByTag, tagCounts }) {
   const hasMore = visibleCount < posts.length;
 
   const title = selectedTag === "latest"
-    ? "Post"
+    ? "Latest Posts"
     : `${selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1)} Posts`;
 
   const description = selectedTag === "latest"
