@@ -70,3 +70,16 @@ body {
   }
 }
 
+code {
+  background-color: #fffde7;
+  font-weight: 750;
+  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  color: #1f2937;
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+}
+
+.prose code::before,
+.prose code::after {
+  content: none;
+}
