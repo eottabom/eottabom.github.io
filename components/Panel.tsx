@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, {isValidElement, ReactNode} from 'react';
 import {
   Info,
   AlertTriangle,
@@ -102,57 +102,70 @@ const typeStyles: Record<
   },
 };
 
-function extractTextFromChildren(children: ReactNode): string {
-  if (typeof children === 'string') {
-    return children;
-  }
-  if (Array.isArray(children)) {
-    return children.map(extractTextFromChildren).join('\n');
-  }
-  if (typeof children === 'object' && 'props' in children) {
-    return extractTextFromChildren((children as any).props.children);
-  }
-  return '';
+function extractLines(children: ReactNode): ReactNode[][] {
+  const result: ReactNode[][] = [];
+  let line: ReactNode[] = [];
+
+  const flush = () => {
+    if (line.length > 0) {
+      result.push(line);
+      line = [];
+    }
+  };
+
+  const walk = (node: ReactNode) => {
+    if (typeof node === 'string') {
+      node.split(/\r?\n/).forEach((part, i) => {
+        if (i > 0) {
+          flush();
+        }
+        if (part) {
+          line.push(part);
+        }
+      });
+    } else if (Array.isArray(node)) {
+      node.forEach((child) => {
+        walk(child);
+      });
+    } else if (isValidElement(node)) {
+      const { type, props } = node as any;
+      if (type === 'a' || type === 'code' || type === 'b') {
+        line.push(node);
+      } else {
+        walk(props.children);
+      }
+    } else if (typeof node === 'number') {
+      line.push(node);
+    }
+  };
+
+  walk(children);
+  flush();
+  return result;
 }
 
+
 function renderText(type: InfoPanelType, children: ReactNode) {
-  const text = extractTextFromChildren(children);
-  const lines = text
-      .split(/\r?\n/)
-      .reduce<string[]>((acc, line) => {
-        const trimmed = line.trim();
-        if (!trimmed) return acc;
-
-        const hasHtmlTag = /^<\w+/.test(trimmed); // <a ...>, <code>, <strong> 등
-        if (hasHtmlTag) {
-          acc.push(trimmed); // 그대로 넣음
-        } else if (acc.length > 0 && !/^<\w+/.test(acc[acc.length - 1])) {
-          acc[acc.length - 1] += ' ' + trimmed; // 이전 줄에 이어붙임
-        } else {
-          acc.push(trimmed);
-        }
-
-        return acc;
-      }, []);
-
-  const [title, ...bodyLines] = lines;
-
+  const lines = extractLines(children);
+  const [title = [], ...rest] = lines;
   const style = typeStyles[type];
 
   return (
       <>
-        <div className={`text-mi flex items-center gap-2 mt-2 mb-2 ${style.titleColor}`}>
+        <div className={`text-mi flex items-center gap-2 mt-2 mb-1 ${style.titleColor}`}>
           {React.cloneElement(style.icon, { className: `w-4 h-4 ${style.titleColor}` })}
           {title}
         </div>
         <div className={`space-y-1 text-mi pl-[1.3rem] ${style.titleColor}`}>
-          {bodyLines.map((line, idx) => (
-              <div key={idx}>{line}</div>
+          {rest.map((line, i) => (
+              <div key={i}>{line}</div>
           ))}
         </div>
       </>
   );
 }
+
+
 
 export default function InfoPanel({ type = 'info', children }: InfoPanelProps) {
   const style = typeStyles[type];

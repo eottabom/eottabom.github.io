@@ -173,7 +173,7 @@ Database 에는 해당 ID 가 존재하지 않지만, 신규 Entity 임에도 �
 <br/><br/>
 
 :::success
-💡 <b>정리</b><br />
+<b>정리</b><br />
 Spring Data JPA 는 내부적으로 isNew() 를 통해서 신규 Entity 여부를 판단한다. <br />
 ID 는 존재하지만 실제 DB 에 없는 경우 SELECT + UPDATE 후 merge 를 하므로 정합성이 떨어질 수 있고, 비효율적이다. <br />
 ID 를 직접 설정했을 경우는 Persistable + isNew() 로 명시하는 것이 필요하다. <br />
