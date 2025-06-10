@@ -129,7 +129,7 @@ function extractLines(children: ReactNode): ReactNode[][] {
       });
     } else if (isValidElement(node)) {
       const { type, props } = node as any;
-      if (type === 'a' || type === 'code' || type === 'b') {
+      if (type === 'a' || type === 'code' || type === 'b' || type === 'newline') {
         line.push(node);
       } else {
         walk(props.children);
