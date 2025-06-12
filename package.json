@@ -22,7 +22,7 @@
     "rehype-prism-plus": "^1.6.0",
     "prism-themes": "^1.9.0",
     "rehype-slug": "5.0.1",
-    "remark-directive": "2.0.1",
+    "remark-directive": "^3.0.0",
     "remark-gfm": "3.0.1",
     "@fortawesome/fontawesome-free": "^6.5.0"
   },

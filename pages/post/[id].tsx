@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { List } from 'lucide-react';
 import { ArrowDownCircle } from 'lucide-react';
+import { Tabs, Tab } from "../../components/Tabs";
 
 type PostData = {
   id: string;
@@ -65,6 +66,8 @@ export default function Post({ postData }: InferGetStaticPropsType<typeof getSta
     BlueText,
     RedText,
     GreenText,
+    Tabs,
+    Tab
   };
 
   return (

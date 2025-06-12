@@ -63,7 +63,7 @@ export async function getPostData(id: string): Promise<PostData> {
 
   const mdxSource = await serialize(content, {
     mdxOptions: {
-      remarkPlugins: [remarkGfm, remarkDirective, remarkDirectiveTransformer],
+      remarkPlugins: [remarkDirective, remarkDirectiveTransformer, remarkGfm],
       rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings, rehypePrism],
     },
     scope: data,
