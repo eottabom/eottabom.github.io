@@ -8,7 +8,7 @@ import { getAllPostIds, getPostData } from '../../lib/posts';
 import Header from '../../components/Header';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
-import { useTocObserver } from '../../hooks/useTocObserver';
+import { useTocObserver } from '../../lib/useTocObserver';
 import ScrollProgressBar from '../../components/ScrollProgressBar';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
