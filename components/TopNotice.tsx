@@ -19,7 +19,7 @@ export default function TopNotice() {
     return (
         <div className="bg-blue-50 border-b border-blue-200 text-blue-800 px-4 py-3 text-sm flex justify-between items-center">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span>⚙️ 이 블로그는 현재 포팅 작업 중입니다.</span>
+                <span>⚙️ 이 블로그는 현재 작업 중입니다.</span>
                 <Link
                     href="https://github.com/eottabom/eottabom.github.io/tree/maintenance/master/_posts"
                     target="_blank"
