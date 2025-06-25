@@ -1,0 +1,165 @@
+---
+title: "gRPC 를 도입하는 이유에 대해서 알아보자. (feat. Http 1.0 vs Http 1.1 vs Http 2.0)"
+date: "2024-10-15"
+tags: ["gRPC, Study"]
+summary: "Let's find out the issues with HTTP 1.0, HTTP 1.1, and the benefits of gRPC being introduced into the MSA structure."
+description: "HTTP 1.0, HTTP 1.1 의 문제와 gRPC 가 MSA 구조에 도입되면 어떤 이점이 있는지 알아보자."
+---
+
+:::info
+gRPC 는 Google 이 개발한 모든 환경에서 실행할 수 있는 오픈 소스 고성능 RPC 프레임워크이다.
+Monolithic → MSA 로 가면서, 여러개의 서비스로 분리가 되어졌는데,
+그렇다보니, 하나의 응답을 처리하기 위해서 빈번하게 네트워크 통신이 발생하게 되어 Latency 가 증가할 수가 있게 되었다.
+MSA 에서 gRPC 를 도입하면 어떤 이점이 있는지? 그리고 어떤 부분을 해소할 수 있는지 알아보자.
+더불어서 HTTP 1.0 vs HTTP 1.1 vs HTTP 2.0 에 대해서도 알아보자.
+:::
+
+---
+
+### Monolithic → MSA 전환시 Network Latency
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/monolithic.png" alt="monolithic" style={{ display: 'inline-block' }} />
+</div>
+
+
+Monolithic 아키텍처에서는 하나의 Machine 에서 동일한 프로세스 내에서 실행되고, 서비스 간 통신은 **메서드 호출**로 이루어지므로 별도의 **네트워크 통신이 필요 없다.**
+또한, 하나의 어플리케이션의 모든 서비스와 모듈이 동일한 메모리 공간에서 실행된다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/msa-network-latency.png" alt="msa-network-latency" style={{ display: 'inline-block' }} />
+</div>
+
+하지만, MSA 구조에서는 동일 장비가 아닐 수도 있는 여러 장비에 각각의 프로세스로 분리되다보니,
+보통 **REST 통신**을 통해 메시지를 주고 받는 구조가 되는데(서버간 통신이 발생한다.), 이 때, <RedText>잠재적인 latency</RedText> 가 존재한다.
+다른 Server 나 Frontend 에서 요청을 할 때 MSA 구간별 통신이 필요하다면, <RedText>응답속도가 저하된다는 단점</RedText> 이 존재하게 된다.
+
+
+---
+
+### Q. 어떤 요인으로 인해 응답 속도 저하가 발생할까?
+
+<BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>HTTP 는 기본적으로 TCP 위에서 동작하기 때문에, 데이터 송수신에 앞서 `3-way handshake` 과정을 거치고, `4-way handshake` 과정을 통해 종료가 되는데,
+MSA 구조와 같이 서버간 통신이 빈번하게 일어나서 데이터를 전송하고 응답을 받는 상황이라면, <BlueText>매번 연결을 맺고 종료 하는 과정</BlueText>이 발생해서
+<RedText>비효율</RedText>이 발생하게 된다.
+
+---
+
+### HTTP 1.0
+
+`HTTP 1.0` 은 웹의 태동과 함께 시작된 통신 표준이다. <br />
+기존의 1990년 팀 버너스리(Tim Berners-Lee) 가 최초의 웹 서버 및 클라이언트를 개발했을 때에는 상당히 단순한 구조였는데,
+```
+GET /index.html
+```
+* 헤더 값이 없으며, Content-Type 없이 HTML 만 응답만 가능했다.
+* 텍스트 기반 문서 전송에만 최적화 되었고, 실제 명세도 거의 없다고 해도 무방하다.
+
+웹의 인기가 폭발적으로 증가하며, 더 정형화된 명세의 필요성이 제기 되었고, 1996년 5월 IETF 에서 HTTP/1.0 을 공식 RFC 로 등록하게 되었다.
+:::note
+<a href = "https://datatracker.ietf.org/doc/html/rfc1945">RFC-1945: Hypertext Transfer Protocol -- HTTP/1.0</a>
+:::
+
+<br />
+
+<BlueText><span style={{ fontSize: '1.2rem', }}>HTTP 1.0 의 주요 도입 요소</span></BlueText>
+
+|기능|설명|
+|--|--|
+|요청 메서드|GET, POST, HEAD 지원|
+|응답 코드|200 OK, 404 Not Found, 500 Internal Server Error 등|
+|헤더 도입|Content-Type, Content-Length, Date, Server, User-Agent 등|
+|버전 명시|요청 라인에 `HTTP/1.0` 포함됨|
+|MIME 타입 지원|다양한 콘텐츠 전송 기능 (HTML 외 이미지 등)|
+
+---
+
+### HTTP 1.1
+
+`HTTP 1.0`은 요청마다 계속해서 새로운 TCP 연결을 맺은 다음에 요청을 처리하고 연결을 끊는 방식이다보니, `3-way handshake` 와`4-way handshake`하는 과정에서
+<RedText>오버헤드가 발생해서 비효율적이다.</RedText> 그리고 요청에 대한 응답을 받은 후에 다음 요청을 보낼 수 있어서 요청/응답이 순차적/직렬적으로 처리되어
+<RedText>Latency</RedText> 가 발생하게 된다.
+
+`HTTP 1.1` 에서는 이러한 문제를 해결하기 위해서 `Persistent Connection` 과 `Pipelining` 을 지원한다.
+
+:::note
+1999년 6월에 표준으로 채택된, `HTTP 1.1`은 웹의 핵심 전환점이 된 프로토콜이고,
+`HTTP 1.0` 의 한계를 개선하여 더 안정적이고 효율적인 웹 통신을 가능하게 하였다.
+<a href = "https://www.rfc-editor.org/rfc/rfc9110.html">HTTP 1.1 RFC-9110 문서 보러가기</a>
+:::
+
+
+#### 1) Persistent Connection (지속 연결)
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/persistent-connection.png" alt="persistent-connection" style={{ display: 'inline-block' }} />
+</div>
+
+* Client ↔ Server 간 연결을 한 번 맺으면 여러 요청을 그 연결에서 처리할 수 있게 한다.
+* `Connection: keep-alive` 헤더가 설정되어, Client 나 Server 가 명시적으로 연결을 끊지 않는 한 연결이 유지된다.
+
+#### 2) Pipelining
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/pipeliining.png" alt="pipeliining" style={{ display: 'inline-block' }} />
+</div>
+
+* `Pipelining` 은 Client 가 Server 에 여러 요청을 <BlueText>연속적</BlueText> 으로 보내고 순서대로 처리하는 방식이다.
+* `Pipelining` 이 적용되면 <BlueText>하나의 Connection 으로 다수의 요청과 응답을 처리할 수 있게 해서 Latency 를 줄일 수 있다.</BlueText>
+
+:::warning
+하지만, 완전한 멀티플렉싱이 아닌 응답 처리를 미루는 방식이여서 각 응답의 순서는 순차적으로 처리되며,
+결국, 앞선 응답이 지연이 생기면 자연스럽게 그 이후의 요청은 지연이 발생하게 된다.
+:::
+
+
+---
+
+### HTTP 1.1 의 문제점
+
+`HTTP 1.1`은 `Persistent Connection` 과 `Pipelining` 같은 기능을 통해서 `HTTP 1.0` 의 단점을 개선했지만, 여전히 여러 **문제점**이 남아 있다.
+
+#### 1) Head-of-Line Blocking (HOLB)
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/head-of-line-blocking.png" alt="head-of-line-blocking" style={{ display: 'inline-block' }} />
+</div>
+
+* Client 가 세 개의 요청 (Request1, Request2, Request3) 을 동시에 보내지만, Server 는 순차적으로 처리한다.
+* 첫 번째 요청 (Process1) 이 처리되는 동안 다른 요청들 (Process2, Process3) 은 차단(Blocked) 되어 대기 된다.
+
+:::note
+<b>Head-of-Line Blocking 이 발생하는 이유</b>
+순차적 처리 : HTTP 1.1 에서는 하나의 연결 위에서 요청이 순서대로 처리 되어야 한다.
+직렬 응답 : 서버는 요청 받은 순서대로 응답해야하므로, 하나의 요청이 지연되면 다음 요청도 자연스럽게 지연된다.
+리소스 다운로드 : 브라우저가 여러 리소스를 요청 할 때, 큰 파일(이미지, 동영상)이 먼저 다운로드 되면, 더 중요한 작은 파일들(css, js)이 대기한다.
+:::
+
+
+#### 2) Connection 관리의 비효율성
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/high-server-load.png" alt="high-server-load" style={{ display: 'inline-block' }} />
+</div>
+
+* 여러 Client 가 각각 Server 와 `Persistent Connection (지속 연결)`을 유지하게 되는 경우 서버는 여러 연결을 동시에 관리해야해서 서버에 부하가 갈 수 있다.
+
+
+#### 3) Header Overhead
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/header-overhead.png" alt="header-overhead" style={{ display: 'inline-block' }} />
+</div>
+
+* Client 가 Server 에 여러 요청을 보낼 때, 각 요청마다 동일한 Header 를 반복해서 전송하게 된다.
+* 중복된 Header 정보는 불필요한 대역폭을 차지하게 되어 효율성이 떨어지게 된다.
+
+---
+
+### HTTP 2.0
+
+이렇듯,
+
+#### 1)
+
+
