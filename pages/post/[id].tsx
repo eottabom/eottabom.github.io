@@ -4,7 +4,7 @@ import {
   InferGetStaticPropsType
 } from 'next';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { getAllPostIds, getPostData } from '../../lib/posts';
+import {getAllPostIds, getPostData, getPostsMetaOnly, PostMeta} from '../../lib/posts';
 import Header from '../../components/Header';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
@@ -15,11 +15,13 @@ import Link from 'next/link';
 import { List } from 'lucide-react';
 import { ArrowDownCircle } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
+import {serialize} from "next-mdx-remote/serialize";
 
 type PostData = {
   id: string;
   title: string;
   date: string;
+  tags?: string[];
   mdxSource: MDXRemoteSerializeResult;
 };
 
@@ -28,12 +30,32 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return { paths, fallback: false };
 };
 
-export const getStaticProps: GetStaticProps<{ postData: PostData }> = async ({ params }) => {
+export const getStaticProps: ({params}: { params: any }) => Promise<{
+  props: {
+    relatedPosts: PostMeta[];
+    postData: PostData & { id: string; mdxSource: Awaited<ReturnType<typeof serialize>> }
+  }
+}> = async ({ params }) => {
   const postData = await getPostData(params?.id as string);
-  return { props: { postData } };
+  const allPosts = getPostsMetaOnly();
+
+  const relatedPosts = allPosts
+      .filter(
+          (post) =>
+              post.id !== postData.id &&
+              post.tags?.some((tag) => postData.tags?.includes(tag))
+      )
+      .slice(0, 5);
+
+  return {
+    props: {
+      postData,
+      relatedPosts,
+    },
+  };
 };
 
-export default function Post({ postData }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Post({ postData, relatedPosts }: InferGetStaticPropsType<typeof getStaticProps>) {
   const [toc, activeId] = useTocObserver();
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -82,6 +104,28 @@ export default function Post({ postData }: InferGetStaticPropsType<typeof getSta
             <article>
               <MDXRemote {...postData.mdxSource} components={components}/>
             </article>
+            {relatedPosts.length > 0 && (
+                <div className="mt-20 p-6 border rounded-2xl bg-gray-50 dark:bg-gray-800 shadow-sm">
+                  <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
+                    🏷️ <span>같은 태그의 글 보기</span>
+                  </h2>
+                  <ul className="space-y-4">
+                    {relatedPosts.map((post) => (
+                        <li key={post.id} className="flex flex-col">
+                          <Link
+                              href={`/post/${post.id}`}
+                              className="text-lg font-medium text-blue-600 hover:underline dark:text-blue-400"
+                          >
+                            {post.title}
+                          </Link>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            {post.tags?.map((tag) => `#${tag}`).join(' ')}
+                          </span>
+                        </li>
+                    ))}
+                  </ul>
+                </div>
+            )}
           </main>
 
           {/* Table of contents */}
