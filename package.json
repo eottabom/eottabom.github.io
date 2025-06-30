@@ -2,13 +2,12 @@
   "name": "eottabom.github.io",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate:sitemap": "ts-node --esm scripts/generate-sitemap.ts",
-    "generate:rss": "ts-node --esm scripts/generate-rss.ts",
+    "generate:sitemap": "tsc --project tsconfig.json && node scripts/generate-sitemap.js",
+    "generate:rss": "tsc --project tsconfig.json && node scripts/generate-rss.js",
     "generate:seo": "npm run generate:sitemap && npm run generate:rss"
   },
   "dependencies": {
