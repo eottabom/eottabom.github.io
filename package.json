@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "generate:sitemap": "tsc --project tsconfig.json && node scripts/generate-sitemap.js",
-    "generate:rss": "ts-node scripts/generate-rss.ts",
+    "generate:rss": "tsc --project tsconfig.json && node scripts/generate-rss.js",
     "generate:seo": "npm run generate:sitemap && npm run generate:rss"
   },
   "dependencies": {
