@@ -95,6 +95,7 @@ for (var item : items) ...
 
 이것은 `var` 사용을 반대하는 것처럼 보일 수 있지만, `var` 를 사용할 때는 로컬 변수의 범위를 줄인 다음 사용하라는 것이다.
 
+---
 
 ### G3. 이니셜라이저가 충분한 정보를 제공하는 경우는 var 를 고려해라.
 **Consider var when the initializer provides sufficient information to the reader.**
@@ -122,6 +123,8 @@ var stringList = List.of("a", "b", "c");
 ```
 
 이러한 경우 메서더의 이름은 특정 반환 유형을 강력하게 암시하고 변수 Type 을 유추하는데 사용된다.
+
+---
 
 ### G4. 연속적으로 로컬 변수가 있는 곳과 중첩된 표현식을 분리하려면 var 를 사용한다.
 **Use var to break up chained or nested expressions with local variables.**
@@ -168,6 +171,7 @@ return maxEntryOpt.map(Map.Entry::getKey);
 하나의 긴 메서드 호출 체인이 있는 것을 선호 할 수 있다. 하지만 긴 메서드 체인을 분리하는 것이 가독성에 더 좋다. 이 과정에서 `var` 를 사용하는 것은 중간 변수에 Type 을 작성하는 것보다 좋은 대안이 될 수 있다.
 다른 많은 상황과 마찬가지로, `var` 를 사용하려면 무언가를 빼는 것(명시적 유형)과 다시 추가하는 것(더 나은 변수 이름, 더 나은 코드 구조화)가 모두 포함 될
 
+---
 
 ### G5. 로컬 변수를 사용한 "인터페이스 프로그래밍" 에 너무 걱정하지 말아라.
 **Don’t worry too much about “programming to the interface” with local variables.**
@@ -194,6 +198,7 @@ G2 에서 권장하는 대로 로컬 변수의 범위가 작으면 후속 코드
 이 특별한 경우, `ArrayList` 에는 `List` 에 없는 두 가지 메서드, 즉 `ensureCapacity`, `trimToSize` 만 포함된다. 이러한 메서드는 list 의 내용에 영향을 미치지 않으므로 정확성에 영향을 미치지 않는다.
 이렇게 하면 추론된 유형이 인터페이스가 아닌 구체적인 구현인 경우 영향이 더욱 줄어든다.
 
+---
 
 ### G6. 다이아몬드 또는 일반 메서드와 함께 var 를 사용할 때 주의해라.
 **Take care when using var with diamond or generic methods.**
@@ -242,6 +247,8 @@ var list = List.of(BigInteger.ZERO);
 다이아몬드 또는 일반 메서드와 함께 `var`를 사용하기로 결정한 경우
 메서드 또는 생성자 인수가 유추된 유형이 의도와 일치하도록 충분한 유형 정보를 제공하는지 확인해야 한다.
 그렇지 않으면 동일한 선언에서 다이아몬드 또는 일반 메서드와 함께 `var` 를 모두 사용하지 말아라.
+
+---
 
 ### G7. 리터럴과 함게 var 를 사용할 때는 주의해라.
 **Take care when using var with literals.**
