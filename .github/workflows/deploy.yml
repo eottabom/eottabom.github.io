@@ -27,6 +27,7 @@ jobs:
       - name: Build and Export
         run: |
           npm run build
+          npm run generate:seo
 
       - name: Deploy to GitHub Pages
         if: success() && (hashFiles('out/index.html') != '')
