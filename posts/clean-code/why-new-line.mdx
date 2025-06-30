@@ -17,11 +17,16 @@ POSIX 명세 때문인데, 그 현상과 POSIX 표준에 대해서 간략히 알
 ### 파일 끝에 개행이 없는 경우의 현상
 
 Check Style 의 결과로 `File does not end with a newline.` 경고가 발생한다.
-![warning](/img/post/clean-code/new-line/check-style-result.png)
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/clean-code/new-line/check-style-result.png" alt="check-style-result"  style={{ display: 'inline-block' }} />
+</div>
 
 github 에서 `Pull Request` 할 때 이상한 마크도 표시되는 것을 볼 수 있다.
 
-![github-pr](/img/post/clean-code/new-line/github-pr.png)
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/clean-code/new-line/github-pr.png" alt="github-pr"  style={{ display: 'inline-block' }} />
+</div>
 
 하지만, 프로그램을 돌리거나 코드 상에 이상이 있는 것은 전혀 아니다.
 이는 `POSIX` 명세 때문에 경고로 알려주는 것이다.
@@ -68,7 +73,9 @@ Definitions - 3.205 Line : `A sequence of zero or more non- <newline>s plus a te
 IntelliJ 기준으로 자동으로 마지막 개행을 추가하는 옵션은 default 로 활성화 되어 있다. <br />
 Preference > Editor > General > On Save > Ensure every saved file ends with a line break
 
-![intellij-settings.png](/img/post/clean-code/new-line/intellij-settings.png)
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/clean-code/new-line/intellij-settings.png" alt="intellij-settings"  style={{ display: 'inline-block' }} />
+</div>
 
 ---
 
