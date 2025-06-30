@@ -1,59 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-  <rss version="2.0">
-    <channel>
-      <title>Eottabom Blog</title>
-      <link>https://eottabom.github.io</link>
-      <description>Learnings from a considerate developer</description>
-      <language>ko</language>
-      
-    <item>
-      <title>Spring Data JPA - 새로운 Entity 판별</title>
-      <link>https://eottabom.github.io/post/jpa-determine-entity-is-new</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/jpa-determine-entity-is-new</guid>
-      <description>How does Spring Data JPA Determine if an Entity is New?</description>
-      <pubDate>Wed, 30 Apr 2025 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>도메인 주도 설계의 핵심 개념</title>
-      <link>https://eottabom.github.io/post/ddd-core-concept</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/ddd-core-concept</guid>
-      <description>Domain-Driven Design Core Concept</description>
-      <pubDate>Sat, 01 Mar 2025 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>도메인 주도 설계의 사실과 오해</title>
-      <link>https://eottabom.github.io/post/ddd-fact-misunderstanding</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/ddd-fact-misunderstanding</guid>
-      <description>Domain-Driven Design Fact and Misunderstanding</description>
-      <pubDate>Sat, 22 Feb 2025 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>gRPC 를 도입하는 이유에 대해서 알아보자. (feat. Http 1.0 vs Http 1.1 vs Http 2.0)</title>
-      <link>https://eottabom.github.io/post/why-using-grpc</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/why-using-grpc</guid>
-      <description>Let's find out the issues with HTTP 1.0, HTTP 1.1, and the benefits of gRPC being introduced into the MSA structure.</description>
-      <pubDate>Tue, 15 Oct 2024 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>try-with-resources 를 이용한 자원해제</title>
-      <link>https://eottabom.github.io/post/try-with-resources</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/try-with-resources</guid>
-      <description>Let’s explore how to manage and release resources using try-with-resources in Java.</description>
-      <pubDate>Thu, 10 Oct 2024 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>파일 끝에 개행이 필요한 이유</title>
-      <link>https://eottabom.github.io/post/why-new-line</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/why-new-line</guid>
-      <description>File dose not end with a newline</description>
-      <pubDate>Mon, 10 Jun 2024 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>Clean Code - Comment(주석) 에 대한 가이드</title>
-      <link>https://eottabom.github.io/post/comments</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/comments</guid>
-      <description>Clean Code - About Comment Guide</description>
-      <pubDate>Thu, 30 May 2024 00:00:00 GMT</pubDate>
-    </item>
-    </channel>
-  </rss>
+<rss version="2.0"><channel>
+<title>eottabom.github.io</title>
+<link>https://eottabom.github.io</link>
+<description>Blog RSS Feed</description>
+<lastBuildDate>Mon, 30 Jun 2025 11:33:57 +0000</lastBuildDate>
+  <item>
+    <title>ddd/ddd-fact-misunderstanding</title>
+    <link>https://eottabom.github.io/post/ddd/ddd-fact-misunderstanding</link>
+    <guid>https://eottabom.github.io/post/ddd/ddd-fact-misunderstanding</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>ddd/ddd-core-concept</title>
+    <link>https://eottabom.github.io/post/ddd/ddd-core-concept</link>
+    <guid>https://eottabom.github.io/post/ddd/ddd-core-concept</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>grpc/why-using-grpc</title>
+    <link>https://eottabom.github.io/post/grpc/why-using-grpc</link>
+    <guid>https://eottabom.github.io/post/grpc/why-using-grpc</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>clean-code/comments</title>
+    <link>https://eottabom.github.io/post/clean-code/comments</link>
+    <guid>https://eottabom.github.io/post/clean-code/comments</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>clean-code/why-new-line</title>
+    <link>https://eottabom.github.io/post/clean-code/why-new-line</link>
+    <guid>https://eottabom.github.io/post/clean-code/why-new-line</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>clean-code/local-variable-type-inference-style-guidelines</title>
+    <link>https://eottabom.github.io/post/clean-code/local-variable-type-inference-style-guidelines</link>
+    <guid>https://eottabom.github.io/post/clean-code/local-variable-type-inference-style-guidelines</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>java/try-with-resources</title>
+    <link>https://eottabom.github.io/post/java/try-with-resources</link>
+    <guid>https://eottabom.github.io/post/java/try-with-resources</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+  <item>
+    <title>spring/jpa-determine-entity-is-new</title>
+    <link>https://eottabom.github.io/post/spring/jpa-determine-entity-is-new</link>
+    <guid>https://eottabom.github.io/post/spring/jpa-determine-entity-is-new</guid>
+    <pubDate>Mon, 30 Jun 2025 11:33:57 +0000</pubDate>
+  </item>
+</channel></rss>
