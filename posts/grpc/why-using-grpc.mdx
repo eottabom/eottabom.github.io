@@ -108,7 +108,7 @@ GET /index.html
 * `Pipelining` 이 적용되면 <BlueText>하나의 Connection 으로 다수의 요청과 응답을 처리할 수 있게 해서 Latency 를 줄일 수 있다.</BlueText>
 
 :::warning
-하지만, 완전한 멀티플렉싱이 아닌 응답 처리를 미루는 방식이여서 각 응답의 순서는 순차적으로 처리되며,
+하지만, <b>완전한 멀티플렉싱이 아닌</b> 응답 처리를 미루는 방식이여서 각 응답의 순서는 순차적으로 처리되며,
 결국, 앞선 응답이 지연이 생기면 자연스럽게 그 이후의 요청은 지연이 발생하게 된다.
 :::
 
@@ -158,8 +158,332 @@ GET /index.html
 
 ### HTTP 2.0
 
-이렇듯,
+`HTTP 2.0`은 `HTTP 1.1`의 문제점인, **HOLB(Head-of-Line Blocking), Header Overhead, 연결 관리의 비효율성** 을 해결하기 위해 설계된 차세대 프로토콜이다.
+2015년 5월 RFC-7540 으로 공식 표준화 되었다.
 
-#### 1)
+:::note
+<a href = "https://datatracker.ietf.org/doc/html/rfc7540">RFC-7540: Hypertext Transfer Protocol Version 2 (HTTP/2)</a>
+:::
+
+`HTTP 2.0` 은 아래와 같은 주요 특징을 가지고 있다.
+
+#### 1) Multiplexing
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/multiplexing.png" alt="multiplexing" style={{ display: 'inline-block' }} />
+</div>
+
+* `HTTP 2.0` 은 요청와 응답을 **병렬로 처리** 할 수 있는 **멀티 플렉싱** 이다.
+  * 여러 TCP 설정을 할 필요 없이 한 번의 TCP 연결을 통해서 병렬로 처리할 수 있어서 <BlueText>네트워크 오버헤드가 감소한다. </BlueText>
+* Client 가 여러 요청을 동시에 보내도, 각 요청이 독립적으로 처리되어서 <BlueText>Head-of-Line Blocking</BlueText> 문제를 해결한다.
+* 각 스트림에 <BlueText>우선 순위</BlueText>를 할당하여 중요한 리소스를 먼저 전송할 수 있다.
+
+:::warning
+<b>Head-of-Line Blocking</b> 이 해결 되었다는 것은, Application Layer 에서 해결되었다는 것이다.
+HTTP/2 도 결국엔 TCP 위에서 동작하기 때문에 <b>Transport Layer</b> 에서의 <b>Head-of-Line Blocking</b> 은 존재한다.
+
+TCP 는 순서 보장을 위한 프로토콜이어서 중간에 패킷 손실이 발생하면, 손실된 패킷을 다시 전송받을 때까지 나머지 패킷 처리가 지연된다.
+하나의 TCP 연결에서 여러 요청이 stream 으로 요청이 된다고 해도 중간에 패킷 손실이 있으면 지연이 발생한다는 의미이다.
+<b>Head-of-Line Blocking</b> 문제는 UDP 기반의 QUIC 프로토콜(HTTP/3) 에서 해결가능하다.
+:::
 
 
+#### 2) Header 압축 (HPACK)
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/HPACK.png" alt="HPACK" style={{ display: 'inline-block' }} />
+</div>
+
+* `HPACK` 이라는 **헤더 압축** 방식을 통해 반복적으로 전송되는 헤더 정보를 효율적으로 관리하며, <BlueText>데이터 전송량</BlueText>을 줄이고, <BlueText>대역폭 사용</BlueText>을
+최적화 한다.
+
+:::note
+HPACK 은 <b>정적 테이블</b>로 자주 사용되는 헤더 필드를 미리 정의해서 참조하고, <b>동적 테이블</b>로 이전에 전송된 헤더 필드를 저장하고 참조하는 방식을 사용한다.
+압축은 <b>허프만 인코딩</b>을 사용하여 헤더 값을 효율적으로 인코딩하여 크기를 줄인다.
+:::
+
+#### 3) 서버 푸시 (Server Push)
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/server-push.png" alt="server-push" style={{ display: 'inline-block' }} />
+</div>
+
+* Client 가 요청하지 않은 리소스도 Server 가 미리 전송할 수 있게 페이지 로딩 속도를 개선한다.
+* 여러 요청/응답 사이클을 줄여 네트워크 사용을 최적화한다.
+* **우선 순위** 를 지정하여 중요한 리소스를 먼저 푸시하여 페이지 렌더링 속도를 향상 시킬 수 있다.
+
+:::warning
+과도한 서버 푸시는 불필요한 데이터 전송을 발생시킬 수 있다.
+:::
+
+---
+
+### HTTP 1.1 과 HTTP 2.0 의 차이점
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/http_1_1-vs2_0.png" alt="http_1_1-vs2_0" style={{ display: 'inline-block' }} />
+</div>
+
+|특징|HTTP 1.1|HTTP 2.x|
+|--|--|--|
+|Connection|Persistent Connection (지속 연결) | Persistent Connection + Multiplexing|
+|Request Handling|요청이 순차적으로 처리됨|요청이 동시에 처리 가능 (Multiplexing)|
+|Header Compression|없음|HPACK 으로 헤더 압축|
+|Protocol|텍스트 기반|Binary 기반|
+|Prioritization|없음|스트림 우선 순위 설정 가능|
+|Server Push|없음|있음|
+
+
+---
+
+### REST API 의 단점
+
+MSA 구조에서 서버간 통신을 `HTTP/2` 로만 변경해도 성능을 향상 시킬 수 있지만, `REST` 통신을 하게 되면 `JSON`으로 인한 문제가 성능에 영향을 미칠 수 있다.
+
+#### 1) Serialization / Deserialization
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/json-payload.png" alt="json-payload" style={{ display: 'inline-block' }} />
+</div>
+
+* `JSON` 은 <BlueText>텍스트 기반의 데이터 포맷</BlueText> 이므로, <RedText>네트워크 효율성이 떨어진다. </RedText>
+* 직렬화 / 역직렬화 과정에서 CPU 사용량이 많이 필요해서 MSA 간의 빈번한 데이터 교환이 있다면, 성능 저하가 될 수 있다.
+
+
+#### 2) 타입 제약
+* `JSON` 은 복잡한 데이터 구조나 날짜, 시간, 이진 데이터를 처리할 때 추가적인 파싱이나 인코딩이 필요하다.
+
+#### 3) 데이터 중복
+* 필드를 key-value 쌍으로 표현하여 여러 개의 필드를 가진 객체에서 필드 이름이 반복되면 **데이트 크기가 증가한다.**
+
+
+---
+
+### Q. gRPC 에서는 REST 의 단점을 어떻게 해결 했을까?
+
+<BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText> gRPC 는 `protobuf(Protocol Buffers)` 로 **JSON 의 성능 문제** 를 해결했다.
+
+:::note
+<b>Protobuf</b>
+✔ Google 이 개발한 <b> 언어 중립적 이고 플랫폼 중립적 </b> 인 데이터 직렬화 포맷이다.
+✔ 다양한 프로그래밍 언어에서 동일한 스키마(proto 파일) 을 통해 데이터를 직렬화하고 역직렬화한다.
+✔ gRPC 는 이 프로토콜을 활용해서 서버와 클라이언트 간의 효율적인 데이터 통신을 지원한다.
+:::
+
+
+#### 1) Serialization / Deserialization
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/json_vs_protobuf.png" alt="json_vs_protobuf" style={{ display: 'inline-block' }} />
+</div>
+
+* `protobuf` 는 바이너리 형식으로 인코딩 되어 더 작은 크기를 할당한다.
+* 바이너리 형식은 파싱 속도가 더 빠르고, CPU 사용량도 적다.
+
+#### 2) 타입 제약
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/json_vs_protobuf2.png" alt="json_vs_protobuf2"  style={{ display: 'inline-block' }} />
+</div>
+
+* `protobuf` 는 각 필드의 타입을 명확히 지정한다.
+* `JSON` 에서는 `age` 가 문자열로 되지만, `protobuf` 에서는 정수형으로 정의되어 타입 불일치를 방지한다.
+* `Address` 와 같은 중첩된 구조를 명확하게 정의할 수 있다.
+
+#### 3) 데이터 중복
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/json_vs_protobuf3.png" alt="json_vs_protobuf3"  style={{ display: 'inline-block' }} />
+</div>
+
+* `JSON` 에서는 각 객체마다 필드 이름이 반복되지만, `protobuf` 는 스키마에 한 번만 정의된다.
+
+---
+
+### JSON vs Protobuf 벤치마크
+
+간단하게 http 기반 벤치마크를 돌려보면, `protobuf`(protobufBenchmark) 가 `JSON`(jsonBenchmark) 에 비해서 초당 처리할 수 있는 수가 많은 것을 알 수 있다.
+
+| Benchmark                               | Mode | Cnt | Score    | Error    | Units |
+|-----------------------------------------|------|-----|----------|----------|-------|
+| SerializationBenchmark.jsonBenchmark    | thrpt | 10  | 3550.345 | ± 46.399 | ops/s |
+| SerializationBenchmark.protobufBenchmark | thrpt | 10  | 4203.831 | ± 97.497 | ops/s |
+
+
+:::warning
+<b>벤치 마크 결과</b>
+🏷️ <a href="https://github.com/eottabom/lego-piece/tree/main/benchmark">벤치 마크 결과 보기 (클릭)</a>
+🏷️ <a href="https://github.com/eottabom/lego-piece/tree/main/benchmark/src/main/java/lego/benchmark/serialization">벤치 마크 코드 보러가기 (클릭)</a>
+:::
+
+
+---
+
+### Tips) gRPC 서버 와 클라이언트 동작 원리
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/grpc/why/grpc.png" alt="grpc"  style={{ display: 'inline-block' }} />
+</div>
+
+출처 : https://grpc.io/docs/what-is-grpc/introduction/
+
+#### gRPC 서버
+* Client 가 호출할 `RPC(Remote Procedure Call)` 메서드를 구현
+* 서버는 `Protocol Buffers` 로 정의된 **서비스 인터페이스(proto 파일)** 에 따라 서버측 비즈니스 로직을 구현
+* gRPC 서버는 클라이언트로부터 호출될 메서드를 구현체를 제공
+
+#### gRPC 클라이언트
+* 서버와 통신하기 위한 `stub` 이라는 객체 사용
+* `stub` 은 클라이언트가 마치 서버에 직접 메서드를 호출하는 것처럼 RPC 메서드를 호출하는 인터페이스 제공
+* `stub` 객체가 RPC 호출을 네트워크 요청으로 변환하여 gRPC 서버로 전송
+* 서버는 요청을 처리한 후 응답을 클라이언트로 다시 반환
+
+
+#### 1) Protocol buffers 정의
+* `.proto` 파일에 gRPC 서비스를 정의한다. (`GetPerson`)
+
+```shell
+syntax = "proto3";
+
+option java_package = "lego.example";
+option java_outer_classname = "PersonProto";
+
+service PersonService {
+  rpc GetPerson(PersonRequest) returns (PersonResponse);
+}
+
+message PersonRequest {
+  string name = 1;
+}
+
+message PersonResponse {
+  Person person = 1;
+}
+
+message Person {
+  string name = 1;
+  int32 age = 2;
+  string phoneNumber = 3;
+  Address address = 4;
+}
+
+message Address {
+  string city = 1;
+  string zipCode = 2;
+}
+```
+
+#### 2) gRPC 서버 구현
+
+* 서버는 `.proto` 파일에 정의한 서비스를 메서드를 실제로 구현하는 역할을 한다.
+* `PersonServiceImpl` 은 `.proto` 파일에 정의된 `PersonService` 의 메서드를 실제로 구현하는 클래스
+
+```java
+public final class PersonServer {
+
+	private static final Logger logger = LoggerFactory.getLogger(PersonServer.class);
+
+	private PersonServer() {
+
+	}
+
+	public static void main(String[] args) throws IOException, InterruptedException {
+		Server server = ServerBuilder.forPort(50051).addService(new PersonServiceImpl()).build();
+
+		logger.info("gRPC server start");
+		server.start();
+
+		server.awaitTermination();
+	}
+
+	static class PersonServiceImpl extends PersonServiceGrpc.PersonServiceImplBase {
+
+		@Override
+		public void getPerson(PersonProto.PersonRequest request,
+				StreamObserver<PersonProto.PersonResponse> responseObserver) {
+
+			String name = request.getName();
+			PersonProto.PersonResponse response;
+
+			PersonProto.Address address = PersonProto.Address.newBuilder().setCity("Seoul").setZipCode("1234").build();
+
+			PersonProto.Person person = PersonProto.Person.newBuilder()
+				.setName(name)
+				.setAge(35)
+				.setPhoneNumber("010-1234-1234")
+				.setAddress(address)
+				.build();
+
+			response = PersonProto.PersonResponse.newBuilder().setPerson(person).build();
+
+			responseObserver.onNext(response);
+			responseObserver.onCompleted();
+		}
+	}
+}
+```
+
+#### 3) gRPC 클라이언트 구현
+* `ManagedChannelBuilder` 로 서버와 통신할 채널 생성
+* stub 생성 : `PersonServiceGrpc.PersonServiceBlockingStub stub = PersonServiceGrpc.newBlockingStub(channel)`
+* `stub.getPerson(request)` 메서드를 호출하면 클라이언트는 gRPC 서버에 `GetPerson` 메서드를 원격 호출하게 된다.
+
+```java
+public final class PersonClient {
+
+	private static final Logger logger = LoggerFactory.getLogger(PersonClient.class);
+
+	private PersonClient() {
+
+	}
+
+	public static void main(String[] args) {
+		// gRPC 채널 생성
+		ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
+			.usePlaintext()
+			.build();
+
+		// gRPC 서비스를 호출할 stub 생성
+		PersonServiceGrpc.PersonServiceBlockingStub stub = PersonServiceGrpc.newBlockingStub(channel);
+
+		PersonProto.PersonRequest request = PersonProto.PersonRequest.newBuilder()
+			.setName("eottabom")
+			.build();
+
+		// 서버에 RPC 호출을 보내고 응답을 받음
+		PersonProto.PersonResponse response = stub.getPerson(request);
+
+		logger.info("Server response : \n {}", response.toString());
+
+		// 채널 종료
+		channel.shutdown();
+	}
+
+}
+```
+
+:::warning
+<a href="https://github.com/eottabom/lego-piece/tree/main/example/src/main/java/lego/example/grpc">예제 코드 보러가기 (클릭)</a>
+:::
+
+---
+
+:::success
+<b> 결론 </b>
+✔ MSA 구조에서는 빈번한 네트워크 통신이 발생하여 Latency 가 발생할 수 있다.
+✔ HTTP/2 는 Multiplexing 와 Header Compression 으로 HTTP 1.x 의 단점을 극복하여 지연 문제를 개선할 수 있다.
+✔ gRPC 는 기본적으로 HTTP/2 기반이여서 HTTP/2 의 장점이 그대로 있다.
+✔ MSA 구조에서 REST 통신을 하게 되면 JSON Payload 로 인해서 데이트 크기, 파싱 성능 등의 문제가 발생할 수 있는데, gRPC 가 protobuf 를 사용하여 데이터 전송을 더 효율적으로 할 수 있다.
+✔ protobuf 를 통해 데이터 구조와 타입이 명확히 정의되어 있어서 타입 불일치나 파싱 오류를 방지할 수 있다.
+✔ 언어와 플랫폼이 독립적이어서 다양한 언어/플랫폼에서 동일한 proto 파일을 이용해서 구현이 가능하다.
+:::
+
+
+---
+
+### Reference
+
+* [1. gRPC 개요](https://cla9.tistory.com/175)
+* [The basics of gRPC](https://medium.com/@josemiguelmelo/the-basics-of-grpc-b017bbedb303)
+* [What is gRPC?](https://blog.postman.com/what-is-grpc/)
+* [What is gRPC? Protocol Buffers, Streaming, and Architecture Explained](https://www.freecodecamp.org/news/what-is-grpc-protocol-buffers-stream-architecture/)
