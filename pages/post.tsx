@@ -45,7 +45,7 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
   };
 };
 
-export default function PostPage({ postsByTag, tagCounts }) {
+export default function PostPage({ postsByTag, tagCounts }: Props) {
   const [selectedTag, setSelectedTag] = useState("latest");
   const [visibleCount, setVisibleCount] = useState(10);
   const [gradientStyle, setGradientStyle] = useState("");
