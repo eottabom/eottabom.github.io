@@ -27,11 +27,11 @@ jobs:
       - name: Generate SEO files (simple)
         run: |
           mkdir -p public
-          POSTS=$(find content/posts -type f -name '*.mdx' | sed 's|content/posts/||;s|.mdx||')
+          POSTS=$(find posts -type f -name '*.mdx' | sed 's|posts/||;s|.mdx||')
           
+          # sitemap.xml 생성
           echo '<?xml version="1.0" encoding="UTF-8"?>' > public/sitemap.xml
           echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' >> public/sitemap.xml
-          
           for POST in $POSTS; do
             echo "  <url>" >> public/sitemap.xml
             echo "    <loc>https://eottabom.github.io/post/$POST</loc>" >> public/sitemap.xml
@@ -39,26 +39,27 @@ jobs:
             echo "    <priority>0.7</priority>" >> public/sitemap.xml
             echo "  </url>" >> public/sitemap.xml
           done
-          
           echo '</urlset>' >> public/sitemap.xml
           
-          echo '<?xml version="1.0" encoding="UTF-8"?>' > public/rss.xml
-          echo '<rss version="2.0"><channel>' >> public/rss.xml
-          echo '<title>eottabom.github.io</title>' >> public/rss.xml
-          echo '<link>https://eottabom.github.io</link>' >> public/rss.xml
-          echo '<description>Blog RSS Feed</description>' >> public/rss.xml
-          echo "<lastBuildDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</lastBuildDate>" >> public/rss.xml
+          # feed.xml 생성
+          echo '<?xml version="1.0" encoding="UTF-8"?>' > public/feed.xml
+          echo '<rss version="2.0"><channel>' >> public/feed.xml
+          echo '<title>eottabom.github.io</title>' >> public/feed.xml
+          echo '<link>https://eottabom.github.io</link>' >> public/feed.xml
+          echo '<description>Blog RSS Feed</description>' >> public/feed.xml
+          echo "<lastBuildDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</lastBuildDate>" >> public/feed.xml
           
           for POST in $POSTS; do
-            echo "<item>" >> public/feed.xml
-            echo "<title>$POST</title>" >> public/feed.xml
-            echo "<link>https://eottabom.github.io/post/$POST</link>" >> public/rss.xml
-            echo "<guid>https://eottabom.github.io/post/$POST</guid>" >> public/rss.xml
-            echo "<pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>" >> public/rss.xml
-            echo "</item>" >> public/rss.xml
+            echo "  <item>" >> public/feed.xml
+            echo "    <title>$POST</title>" >> public/feed.xml
+            echo "    <link>https://eottabom.github.io/post/$POST</link>" >> public/feed.xml
+            echo "    <guid>https://eottabom.github.io/post/$POST</guid>" >> public/feed.xml
+            echo "    <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>" >> public/feed.xml
+            echo "  </item>" >> public/feed.xml
           done
           
-          echo '</channel></rss>' >> public/rss.xml
+          echo '</channel></rss>' >> public/feed.xml
+
 
       - name: Build and Export
         run: |
