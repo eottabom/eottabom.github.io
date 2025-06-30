@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate:sitemap": "tsx --project tsconfig.scripts.json scripts/generate-sitemap.ts",
-    "generate:rss": "tsx --project tsconfig.scripts.json scripts/generate-rss.ts",
+    "generate:sitemap": "tsc --project tsconfig.scripts.json scripts/generate-sitemap.ts",
+    "generate:rss": "tsc --project tsconfig.scripts.json scripts/generate-rss.ts",
     "generate:seo": "npm run generate:sitemap && npm run generate:rss"
   },
   "dependencies": {
@@ -24,8 +24,7 @@
     "rehype-slug": "5.0.1",
     "remark-directive": "^3.0.0",
     "remark-gfm": "3.0.1",
-    "@fortawesome/fontawesome-free": "^6.5.0",
-    "tsx": "^4.7.0"
+    "@fortawesome/fontawesome-free": "^6.5.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",
