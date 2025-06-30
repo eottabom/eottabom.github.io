@@ -24,6 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Generate SEO files
+        run: |
+          npx tsc --project tsconfig.scripts.json
+          node dist-scripts/generate-sitemap.js || echo "Sitemap generation failed, continuing..."
+          node dist-scripts/generate-rss.js || echo "RSS generation failed, continuing..."
+
       - name: Build and Export
         run: |
           npm run build
