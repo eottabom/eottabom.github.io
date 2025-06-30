@@ -24,13 +24,31 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install tsx
-        run: npm install tsx
-
-      - name: Generate SEO files
+      - name: Generate SEO files (simple version)
         run: |
-          npx tsx scripts/generate-sitemap.ts || echo "Sitemap generation failed, continuing..."
-          npx tsx scripts/generate-rss.ts || echo "RSS generation failed, continuing..."
+          # 간단한 sitemap 생성
+          cat > public/sitemap.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+            <url>
+              <loc>https://eottabom.github.io/</loc>
+              <lastmod>$(date -u +%Y-%m-%dT%H:%M:%S+00:00)</lastmod>
+            </url>
+          </urlset>
+          EOF
+          
+          # 간단한 RSS 생성
+          cat > public/rss.xml << 'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <rss version="2.0">
+            <channel>
+              <title>eottabom.github.io</title>
+              <link>https://eottabom.github.io</link>
+              <description>Blog RSS Feed</description>
+              <lastBuildDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</lastBuildDate>
+            </channel>
+          </rss>
+          EOF
 
       - name: Build and Export
         run: |
