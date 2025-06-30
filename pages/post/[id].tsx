@@ -97,10 +97,10 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
         <Header isDark={false} />
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
           {/* Main content */}
-          <main className="flex-1 max-w-3xl prose prose-xl mr-[17rem]">
+          <main className="flex-1 prose prose-xl max-w-none">
             <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
             <p className="text-gray-500 text-sm mb-8">{postData.date}</p>
-            <article>
+            <article className="overflow-x-auto">
               <MDXRemote {...postData.mdxSource} components={components}/>
             </article>
             {relatedPosts.length > 0 && (
@@ -129,7 +129,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
 
           {/* Table of contents */}
           <aside
-              className="hidden lg:block fixed right-10 top-[96px] w-60 h-[calc(100vh-96px)] pl-4 z-40 pb-[120px]"
+              className="hidden lg:block sticky top-[96px] w-60 h-[calc(100vh-96px)] pl-4 z-40 pb-[120px]"
           >
             <div className="relative h-full">
               {/* Scrollable 목차 영역 */}

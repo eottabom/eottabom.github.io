@@ -83,3 +83,16 @@ code {
 .prose code::after {
   content: none;
 }
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+.prose pre {
+  overflow-x: auto;
+}
+
+.prose table {
+  @apply w-full table-auto;
+  overflow-x: auto;
+}
