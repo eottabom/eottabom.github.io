@@ -1,6 +1,5 @@
 import {
   GetStaticPaths,
-  GetStaticProps,
   InferGetStaticPropsType
 } from 'next';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
