@@ -14,6 +14,7 @@ const postsDirectory = path.join(process.cwd(), 'posts');
 type PostFrontmatter = {
   title: string;
   date: string;
+  updated?: string;
   tags?: string[];
   summary?: string;
   description?: string;

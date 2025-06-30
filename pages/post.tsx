@@ -11,6 +11,8 @@ type Post = {
   summary?: string;
   description?: string;
   tags?: string[];
+  date: string;
+  updated?: string;
 };
 
 type Props = {
@@ -125,24 +127,30 @@ export default function PostPage({ postsByTag, tagCounts }) {
         {/* 카드 리스트 영역 */}
         <div className="card-section max-w-6xl mx-auto px-4 pb-16 bg-white">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
-            {visiblePosts.map(({ id, title, summary, description }) => (
-              <Link key={id} href={`/post/${id}`} legacyBehavior>
-                <a className="group flex flex-col justify-between p-6 min-h-[200px] rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 transition duration-200 ease-in-out">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-extrabold leading-snug text-gray-900 group-hover:text-blue-600 transition">
-                      {title}
-                    </h2>
-                    {summary && <p className="text-blue-500 text-sm font-medium">{summary}</p>}
-                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{description}</p>
-                  </div>
-                </a>
-              </Link>
+            {visiblePosts.map(({ id, title, summary, description, date, updated }) => (
+                <Link key={id} href={`/post/${id}`} legacyBehavior>
+                  <a className="group flex flex-col justify-between p-6 min-h-[200px] rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 transition duration-200 ease-in-out">
+                    <div className="space-y-2">
+                      <h2 className="text-xl font-extrabold leading-snug text-gray-900 group-hover:text-blue-600 transition">
+                        {title}
+                      </h2>
+                      {summary && <p className="text-blue-500 text-sm font-medium">{summary}</p>}
+                      <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{description}</p>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-4">
+                      Posted Date: {date}
+                      {updated && updated !== date && (
+                          <> ・ Updated: {updated}</>
+                      )}
+                    </p>
+                  </a>
+                </Link>
             ))}
           </div>
 
           {/* 더 보기 버튼 */}
           {hasMore && (
-            <div className="mt-10 text-center">
+              <div className="mt-10 text-center">
               <button
                 onClick={() => setVisibleCount(prev => prev + 10)}
                 className="px-6 py-2 text-sm font-medium rounded-full bg-black text-white hover:bg-gray-800 transition"
