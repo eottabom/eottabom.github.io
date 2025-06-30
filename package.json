@@ -6,8 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "generate:sitemap": "ts-node --esm scripts/generate-sitemap.ts",
-    "generate:rss": "ts-node --esm scripts/generate-rss.ts",
+    "generate:sitemap": "ts-node --esm --loader ts-node/esm scripts/generate-sitemap.ts",
+    "generate:rss": "ts-node --esm --loader ts-node/esm scripts/generate-rss.ts",
     "generate:seo": "npm run generate:sitemap && npm run generate:rss"
   },
   "dependencies": {
