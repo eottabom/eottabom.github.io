@@ -24,7 +24,8 @@
     "rehype-slug": "5.0.1",
     "remark-directive": "^3.0.0",
     "remark-gfm": "3.0.1",
-    "@fortawesome/fontawesome-free": "^6.5.0"
+    "@fortawesome/fontawesome-free": "^6.5.0",
+    "tsx": "^4.7.0"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",
