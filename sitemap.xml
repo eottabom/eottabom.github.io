@@ -26,6 +26,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/clean-code/springformatter-checkstyle</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/clean-code/local-variable-type-inference-style-guidelines</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
