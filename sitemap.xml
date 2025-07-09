@@ -36,6 +36,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/etc/tipuesearch-검색기능</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/etc/virtualbox-centos-disk</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
