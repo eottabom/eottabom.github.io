@@ -5,16 +5,7 @@ import { GetStaticProps } from 'next';
 import {getPostsMetaOnly} from '../lib/posts';
 import AdSense from '../components/AdSense';
 import TopNotice from "../components/TopNotice";
-
-const gradients = [
-  'from-pink-500 via-red-500 to-orange-400',
-  'from-blue-400 to-green-400',
-  'from-purple-500 to-pink-500',
-  'from-yellow-400 via-green-500 to-teal-500',
-  'from-indigo-500 to-sky-500',
-  'from-rose-400 via-fuchsia-500 to-indigo-500',
-  'from-emerald-400 to-lime-500',
-];
+import {catImages} from "../lib/mainImage";
 
 type Post = {
   id: string;
@@ -43,12 +34,12 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
 
   const rest = restAll.filter((post) => post.id !== latest.id).slice(0, 3);
 
-  const gradientsForPosts = shuffle(gradients).slice(0, rest.length);
+  const shuffledImages = shuffle(catImages).slice(0, rest.length);
 
   return {
     props: {
       allPostsData,
-      gradientsForPosts,
+      gradientsForPosts: shuffledImages,
     },
   };
 };
@@ -123,13 +114,20 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
               </div>
               <div className="grid md:grid-cols-3 gap-6">
                 {rest.map(({ id, title }, idx) => (
-                  <Link key={id} href={`/post/${id}`}>
-                    <div
-                      className={`flex flex-col justify-end p-6 h-48 sm:h-64 rounded-xl text-white shadow hover:shadow-xl transition bg-gradient-to-br ${gradientsForPosts[idx]}`}
-                    >
-                      <h3 className="text-lg font-semibold leading-snug">{title}</h3>
-                    </div>
-                  </Link>
+                    <Link key={id} href={`/post/${id}`}>
+                      <div
+                          className="flex flex-col justify-end p-6 h-48 sm:h-64 rounded-xl text-white shadow hover:shadow-xl transition"
+                          style={{
+                            backgroundImage: `url(${gradientsForPosts[idx]})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                      >
+                        <h3 className="text-lg font-semibold leading-snug bg-black bg-opacity-50 p-2 rounded">
+                          {title}
+                        </h3>
+                      </div>
+                    </Link>
                 ))}
               </div>
             </section>
