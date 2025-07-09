@@ -41,6 +41,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/etc/Rich-feature-hierarchies-for-accurate-object-detection-and-semantic-segmentation</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/etc/virtualbox-centos-disk</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
