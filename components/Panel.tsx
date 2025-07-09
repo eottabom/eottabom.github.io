@@ -144,35 +144,90 @@ function extractLines(children: ReactNode): ReactNode[][] {
   return result;
 }
 
-
 function renderText(type: InfoPanelType, children: ReactNode) {
   const lines = extractLines(children);
   const [title = [], ...rest] = lines;
   const style = typeStyles[type];
 
+  const commonTextStyle = 'text-base leading-[1.6] break-words whitespace-pre-line';
+
   return (
       <>
-        <div className={`text-mi flex items-center gap-2 mt-2 mb-1 ${style.titleColor}`}>
-          {React.cloneElement(style.icon, { className: `w-4 h-4 ${style.titleColor}` })}
-          {title}
+        <div className={`flex gap-2 ${style.titleColor}`}>
+          <div className="flex-shrink-0 relative top-[0.2rem]">
+            {React.cloneElement(style.icon, {
+              className: `w-5 h-5 ${style.titleColor}`,
+            })}
+          </div>
+          <div className={commonTextStyle}>
+            {title}
+          </div>
         </div>
-        <div className={`space-y-1 text-mi pl-[1.3rem] ${style.titleColor}`}>
-          {rest.map((line, i) => (
-              <div key={i}>{line}</div>
-          ))}
-        </div>
+
+        {rest.length > 0 && (
+            <div className={`mt-2 pl-[1.8rem] space-y-[0.4rem] ${style.titleColor}`}>
+              {rest.map((line, i) => (
+                  <div key={i} className={commonTextStyle}>
+                    {line}
+                  </div>
+              ))}
+            </div>
+        )}
       </>
   );
 }
 
 
-
-export default function InfoPanel({ type = 'info', children }: InfoPanelProps) {
+export default function InfoPanel({
+                                    type = 'info',
+                                    children,
+                                  }: InfoPanelProps) {
   const style = typeStyles[type];
 
   return (
-      <div className={`my-4 px-4 py-3 rounded-md prose ${style.bg} ${style.border} ${style.text}`}>
+      <div
+          className={`my-4 px-4 py-3 rounded-md prose ${style.bg} ${style.border} ${style.text}`}
+      >
         {renderText(type, children)}
       </div>
   );
 }
+
+
+
+// function renderText(type: InfoPanelType, children: ReactNode) {
+//   const lines = extractLines(children);
+//   const [title = [], ...rest] = lines;
+//   const style = typeStyles[type];
+//
+//   return (
+//       <>
+//         <div
+//             className={`text-mi mt-2 mb-1 flex flex-col sm:flex-row sm:items-center gap-2 ${style.titleColor}`}
+//         >
+//           <div className="flex-shrink-0">
+//             {React.cloneElement(style.icon, {className: `w-4 h-4 ${style.titleColor}`})}
+//           </div>
+//           <div className="break-words whitespace-pre-line leading-snug">
+//             {title}
+//           </div>
+//         </div>
+//         <div className={`space-y-1 text-mi pl-[1.3rem] ${style.titleColor}`}>
+//           {rest.map((line, i) => (
+//               <div key={i}>{line}</div>
+//           ))}
+//         </div>
+//       </>
+//   );
+// }
+//
+//
+// export default function InfoPanel({type = 'info', children}: InfoPanelProps) {
+//   const style = typeStyles[type];
+//
+//   return (
+//       <div className={`my-4 px-4 py-3 rounded-md prose ${style.bg} ${style.border} ${style.text}`}>
+//         {renderText(type, children)}
+//       </div>
+//   );
+// }
