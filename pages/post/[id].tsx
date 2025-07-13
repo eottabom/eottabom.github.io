@@ -100,6 +100,18 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
           <main className="flex-1 prose prose-xl max-w-none">
             <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
             <p className="text-gray-500 text-sm mb-8">{postData.date}</p>
+            {postData.tags && (
+                <div className="flex flex-wrap gap-2 mb-8">
+                  {postData.tags.map((tag) => (
+                      <span
+                          key={tag}
+                          className="px-2 py-1 text-mi font-medium bg-blue-50 text-blue-700 rounded-md dark:bg-blue-900 dark:text-blue-200"
+                      >
+                      #{tag}
+                      </span>
+                  ))}
+                </div>
+            )}
             <article className="overflow-x-auto">
               <MDXRemote {...postData.mdxSource} components={components}/>
             </article>
