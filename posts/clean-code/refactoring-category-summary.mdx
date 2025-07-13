@@ -1,0 +1,160 @@
+---
+title: "리팩토링 기술에 대해서 카테고리별 정리 - 요약편"
+date: "2025-07-13"
+tags: ["Clean Code", "Java"]
+summary: "A categorized summary of essential refactoring techniques for improving code structure and readability"
+description: "자주 사용되는 리팩토링 기법들을 카테고리별로 정리한 요약편"
+---
+
+:::quote
+[리팩토링 2판](https://www.amazon.com/Refactoring-Improving-Existing-Addison-Wesley-Signature/dp/0134757599/ref=pd_sbs_5/147-9985226-7575522?pd_rd_w=IqNPf&pf_rd_p=3676f086-9496-4fd7-8490-77cf7f43f846&pf_rd_r=D6D6Y0JWZ93JER6KZ2J3&pd_rd_r=abe95b3d-5be0-437a-8fd3-e5d4959ae207&pd_rd_wg=k2g1l&pd_rd_i=0134757599&psc=1)과, 백기선님의 강의인 [인프런 - 코딩으로 학습하는 리팩토링](https://www.inflearn.com/course/%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%81)의 내용이 포함되어 있다.
+:::
+
+
+---
+
+### 기본 기술 - 가장 자주 사용하는 리팩토링 기술
+
+아래와 같은 refactoring 기술은 여러 refactoring 을 할 때 사용되는 기본이 되면서 자주 사용하는 기술이라고 할 수 있다.
+
+#### 1) Extract Function (함수 추출하기) ↔ Inline Function (함수 인라인하기)
+#### 2) Inline Function (함수 인라인하기) ↔ Extract Function (함수 추출하기)
+* 함수 추출하기, 함수 인라인하기는 서로 반대되는 리팩토링 기술이다.
+
+#### 3) Extract Variable (변수 추출하기)
+#### 4) Inline Variable (변수 인라인하기)
+#### 5) Change Function Declaration (함수 선언 변경하기)
+#### 6) Encapsulate Variable (변수 캡슐화하기)
+#### 7) Rename Variable (변수 이름 바꾸기)
+#### 8) Introduce Parameter Object (매개 변수 객체 만들기)
+#### 9) Combine Functions into Class (여러 함수를 클래스로 묶기)
+#### 10) Combine Function into TransForm (여러 함수를 변환 함수로 묶기)
+#### 11) Split Phase (단계 쪼개기)
+
+
+---
+
+### 캡슐화 - 모듈에서 외부 시스템으로 공개하지 않아도 되는 데이터를 숨기는 기술
+
+#### 1) Encapsulate Record (레코드 캡슐화하기)
+#### 2)Encapsulate Collection (컬렉션 캡슐화하기)
+- 어떠한 클래스가 가지고 있는 컬렉션을 캡슐화하는 방법이다.
+- 컬렉션 자체를 캡슐화하는 것.
+- 컬렉션의 복사본을 전달하거나 컬렉션 자체를 제공하는게 아니라, 컬렉션을 수정할 수 있는 메서드를 제공한다거나..
+#### 3) Replace Primitive with Object (기본형을 객체로 바꾸기)
+#### 4) Replace Temp with Object (임시 변수를 질의 함수로 바꾸기)
+#### 5) Extract Class (클래스 추출하기)
+#### 6) Inline Class (클래스 인라인하기)
+#### 7) Hide Delegate (위임 숨기기) ↔ Remove Middle Man (중재자 제거하기)
+#### 8) Remove Middle Man (중재자 제거하기) ↔ Hide Delegate (위임 숨기기)
+#### 9) Substitute Algorithm (알고리듬 교체하기)
+- 캡슐화가 잘되어 있을때 사용할 수 있는 리팩토링 기술이라고 할 수 있음.
+
+---
+
+### 기능 옮기기 - 함수나 필드 또는 문장을 적절한 위치로 옮기는 기술
+
+#### 1) Move Function (함수 옮기기)
+#### 2) Move Field (필드 옮기기)
+#### 3) Move Statements into Function (문장을 함수로 옮기기) ↔ Move Statements to Callers (문장을 호출한 곳으로 옮기기)
+- statements 를 함수 안으로 옮기는 것
+- 항상 호출되는 statements 는 함수 안으로 옮기는 것이 더 적절하다는 것이다.
+#### 4) Move Statements to Callers (문장을 호출한 곳으로 옮기기) ↔ Move Statements into Function (문장을 함수로 옮기기)
+- 문장을 함수를 호출하는 곳으로 옮기는 것
+- 함수 추출하기를 다시 하고 싶은 경우에 사용
+- 하나의 Statement 에 대해서 적절한 위치를 찾아주는 리팩토링 기술
+#### 5) Replace Inline Code with Function Call (인라인 코드를 함수 호출로 바꾸기)
+- Inline 된 코드가 여러번 사용되면 함수로 변경하는 것
+#### 6) Slide Statements (문장 슬라이드 하기)
+- 코드를 정리하다보면 위아래로 내리기만해도 그 부분을 줄일 수 있다.
+#### 7) Split Loop (반복문 쪼개기)
+- 반복문 안에서 여러가지 일을 하니깐 하나의 Function 으로 추출하는 것이고, 필드가 옮겨질수도 있다.
+#### 8) Replace Loop with Pipeline (반복문을 파이프라인으로 바꾸기)
+#### 9) Remove Dead Code (죽은 코드 제거하기)
+
+---
+
+### 데이터 조직화 - 데이터(변수가 필드) 구조를 다루는 기술
+
+#### 1) Split Variable (변수 쪼개기)
+#### 2) Rename Field (필드 이름 바꾸기)
+#### 3) Replace Derived Variable with Query (파생 변수를 질의 함수로 바꾸기)
+- 계산할 수 있는 변수를 굳이 필드로 선언하지 말자는 것.
+- 다른 변수들을 통해서 계산할 수 있는 것은 함수로 바꾸자는 것.
+#### 4) Change References to Value (참조를 값으로 바꾸기)
+- 어떤 매개변수를 다룰 때 참조가 아니라 값을 전달한다는 것.
+- Reference 의 값을 많이 쓴다면 적절하겟지만 값하나만 쓰는 거면 값 하나만 전달한다는 것.
+#### 5) Change Value to References (값을 참조로 바꾸기)
+
+---
+
+### 조건부 로직 간소화 - 복잡한 조건문을 다루는 기술
+
+#### 1) Decompose Conditional (조건문 분해하기)
+#### 2) Consolidate Conditional Expression (조건식 통합하기)
+- 여러 조건문이 있는 경우에 하나의 메서드로 빼내는것.
+#### 3) Replace Nested Conditional with Guard Clauses (중첩 조건문을 보호 구문으로 바꾸기)
+- Guard Clauses
+#### 4) Replace Conditional with Polymorphism (조건부 로직을 다형성으로 바꾸기)
+#### 5) Introduce Special Case (특이 케이스 추가하기)
+#### 6) Introduce Assertion (어서션 추가하기)
+
+---
+
+### API 리팩토링 - 쉽게 이해하고 사용할 수 있는 API 를 만드는 기술
+
+:::warning
+✔ HTTP API 와 같은 것만 API 가 아니고, interface, class, function, method 이런 것들도 모두 API 라고 볼 수 있다.
+✔ 함수의 선언부를 변경하는 것도 API 리팩토링이라고 볼 수 있다.
+:::
+
+#### 1) Separate Query from Modifier (질의 함수와 변경 함수 분리하기)
+#### 2) Parameterize Function (함수 매개 변수화하기)
+- 매개변수에 따라서 함수가 하는 일이 달라지게 만들어주는 것이다.
+- 그렇게 함으로써, 여러 함수들을 만드는 것을 줄일 수 있다면 유용한 리팩토링이 된다는 이야기.
+#### 3) Remove Flag Argument (플래그 인수 제거하기)
+#### 4) Preserve Whole Object (객체 통째로 넘기기)
+#### 5) Replace Parameter with Query (매개 변수를 질의 함수로 바꾸기)
+#### 6) Replace Query with Parameter (질의 함수를 매개 변수로 바꾸기)
+#### 7) Remove Setting Method (세터 제거하기)
+#### 8) Replace Constructor with Factory Function (생성자를 팩토리 함수로 바꾸기)
+#### 9) Replace Function with Command (함수를 명령으로 바꾸기)
+#### 10) Replace Command with Function (명령을 함수로 바꾸기)
+
+---
+
+### 상속 다루기 - 상속을 제대로 사용하는 기술
+
+#### 1) Pull up Method (메서드 올리기)
+#### 2) Pull up Field (필드 올리기)
+#### 3) Pull up Constructor Body (생성자 본문 올리기)
+#### 4) Push Down Method (메서드 내리기)
+#### 5) Push Down Field (필드 내리기)
+#### 6) Replace Type Code with Subclasses (타입 코드를 서브 클래스로 바꾸기)
+#### 7) Remove Subclass (서브클래스 제거하기)
+#### 8) Extract Superclass (슈퍼 클래스 추출하기)
+#### 9) Collapse Hierarchy (계층 합치기)
+#### 10) Replace Subclass with Delegate (서브 클래스를 위임으로 바꾸기)
+#### 11) Replace Superclass with Delegate (슈퍼 클래스를 위임으로 바꾸기)
+
+:::tip
+<a href="https://github.com/eottabom/refactoring-study" target="_blank" >예제 코드 보러가기 (클릭)</a>
+:::
+
+---
+
+:::success
+<b> 개인적인 생각</b>
+✔ 다양한 Refactoring 기술이 있지만, 중요한 것은 <b>의미 전달</b>이라고 생각한다.
+✔ 의도가 드러나게 코드를 작성해야 협업도 수월하고 유지보수도 쉬워진다.
+✔ 좋은 리팩토링은 읽는 사람이 고민하지 않게 만든다는 것이다.
+:::
+
+---
+
+### 📚 Reference
+
+* [리팩토링 2판](https://www.amazon.com/Refactoring-Improving-Existing-Addison-Wesley-Signature/dp/0134757599/ref=pd_sbs_5/147-9985226-7575522?pd_rd_w=IqNPf&pf_rd_p=3676f086-9496-4fd7-8490-77cf7f43f846&pf_rd_r=D6D6Y0JWZ93JER6KZ2J3&pd_rd_r=abe95b3d-5be0-437a-8fd3-e5d4959ae207&pd_rd_wg=k2g1l&pd_rd_i=0134757599&psc=1)
+* [인프런 - 코딩으로 학습하는 리팩토링](https://www.inflearn.com/course/%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%81)
+
+<br/><br/>
