@@ -51,6 +51,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/clean-code/refactoring-category-summary</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/java/try-with-resources</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
