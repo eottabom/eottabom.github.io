@@ -89,8 +89,9 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
     <>
       <main>
         {/* 상단 영역만 배경색 적용 */}
-        <div className={`${selectedTag !== 'latest' ? gradientStyle : 'bg-white'} ${selectedTag !== 'latest' ? 'text-white' : 'text-black'}`}>
-          <Header isDark={selectedTag !== 'latest'} />
+        <div
+            className={`${selectedTag !== 'latest' ? gradientStyle : 'bg-white'} ${selectedTag !== 'latest' ? 'text-white' : 'text-black'}`}>
+          <Header isDark={selectedTag !== 'latest'}/>
           {/* PostSection */}
           <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
             <h1 className={`text-5xl font-extrabold tracking-tight mb-4 ${selectedTag === "latest" ? "text-gray-900" : "text-white"}`}>
@@ -103,31 +104,34 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
         </div>
 
         {/* Tag 필터 탭 */}
-        <div className="tag-section py-4 px-4 sm:px-6 lg:px-8 bg-white">
-          <nav className="flex justify-center flex-wrap gap-4 mb-12">
-            {tagList.map(tag => (
-              <button
-                key={tag}
-                onClick={() => {
-                  setSelectedTag(tag);
-                  setVisibleCount(10);
-                }}
-                className={`capitalize px-5 py-2 rounded-full text-sm font-medium border transition-all ${
-                  selectedTag === tag
-                    ? "bg-black text-white"
-                    : "bg-gray-100 text-black border-gray-300"
-                }`}
-              >
-                {tag.charAt(0).toUpperCase() + tag.slice(1)} ({tagCounts[tag]})
-              </button>
-            ))}
+        <div className="py-6 px-4 sm:px-6 lg:px-8 bg-white dark:bg-black">
+          <nav className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-6xl mx-auto">
+            {tagList.map(tag => {
+              const isActive = selectedTag === tag;
+              return (
+                  <button
+                      key={tag}
+                      onClick={() => {
+                        setSelectedTag(tag);
+                        setVisibleCount(10);
+                      }}
+                      className={
+                          `capitalize px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150
+                          ${isActive ? "bg-gray-800 text-white shadow-sm" 
+                              : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"}
+                      `}
+                  >
+                    {tag.charAt(0).toUpperCase() + tag.slice(1)} ({tagCounts[tag]})
+                  </button>
+              );
+            })}
           </nav>
         </div>
 
         {/* 카드 리스트 영역 */}
         <div className="card-section max-w-6xl mx-auto px-4 pb-16 bg-white">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
-            {visiblePosts.map(({ id, title, summary, description, date, updated }) => (
+            {visiblePosts.map(({id, title, summary, description, date, updated}) => (
                 <Link key={id} href={`/post/${id}`} legacyBehavior>
                   <a className="group flex flex-col justify-between p-6 min-h-[200px] rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 transition duration-200 ease-in-out">
                     <div className="space-y-2">
@@ -151,23 +155,23 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
           {/* 더 보기 버튼 */}
           {hasMore && (
               <div className="mt-10 text-center">
-              <button
-                onClick={() => setVisibleCount(prev => prev + 10)}
-                className="px-6 py-2 text-sm font-medium rounded-full bg-black text-white hover:bg-gray-800 transition"
-              >
-                더 보기
-              </button>
-            </div>
+                <button
+                    onClick={() => setVisibleCount(prev => prev + 10)}
+                    className="px-6 py-2 text-sm font-medium rounded-full bg-black text-white hover:bg-gray-800 transition"
+                >
+                  더 보기
+                </button>
+              </div>
           )}
         </div>
       </main>
-    <Link
-        href="/"
-        className="fixed bottom-6 right-6 z-50 bg-white border border-gray-300 rounded-lg shadow-md p-3 hover:shadow-lg transition"
-        aria-label="홈으로 가기"
-    >
-      <Home className="w-6 h-6 text-gray-800"/>
-    </Link>
-  </>
+      <Link
+          href="/"
+          className="fixed bottom-6 right-6 z-50 bg-white border border-gray-300 rounded-lg shadow-md p-3 hover:shadow-lg transition"
+          aria-label="홈으로 가기"
+      >
+        <Home className="w-6 h-6 text-gray-800"/>
+      </Link>
+    </>
   );
 }
