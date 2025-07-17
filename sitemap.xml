@@ -6,6 +6,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/kubernetes/kubernetes-qos</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/etc/in-memory</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
