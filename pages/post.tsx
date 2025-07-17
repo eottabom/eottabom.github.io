@@ -26,8 +26,8 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
   const postsByTag: Record<string, Post[]> = {};
   const tagCounts: Record<string, number> = {};
 
-  postsByTag['latest'] = posts.slice(0, 10);
-  tagCounts['latest'] = postsByTag['latest'].length;
+  postsByTag['latest'] = posts;
+  tagCounts['latest'] = posts.length;
 
   posts.forEach((post) => {
     (post.tags || []).forEach((tag) => {
@@ -59,7 +59,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
     : `${selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1)} Posts`;
 
   const description = selectedTag === "latest"
-    ? "Showing the 10 most recent posts. You can filter by tag."
+    ? "Check out the latest posts — and filter by tag if you'd like."
     : `Posts related to the '${selectedTag}' category.`;
 
   const gradientOptions = [
