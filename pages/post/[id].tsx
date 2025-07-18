@@ -56,9 +56,12 @@ export const getStaticProps: ({params}: { params: any }) => Promise<{
 
 export default function Post({ postData, relatedPosts }: InferGetStaticPropsType<typeof getStaticProps>) {
   const [toc, activeId] = useTocObserver();
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
+
+  const [visibleRelatedCount, setVisibleRelatedCount] = useState(3);
+  const visibleRelatedPosts = relatedPosts.slice(0, visibleRelatedCount);
+  const hasMoreRelated = visibleRelatedCount < relatedPosts.length;
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -120,12 +123,13 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                   <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
                     🏷️ <span>같은 태그의 글 보기</span>
                   </h2>
+
                   <ul className="space-y-4">
-                    {relatedPosts.map((post) => (
+                    {visibleRelatedPosts.map((post) => (
                         <li key={post.id} className="flex flex-col">
                           <Link
                               href={`/post/${post.id}`}
-                              className="text-lg font-medium text-blue-600 hover:underline dark:text-blue-400"
+                              className="text-base font-medium text-gray-800 hover:text-blue-600 no-underline dark:text-gray-100 dark:hover:text-blue-400 transition"
                           >
                             {post.title}
                           </Link>
@@ -135,6 +139,17 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                         </li>
                     ))}
                   </ul>
+                  {/* 더 보기 버튼 */}
+                  {hasMoreRelated && (
+                      <div className="mt-6 text-center">
+                        <button
+                            onClick={() => setVisibleRelatedCount((prev) => prev + 5)}
+                            className="px-5 py-2 text-sm font-medium rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white transition"
+                        >
+                          더 보기
+                        </button>
+                      </div>
+                  )}
                 </div>
             )}
           </main>
