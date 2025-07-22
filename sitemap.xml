@@ -76,6 +76,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/java/jvm-tuning</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/java/system-out-println-vs-logger</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
