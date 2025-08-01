@@ -115,8 +115,10 @@ Constant pool:
    #8 = Utf8               x
    #9 = String             #10            // y
   #10 = Utf8               y
-  #11 = InvokeDynamic      #0:#12         // #0:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
-  #12 = NameAndType        #13:#14        // makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+  #11 = InvokeDynamic      #0:#12         // #0:makeConcatWithConstants:
+                                          // (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+  #12 = NameAndType        #13:#14        // makeConcatWithConstants:
+                                          // (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
   #13 = Utf8               makeConcatWithConstants
   #14 = Utf8               (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
   #15 = String             #16            // xy
@@ -132,7 +134,8 @@ Constant pool:
   #25 = Utf8               SourceFile
   #26 = Utf8               Test.java
   #27 = Utf8               BootstrapMethods
-  #28 = MethodHandle       6:#29          // REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:
+  #28 = MethodHandle       6:#29          // REF_invokeStatic
+                                          // java/lang/invoke/StringConcatFactory.makeConcatWithConstants:
                                           // (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;
                                           // Ljava/lang/invoke/MethodType;Ljava/lang/String;
                                           // [Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
@@ -179,7 +182,9 @@ Constant pool:
          5: astore_1
          6: aload_0
          7: aload_1
-         8: invokedynamic #11,  0 // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+         8: invokedynamic #11,  0 // InvokeDynamic
+                                  // #0:makeConcatWithConstants:
+                                  // (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
         13: areturn
       LineNumberTable:
         line 6: 0
@@ -284,7 +289,6 @@ final 키워드는 객체의 참조가 변경되지 않음을 보장하지만, <
 
 <BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>
 `final` 을 사용하면 해당 메서드를 **오버라이딩 할 수 없게** 만든다. 메서드를 `final` 로 선언하면서 해당 메서드가 하위 클래스에서 오버라이딩 하지 않게 강제할 수 있으므로,
-
 <BlueText>특정 메서드의 동작이 변경되지 않도록 보장하여 코드의 무결성을 유지할 수 있다.</BlueText>
 
 그렇다보니, 상위 클래스에서 정의한 메서드 동작이 항상 동일하게 유지되면서 코드를 이해하기 쉬워진다.
