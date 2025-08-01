@@ -91,6 +91,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/java/about-final</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/spring/jpa-determine-entity-is-new</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
