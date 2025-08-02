@@ -170,13 +170,15 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
             )}
             {/* ads */}
             <div className="mt-10 flex justify-center min-h-[100px]">
-              <ins
-                  className="adsbygoogle"
-                  style={{display: "block"}}
-                  data-ad-client="ca-pub-5103032140213770"
-                  data-ad-slot="3384415421"
-                  data-ad-format="autorelaxed"
-              ></ins>
+              <div style={{width: "100%", maxWidth: "728px", minHeight: "100px"}}>
+                <ins
+                    className="adsbygoogle"
+                    style={{display: "block", width: "100%", minHeight: "100px"}}
+                    data-ad-client="ca-pub-5103032140213770"
+                    data-ad-slot="3384415421"
+                    data-ad-format="autorelaxed"
+                ></ins>
+              </div>
             </div>
           </main>
 
