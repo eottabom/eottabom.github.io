@@ -70,11 +70,13 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
   const hasMoreRelated = visibleRelatedCount < relatedPosts.length;
 
   useEffect(() => {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.error("Adsbygoogle push error:", e);
-    }
+    setTimeout(() => {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        console.error("Adsbygoogle push error:", e);
+      }
+    }, 500);
   }, []);
 
   useEffect(() => {
@@ -167,7 +169,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                 </div>
             )}
             {/* ads */}
-            <div className="mt-10 flex justify-center">
+            <div className="mt-10 flex justify-center min-h-[100px]">
               <ins
                   className="adsbygoogle"
                   style={{display: "block"}}
