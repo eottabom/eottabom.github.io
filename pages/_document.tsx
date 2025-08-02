@@ -7,7 +7,7 @@ export default function Document() {
         {/* 광고 스크립트 삽입 위치 */}
         <script
           async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5103032140213770"
           crossOrigin="anonymous"
         ></script>
       </Head>
