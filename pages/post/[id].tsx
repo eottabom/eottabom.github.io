@@ -152,6 +152,16 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                   )}
                 </div>
             )}
+            {/* ads */}
+            <div className="mt-10 flex justify-center">
+              <ins
+                  className="adsbygoogle"
+                  style={{display: "block"}}
+                  data-ad-client="ca-pub-5103032140213770"
+                  data-ad-slot="3384415421"
+                  data-ad-format="autorelaxed"
+              ></ins>
+            </div>
           </main>
 
           {/* Table of contents */}
