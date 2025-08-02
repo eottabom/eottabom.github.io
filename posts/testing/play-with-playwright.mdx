@@ -1,0 +1,340 @@
+---
+title: "E2E(End to End) 테스트 프레임 워크인, Playwright 로 놀아보자! (feat. playwright mcp + claude desktop)"
+date: "2025-08-02"
+tags: ["Testing", "Java"]
+summary: "Have fun automating the browser with Playwright for Java"
+description: "Playwright 를 기반으로 Java 에서 브라우저 자동화 테스트를 즐겨보자."
+---
+
+:::info
+웹 테스트 자동화의 필요성을 느끼며 다양한 오픈소스 라이브러리를 찾아보게 되었는데,
+속도, 브라우저 지원, 개발자 친화성 면에서 눈에 띄는 도구가 하나 있었다. 바로 Playwright 다.
+Playwright 가 어떤 도구인지 간단히 살펴보고, 더 나아가서 MCP 와 연동하여 테스트를 자동화하는 방법까지 함께 알아보자.
+:::
+
+---
+
+<figure style={{ textAlign: 'center' }}>
+    <img
+        src="/img/post/testing/playwright/playwright-logo.png"
+        alt="Playwright Logo"
+        style={{ display: 'inline-block'}}
+    />
+    <figcaption style={{ fontSize: '0.9em', color: '#666', marginTop: '0.5rem' }}>
+        출처: <a href="https://brandfetch.com/playwright.dev" target="_blank" rel="noopener noreferrer">brandfetch</a>
+    </figcaption>
+</figure>
+
+---
+
+## Q. Playwright 는 무엇인가요?
+
+<BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>
+[Playwright](https://playwright.dev/java/) 는 Microsoft 에서 만든 오픈소스 E2E (End-to-End) 테스트 프레임워크이다.
+
+여러 브라우저를 한 API 로 자동화할 수 있으며, 여러가지 특징을 가지고 있다.
+
+* Chromium, Firefox, WebKit 지원
+* Headless / Headful 모드 실행
+* 여러 탭 및 컨텍스트 제어
+* 네트워크 제어, 스크린 샷, 비디오 녹화 등 지원
+
+
+---
+
+## 다른 도구들과의 비교 (vs Selenium, Cypress)
+
+`Playwright` 는 최신 브라우저 자동화 프레임워크로, 자동 대기, 빠른 실행 속도, 다양한 브라우저 지원 등에서 다른 도구들에 비해서 개발자 친화적인 경험을 제공한다.
+
+|구분|Playwright|Selenium|Cypress|
+|--|--|--|--|
+|지원 브라우저|Chrome, Firefox, WebKit|대부분 지원 되지만 WebDriver 필요|Chromium 계열만 지원|
+|실행 속도|빠름 (자동 대기 + 병렬 실행 지원)|느림 (명시적 대기 필요) | 빠름|
+|모바일 애뮬레이션|Device Profile 내장|Driver 별도 구성 필요|Chrome 기반으로 일부만 지원|
+|자동 대기|기본 내장(`click()`, `fill()` 등 자동 대기)|`WebDriverWait` 등 명시적 대기 필요|일부 기본 내장|
+|설치 / 구성|단일 바이너리 설치로 매우 간단|브라우저마다 WebDriver 따로 필요|Node 기반으로 간단|
+
+`Playwright` 는 actionability check(실제로 동작 가능한 상태인지 확인 검사)를 수행해서, 사용자 액션 등을 시뮬레이션 할 때,
+<BlueText>자동 대기 기능</BlueText>을 기본적으로 제공한다.
+
+`Playwright` 는 요소가 DOM 에 로드되고, 표시되어 활성화 된 상태까지 자동으로 기다린 다음에 액션을 수행하게 된다.
+
+그렇기 때문에 테스트 코드가 더 간결해지고, 실수할 여지가 줄어들며 테스트 실행 속도가 향상된다.
+
+반면에, `Selenium` 은 개발자가 `WebDriverWait` 등으로 명시적으로 조건을 설정해야 하므로,
+
+코드가 복잡해지고, 속도가 느려지는 문제가 발생하게 된다.
+
+<br/>
+
+아래 예시에서 `Playwright` 의 코드가 `Selenium` 보다 간결하다는 것을 알 수 있다.
+
+```java
+// playwright
+page.click("button#submit"); // 요소가 로드되고 활성화될 때까지 자동으로 기다린다.
+
+// Selenium
+// 최대 10초 동안 기다릴 수 있는 WebDriverWait 객체 생성
+WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+// id 가 submit 인 버튼이 클릭 가능할 때 까지 대기 (요소가 DOM 에 존재하고, 활성화되어 있는 상태)
+WebElement submitBtn = wait.until(ExpectedConditions.elementToBeClickable(By.id("submit")));
+submitBtn.click();
+```
+
+<br/>
+
+:::note
+<a href="https://playwright.dev/docs/actionability">playwright - actionability</a>
+:::
+
+
+---
+
+## Playwright 를 직접 써보자!
+
+`Playwright` 의 자동 대기, 다중 브라우저 지원 등은 직접 코드를 실행시켜보면 확실하게 느낄 수 있다.
+
+다행스럽게도, `Playwright` 는 실제 브라우저에서 수행한 액션을 기반으로 테스트 코드를 자동 생성해주는 `codegen` 기능을 제공한다.
+
+공식 문서에서는 다음과 같이 Maven 을 기준으로 안내하고 있다.
+
+```shell
+mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="codegen https://the-internet.herokuapp.com/login"
+```
+
+<br/>
+
+:::note
+<a href="https://playwright.dev/java/docs/codegen">playwright - Test generator</a>
+:::
+
+---
+
+## Playwright Java - Gradle 로 codegen 실행해보자!
+
+이번에는 Gradle(Groovy DSL)을 사용하여 `codegen` 기능을 실행해보겠다.
+
+### 1) 의존성 추가
+
+먼저, `build.gralde` 에 Playwright Java 의존성을 추가한다.
+
+```groovy
+dependencies {
+	// ...
+	implementation 'com.microsoft.playwright:playwright:1.54.0'
+    // ...
+}
+```
+
+### 2) 브라우저 설치 Task
+
+playwright 는 실제 브라우저 바이너리가 있어야 동작하게 되는데,
+gradle 에서 `installBrowsers` Task 를 정의하면 CLI 로 브라우저를 설치할 수 있다.
+
+```groovy
+// playwright - install Browsers
+tasks.register("installBrowsers", JavaExec) {
+	group = "playwright"
+	description = "Installs Playwright browsers"
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass.set("com.microsoft.playwright.CLI")
+	args("install")
+}
+```
+
+`installBrowsers` Task 를 실행시키면 아래와 같이 브라우저가 설치가 된다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/install-task.png" alt="gradle-playwright-install-task" style={{ display: 'inline-block' }} />
+</div>
+
+### 3) Codegen Task
+
+브라우저 설치가 완료되면, 이제 실제 `codegen` Task 를 통해 브라우저 액션을 기록하고 코드로 변환할 수 있다.
+
+```groovy
+// playwright - codegen
+tasks.register("codegen", JavaExec) {
+	group = "playwright"
+	description = "Launches playwright codegen"
+	classpath = sourceSets.main.runtimeClasspath
+	mainClass.set("com.microsoft.playwright.CLI")
+	args("codegen", "https://the-internet.herokuapp.com/login") // args 에는 실행시킬 URL 도 정의해준다.
+}
+```
+
+`codegen` Task 를 실행시키면 `Playwright Inspector` 창이 뜨고, `args` 에 추가한 URL 이 Chromium 브라우저로 실행이 된다.
+
+상단 메뉴에서 `Record` 를 클릭하게 되면 Chromium 브라우저의 액션이 코드상으로 기록된다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/codegen-task.png" alt="gradle-playwright-codegen-task" style={{ display: 'inline-block' }} />
+</div>
+
+`Playwright Inspector` 에서 Target 을 클릭하게 되면, `Node.js`, `Python`, `.NET C#`, `Java` 등으로 코드가 기록되고,
+
+여기서는 `Java` - `Junit` 기반으로 기록을 해보았다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/codegen-task-1.png" alt="gradle-playwright-codegen-task-1" style={{ display: 'inline-block' }} />
+</div>
+
+테스트 자동화 연습용으로 널리 쓰이는 샘플 웹페이지인 `https://the-internet.herokuapp.com/login` 에서 간단하게 로그인하는 것을 기록하면,
+
+사용자의 액션이 코드로 기록되는 것을 볼 수 있고, 다시 `Playwright Inspector` 상단 메뉴에서 `Record` 를 누르면 기록이 종료가 되고 복사가 가능한 상태가 된다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/codegen-task-finish.png" alt="gradle-playwright-codegen-task-finish" style={{ display: 'inline-block' }} />
+</div>
+
+Chromium 브라우저 상에도 상단 UI 가 생성되는데, 메뉴를 적절히 선택해서 사용할 수 있다.
+
+테스트 코드 기반으로 작성할 경우 검증하는 부분을 추가하면 된다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/codegen-task-assert.png" alt="gradle-playwright-codegen-task-assert" style={{ display: 'inline-block' }} />
+</div>
+
+상단 UI 에 대한 설명은 공식 페이지에서 확인 가능하다.
+
+:::note
+<a href="https://playwright.dev/java/docs/codegen-intro#inspecting-locators">playwright - Generating tests #inspecting-locators</a>
+:::
+
+<br/>
+
+최종 생성 된 코드는 아래와 같은데,
+
+`@UserPlaywright` annotation 이 있으면 default 로 headless 상태로 실행되며,  `Playwright` 인스턴스를 자동 생성해주고 (Playwright, Browser, BrowserContext, Page 등)
+테스트 종료 후 `browser.close()` 등을 자동으로 수행해주는 annotation 이다.
+
+```java
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.junit.UsePlaywright;
+import com.microsoft.playwright.options.AriaRole;
+import org.junit.jupiter.api.Test;
+
+import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+
+@UsePlaywright
+class TestExample {
+
+	@Test
+	void test(Page page) {
+		page.navigate("https://the-internet.herokuapp.com/login");
+		page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).click();
+		page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).fill("tomsmith");
+		page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).press("Tab");
+		page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Password")).fill("SuperSecretPassword!");
+		page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(" Login")).click();
+		assertThat(page.getByText("You logged into a secure area")).isVisible();
+	}
+}
+```
+
+headless 가 아닌 모드로 실행을 시키려면, `-Dplaywright.launch.headless=false` 이런식으로 옵션을 주고 실행시키거나,
+
+`Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));` 와 함께,
+
+`@UsePlaywright` 어노테이션이 하는 것을 직접 구현 하면 된다.
+
+`Playwright` 는 `AutoCloseable` 을 구현하고 있어서 `try-with-resources` 구문으로 처리가 된다.
+
+```java
+class PlaywrightTests {
+
+	@Test
+	void test() {
+		try (Playwright playwright = Playwright.create()) {
+			Browser browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(false));
+			BrowserContext context = browser.newContext();
+			Page page = context.newPage();
+
+			page.navigate("https://the-internet.herokuapp.com/login");
+
+			page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Username")).fill("tomsmith");
+			page.getByRole(AriaRole.TEXTBOX, new Page.GetByRoleOptions().setName("Password"))
+				.fill("SuperSecretPassword!");
+			page.getByRole(AriaRole.BUTTON, new Page.GetByRoleOptions().setName(" Login")).click();
+
+			assertThat(page.getByText("You logged into a secure area")).isVisible();
+		}
+	}
+}
+```
+
+:::tip
+<a href="https://github.com/eottabom/let-me-code/tree/main/src/test/java/com/eottabom/letmecode/example/_02_playwright">playwright - 예시 보러 가기</a>
+:::
+
+
+---
+
+## Claude Desktop + MCP 연동해보기
+
+`Playwright` 는 [MCP](https://github.com/microsoft/playwright-mcp) 도 지원하는데, 간단히 Claude Desktop 을 이용해서 MCP 연동해서 사용해보자.
+
+:::note
+<b>필수 조건</b>
+Node.js 18 이상
+Claude Desktop 앱 설치
+:::
+
+설정은 생각보다 간단하다.
+
+#### 1) Claude Desktop 를 실행시키고, [좌측 메뉴] - [파일] - [설정] 메뉴에서
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/claude-desktop-setting-1.png" alt="claude-desktop-setting-1" style={{ display: 'inline-block' }} />
+</div>
+
+#### 2) [개발자] - [구성 편집] 을 누르게 되면,
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/claude-desktop-setting-2.png" alt="claude-desktop-setting-2" style={{ display: 'inline-block' }} />
+</div>
+
+#### 3) 아래와 같이, `claude_desktop_config.json` 을 열어주고,
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/claude-desktop-setting-3.png" alt="claude-desktop-setting-3" style={{ display: 'inline-block' }} />
+</div>
+
+#### 4) playwright mcp server 를 추가해주고, Claude Desktop 앱을 다시 실행 시켜 주자.
+
+```json
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    }
+  }
+}
+```
+
+#### 5) Prompt 를 작성해주면 playwright mcp 를 실행시켜서 Prompt 내용대로 동작한다.
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/testing/playwright/claude-desktop.png" alt="claude-desktop-playwright" style={{ display: 'inline-block' }} />
+</div>
+
+---
+
+:::success
+✔ Playwright 는 빠르고 신뢰할 수 있는 테스트 자동화 도구로 개발자에게 매우 직관적인 기능을 제공한다.
+✔ codegen 기능을 이용해서 복잡한 사용자 액션을 쉽게 코드로 생성 가능하다.
+✔ Claude Desktop 과 MCP 를 연동하면 브라우저 자동화 테스트를 LLM 기반 프롬프트로 제어할 수 있어서 쉽게 테스트가 가능하다.
+✔ 단순한 테스트를 넘어서 개발 - 테스트 - 운영을 아우르는 도구라고 생각되고 Playwright 는 충분히 가치가 있는 도구라고 생각된다.
+:::
+
+---
+
+
+## 📚 Reference
+
+* [Playwright 공식 홈페이지](https://playwright.dev/)
+* [Playwright for Java 공식 문서](https://playwright.dev/java/)
+* [Playwright Test Generator (codegen)](https://playwright.dev/java/docs/codegen)
+* [Playwright Actionability 설명](https://playwright.dev/docs/actionability)
+* [Playwright MCP 프로젝트](https://github.com/microsoft/playwright-mcp)
+* [The Internet - Test Practice Site](https://the-internet.herokuapp.com/login)
