@@ -16,6 +16,12 @@ import { ArrowDownCircle } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
 import {serialize} from "next-mdx-remote/serialize";
 
+declare global {
+  interface Window {
+    adsbygoogle: unknown[];
+  }
+}
+
 type PostData = {
   id: string;
   title: string;
@@ -62,6 +68,14 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
   const [visibleRelatedCount, setVisibleRelatedCount] = useState(3);
   const visibleRelatedPosts = relatedPosts.slice(0, visibleRelatedCount);
   const hasMoreRelated = visibleRelatedCount < relatedPosts.length;
+
+  useEffect(() => {
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (e) {
+      console.error("Adsbygoogle push error:", e);
+    }
+  }, []);
 
   useEffect(() => {
     const el = scrollRef.current;
