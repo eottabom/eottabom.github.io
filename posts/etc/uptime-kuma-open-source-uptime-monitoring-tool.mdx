@@ -1,0 +1,138 @@
+---
+title: "오픈소스 서비스 모니터링 툴, Uptime Kuma 를 사용해보자."
+date: "2025-08-02"
+tags: ["Etc"]
+summary: "Uptime Kuma is a self-hosted open source monitoring tool with a clean UI and powerful features for tracking website and server uptime."
+description: "웹, 서버 상태를 쉽게 모니터링 할 수 있는 오픈소스 툴인 Uptime Kuma 를 이용해보자."
+---
+
+:::info
+서비스를 운영하다보면 가장 중요한 지표 중 하나는 <b>가용성(Availability)</b> 이다.
+서버가 살아 있는지, 웹사이트가 정상적으로 응답하는지, 인증서가 만료되지 않았는지 등 다양한 요소들을 꾸준히 살펴봐야한다.
+
+이럴 때 가볍고 UI 가 깔끔한 모니터링 툴인 <b>Uptime Kuma</b>를 이용하면 손쉽게 해결이 가능하다.
+:::
+
+---
+
+<figure style={{ textAlign: 'center' }}>
+    <img
+        src="/img/post/etc/uptime-kuma/uptime-kuma-logo.png"
+        alt="Uptime Kuma Logo"
+        style={{ display: 'inline-block'}}
+    />
+    <figcaption style={{ fontSize: '0.9em', color: '#666', marginTop: '0.5rem' }}>
+        출처: <a href="https://dev.to/maxshash/7-best-uptime-kuma-alternatives-for-monitoring-service-uptime-3iob" target="_blank" rel="noopener noreferrer">7-best-uptime-kuma-alternatives-for-monitoring-service-uptime-3iob</a>
+    </figcaption>
+</figure>
+
+---
+
+## Q. Uptime Kuma 는 무엇인가요?
+
+<BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>
+[Uptime Kuma](https://github.com/louislam/uptime-kuma) 는 자체 호스팅이 가능한 오픈 소스 모니터링 툴이다.
+
+* HTTP/HTTPS, TCP, Ping, DNS 등 다양한 방식을 지원
+* SSL 인증서 만료일 확인 가능
+* Slack, Discord, Telegram, Email 등 을 연동해서 다양한 알림 지원
+* 멀티 유저, 인증 지원
+* 직관적인 UI 제공
+
+---
+
+## Docker 로 설치해보기
+
+Uptime Kuma 는 공식적으로 Docker 설치를 가장 권장하고, 단 한 줄로 실행이 가능하다.
+
+```shell
+docker run -d --restart=always -p 3001:3001 \
+  -v uptime-kuma:/app/data \
+  louislam/uptime-kuma:latest
+```
+
+:::warning
+윈도우 환경에서는 Docker Desktop 이 실행중이어야 한다.
+:::
+
+
+:::quote
+uptime kuma 는 공식적으로 docker 만 지원하고 helm 은 지원하지 않는다.
+
+다만, 커뮤니티 차트는 ArtifactHub나 GitHub에 존재하는데,
+*Unofficial*로, 릴리스에 따라 깨질 수 있으며 운영 환경에서의 안정성이 보장되지 않는다.
+
+* <a href="https://github.com/louislam/uptime-kuma/wiki/%F0%9F%94%A7-How-to-Install?utm_source=chatgpt.com">How to Install - uptime kuma</a>
+* <a href="https://github.com/k3rnelpan1c-dev/uptime-kuma-helm?utm_source=chatgpt.com">Uptime Kuma Helm UNOFFICIAL Chart Git</a>
+:::
+
+
+---
+
+## Uptime Kuma 간단 테스트 및 둘러보기
+
+1. 브라우저에서 `http://localhost:3001` 접속 후 관리자 계정을 생성
+2. **Add New Monitor** 버튼 클릭 → `HTTP(s)` 선택
+3. 모니터링할 URL 입력 (예: `https://example.com`)
+4. Method는 보통 `HEAD` 권장 (서버 부하 최소화)
+5. SSL 인증서 만료 체크, 알림 연동 옵션 설정
+6. 저장하면 대시보드에서 상태/응답 시간/가용성 그래프 확인 가능
+
+
+설치 후에 관리자 계정을 설정하고 접근하게 되면, 직관적인 UI 인 메인 페이지를 볼 수 있다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/etc/uptime-kuma/uptime-kuma-main.png" alt="uptime-kuma-main"  style={{ display: 'inline-block' }} />
+</div>
+
+
+새로운 모니터링 추가를 하게 되면, 생각보다 많은 것들을 지원하는데, HTTP 옵션으로 `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `HEAD`, `OPTIONS` 를 모두 지원하고,
+인증서 만료 알림도 설정이 가능하며, 응답 성공 코드는 HTTP 응답에 따라서 설정이 가능하다.
+
+:::note
+보통의 경우 HEAD 메서드로 요청을 해야 서버의 부하가 줄어든다.
+:::
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/etc/uptime-kuma/uptime-kuma-new-monitoring.png" alt="uptime-kuma-new-monitoring"  style={{ display: 'inline-block' }} />
+</div>
+
+알림도 다양한 알림들을 지원하기에 운영하는 입장에서는 상당히 수월하다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/etc/uptime-kuma/uptime-kuma-alert.png" alt="uptime-kuma-alert"  style={{ display: 'inline-block' }} />
+</div>
+
+:::note
+사내 클라우드 환경에서 구성해서 사용 중인데, Uptime Kuma 는 Node.js 기반이라 TLS 에 대해서 엄격해서 별도의 Proxy Server 를 구성해서 Teams 알림 설정을 해두었다.
+:::
+
+설치부터 모니터링 설정이 1분도 체 걸리지 않았는데, 그 만큼 가볍고 쉽게 서버 상태 모니터링이 가능한 강력한 오픈소스이다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/etc/uptime-kuma/uptime-kuma-monitoring.png" alt="uptime-kuma-monitoring"  style={{ display: 'inline-block' }} />
+</div>
+
+---
+
+:::success
+<b>정리</b>
+✔ 설치는 Docker 한 줄로 끝
+✔ 직관적인 UI와 다양한 알림 연동
+✔ 웹/서버 상태, SSL 인증서까지 모니터링 가능
+✔ Helm Chart는 공식 지원 X (커뮤니티 차트는 Unofficial)
+→ 사이드 프로젝트나 소규모 서비스 모니터링에 최적화된 오픈소스 툴이다.
+:::
+
+---
+
+## 📚 Reference
+
+* [Uptime Kuma GitHub Repository](https://github.com/louislam/uptime-kuma)
+* [Uptime Kuma Wiki - How to Install](https://github.com/louislam/uptime-kuma/wiki/🔧-How-to-Install)
+* [Uptime Kuma Helm (Unofficial) - k3rnelpan1c-dev](https://github.com/k3rnelpan1c-dev/uptime-kuma-helm)
+* [ArtifactHub - Uptime Kuma Helm Chart (Community)](https://artifacthub.io/packages/helm/fmjstudios/uptime-kuma)
+* [7 Best Uptime Kuma Alternatives (dev.to)](https://dev.to/maxshash/7-best-uptime-kuma-alternatives-for-monitoring-service-uptime-3iob)
+* [Uptime Kuma Official Website](https://uptimekuma.org)
+
+
