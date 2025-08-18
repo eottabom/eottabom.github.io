@@ -1,0 +1,209 @@
+---
+title: "객체 지향 9가지 규칙"
+date: "2020-02-10"
+tags: ["Clean Code", "Study"]
+updated: "2025-08-18"
+summary: "The nine rules of Object Calisthenics explained with Java examples to improve code readability and maintainability."
+description: "소트웍스 앤솔러지(Object Calisthenics)에서 제안한 객체 지향 생활 체조 9가지 규칙과 Java 예시를 통해 코드의 가독성과 유지보수성을 높이는 방법을 살펴보자."
+---
+
+
+:::info
+소트웍스 앤솔러지(Object Calisthenics)는 소프트웨어 설계의 훈련을 위해 제프 베이(Jeff Bay)가 제안한 9가지 규칙을 담고 있다.
+마치 체조(gymnastics)처럼 매일 훈련하듯 적용하면서 객체지향 감각을 기르자는 취지인데, 그 9가지 규칙에 대해서 알아보자.
+:::
+
+---
+
+## 9가지 규칙 요약
+1. 한 메서드에 오직 한 단계의 들여 쓰기
+2. else 예약어를 쓰지 않는다
+3. 모든 원시 값과 문자열을 포장한다
+4. 한 줄에 점을 하나만 찍는다
+5. 줄여 쓰지 않는다 (축약 금지)
+6. 모든 엔티티를 작게 유지한다
+7. 3개 이상의 인스턴스 변수를 가진 클래스를 쓰지 않는다
+8. 일급 컬렉션을 쓴다
+9. 게터/세터/프로퍼티를 쓰지 않는다
+
+---
+
+## 규칙 1. 한 메서드에 오직 한 단계의 들여 쓰기
+- 메서드 길이는 5줄 내외로 제한
+- 하나의 제어 구조만 포함
+
+```java
+// Bad
+public void process(List<Order> orders) {
+    for (Order o : orders) {
+        if (o.isValid()) {
+            ship(o);
+        }
+    }
+}
+
+// Good (스트림과 메서드 추출)
+public void process(List<Order> orders) {
+    orders.stream()
+          .filter(Order::isValid)
+          .forEach(this::ship);
+}
+```
+
+## 규칙 2. else 예약어를 쓰지 않는다
+* 조건문 중첩 = 가독성 저하
+* 대안 = 조기 반환(Early Return), 다형성, Null Object
+
+```java
+// Bad
+if (user != null) {
+    if (user.isActive()) {
+        return user.getName();
+    } else {
+        return "비활성 사용자";
+    }
+} else {
+    return "사용자 없음";
+}
+
+// Good (Guard Clause)
+if (user == null) return "사용자 없음";
+if (!user.isActive()) return "비활성 사용자";
+return user.getName();
+```
+
+---
+
+## 규칙 3. 원시 값과 문자열을 포장한다
+* 의미 있는 객체로 감싸 의도를 드러내기
+
+```java
+// Bad
+public class User {
+    private String email;
+}
+
+// Good
+public class Email {
+    private final String address;
+
+    public Email(String address) {
+        if (!address.contains("@")) throw new IllegalArgumentException("유효하지 않은 이메일");
+        this.address = address;
+    }
+    public String getValue() { return address; }
+}
+
+```
+
+
+---
+
+## 규칙 4. 한 줄에 점을 하나만 찍는다.
+* 디미터 법칙(Law of Demeter) 준수
+
+```java
+// Bad
+order.getCustomer().getAddress().getCity();
+
+// Good (메서드 캡슐화)
+order.getShippingCity();
+```
+
+---
+
+## 규칙 5. 축약 금지
+* 클래스와 메서드 이름은 명확하게 한다.
+
+```java
+// Bad
+class Ord {
+    void sh() {}
+}
+
+// Good
+class Order {
+    void ship() {}
+}
+```
+
+
+---
+
+## 규칙 6. 모든 엔티티를 작게 유지한다.
+* 50줄 이하의 클래스 → 응집도 높고 이해하기 쉬움
+* DDD(Value Object, Entity)와 잘 어울림
+
+---
+
+## 규칙 7. 3개 이상의 인스턴스 변수를 가진 클래스 금지
+* 응집도를 잃기 쉽다. DTO는 예외 가능
+
+```java
+// Bad
+class User {
+    private String name;
+    private String email;
+    private String phone;
+    private String address; // 너무 많음
+}
+
+// Good (Value Object로 분리)
+class ContactInfo {
+    private String email;
+    private String phone;
+}
+
+```
+
+---
+
+## 규칙 8. 일급 컬렉션 사용
+* 컬렉션 + 부가 로직을 하나의 객체로 캡슐화
+
+```java
+// Bad
+List<Order> orders;
+
+// Good
+class Orders {
+    private final List<Order> values;
+    public Orders(List<Order> orders) { this.values = orders; }
+    public int totalAmount() {
+        return values.stream().mapToInt(Order::getAmount).sum();
+    }
+}
+```
+
+---
+
+## 규칙 9. 게터/세터/프로퍼티 금지
+* 객체는 데이터 보관소가 아니라 행동을 제공해야 한다.
+
+```java
+// Bad
+order.getStatus();
+order.setStatus("SHIPPED");
+
+// Good
+order.ship();
+```
+
+---
+
+:::success
+<b>정리</b>
+✔ 이 9가지 규칙은 강제적인 법칙이 아니라, 객체지향 감각을 기르기 위한 지침이다.
+✔ 실제 개발에서는 예외가 존재하지만, 규칙을 의식적으로 적용하다보면 코드가 훨씬 더 읽기 쉽고 유지보수 하기 쉬워진다는 것을 체감할 수 있다.
+:::
+
+
+---
+
+## 📚 Reference
+
+- [Jeff Bay, *Object Calisthenics*](https://williamdurand.fr/2013/06/03/object-calisthenics/)
+- [소트웍스 앤솔러지 한국어판 리뷰](https://book.naver.com/bookdb/book_detail.nhn?bid=3246861)
+- [Martin Fowler - Null Object Pattern](https://martinfowler.com/eaaCatalog/specialCase.html)
+- [일급 컬렉션 정리 블로그 (jojoldu)](https://jojoldu.tistory.com/412)
+
