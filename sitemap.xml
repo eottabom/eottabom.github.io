@@ -1,77 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://eottabom.github.io/post/grpc/why-using-grpc</loc>
+    <loc>https://eottabom.github.io/post/testing/play-with-playwright</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://eottabom.github.io/post/kubernetes/kubernetes-qos</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/etc/in-memory</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/etc/utterances로-댓글-기능-추가하기</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/etc/Rich-feature-hierarchies-for-accurate-object-detection-and-semantic-segmentation</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/etc/intellij-indexing</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/etc/tipuesearch-검색기능</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/etc/virtualbox-centos-disk</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/clean-code/springformatter-checkstyle</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/clean-code/comments</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/clean-code/local-variable-type-inference-style-guidelines</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/clean-code/why-new-line</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/clean-code/refactoring-category-summary</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/java/try-with-resources</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/java/lombok-precess</loc>
+    <loc>https://eottabom.github.io/post/spring/jpa-determine-entity-is-new</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -86,6 +21,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/java/try-with-resources</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/java/lombok-precess</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/java/lombok-using-points</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -96,12 +41,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://eottabom.github.io/post/spring/jpa-determine-entity-is-new</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://eottabom.github.io/post/database/mysql-validation-errors</loc>
+    <loc>https://eottabom.github.io/post/ddd/ddd-core-concept</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -111,12 +51,77 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://eottabom.github.io/post/ddd/ddd-core-concept</loc>
+    <loc>https://eottabom.github.io/post/clean-code/refactoring-category-summary</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://eottabom.github.io/post/testing/play-with-playwright</loc>
+    <loc>https://eottabom.github.io/post/clean-code/comments</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/clean-code/springformatter-checkstyle</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/clean-code/local-variable-type-inference-style-guidelines</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/clean-code/why-new-line</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/grpc/why-using-grpc</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/database/mysql-validation-errors</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/kubernetes/kubernetes-qos</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/uptime-kuma-open-source-uptime-monitoring-tool</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/utterances로-댓글-기능-추가하기</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/virtualbox-centos-disk</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/tipuesearch-검색기능</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/intellij-indexing</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/in-memory</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://eottabom.github.io/post/etc/Rich-feature-hierarchies-for-accurate-object-detection-and-semantic-segmentation</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
