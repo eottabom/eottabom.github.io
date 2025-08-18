@@ -56,6 +56,11 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://eottabom.github.io/post/clean-code/9-Rules-of-Object-Oriented-Programming</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://eottabom.github.io/post/clean-code/comments</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
