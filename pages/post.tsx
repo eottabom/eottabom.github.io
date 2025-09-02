@@ -20,8 +20,16 @@ type Props = {
     tagCounts: Record<string, number>;
 };
 
+const byDesc = (a: string | undefined, b: string | undefined) =>
+    new Date(b ?? '1970-01-01').getTime() - new Date(a ?? '1970-01-01').getTime();
+
 export const getStaticProps: GetStaticProps<Props> = async () => {
     const posts = getPostsMetaOnly();
+
+    const byCreatedDesc = [...posts].sort((a, b) => byDesc(a.date, b.date));
+    const byUpdatedDesc = [...posts].sort(
+        (a, b) => byDesc(a.updated ?? a.date, b.updated ?? b.date)
+    );
 
     const postsByTag: Record<string, Post[]> = {};
     const tagCounts: Record<string, number> = {};
@@ -29,12 +37,21 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
     postsByTag['latest'] = posts;
     tagCounts['latest'] = posts.length;
 
+    postsByTag['updated'] = byUpdatedDesc;
+    tagCounts['updated'] = byUpdatedDesc.length;
+
+    const grouped: Record<string, Post[]> = {};
     posts.forEach((post) => {
-        (post.tags || []).forEach((tag) => {
-            if (!postsByTag[tag]) postsByTag[tag] = [];
-            postsByTag[tag].push(post);
-            tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+        (post.tags ?? []).forEach((tag) => {
+            if (!grouped[tag]) grouped[tag] = [];
+            grouped[tag].push(post);
         });
+    });
+
+    Object.keys(grouped).forEach((tag) => {
+        grouped[tag].sort((a, b) => byDesc(a.updated ?? a.date, b.updated ?? b.date));
+        postsByTag[tag] = grouped[tag];
+        tagCounts[tag] = grouped[tag].length;
     });
 
     return {
@@ -86,10 +103,14 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
 
     const title = selectedTag === "latest"
         ? "Latest Posts"
+        : selectedTag === "updated"
+        ? "Recently Updated"
         : `${selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1)} Posts`;
 
     const description = selectedTag === "latest"
         ? "Check out the latest posts — and filter by tag if you'd like."
+        : selectedTag === "updated"
+        ? "Posts sorted by last updated timestamp (falls back to created date)."
         : `Posts related to the '${selectedTag}' category.`;
 
     const gradientOptions = [
@@ -111,9 +132,11 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
     }, [selectedTag]);
 
     // 태그 목록
+    const otherTags = Object.keys(tagCounts).filter(t => t !== 'latest' && t !== 'updated');
     const tagList = [
-        "latest",
-        ...Object.keys(tagCounts).filter(tag => tag !== "latest").sort((a, b) => a.localeCompare(b)),
+        'latest',
+        'updated',
+        ...otherTags.sort((a, b) => a.localeCompare(b))
     ];
 
     // 태그 변경 시 검색/페이지 초기화
