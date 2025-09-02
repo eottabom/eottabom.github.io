@@ -178,10 +178,7 @@ function renderText(type: InfoPanelType, children: ReactNode) {
 }
 
 
-export default function InfoPanel({
-                                    type = 'info',
-                                    children,
-                                  }: InfoPanelProps) {
+export default function InfoPanel({ type = 'info', children, }: InfoPanelProps) {
   const style = typeStyles[type];
 
   return (
@@ -192,42 +189,3 @@ export default function InfoPanel({
       </div>
   );
 }
-
-
-
-// function renderText(type: InfoPanelType, children: ReactNode) {
-//   const lines = extractLines(children);
-//   const [title = [], ...rest] = lines;
-//   const style = typeStyles[type];
-//
-//   return (
-//       <>
-//         <div
-//             className={`text-mi mt-2 mb-1 flex flex-col sm:flex-row sm:items-center gap-2 ${style.titleColor}`}
-//         >
-//           <div className="flex-shrink-0">
-//             {React.cloneElement(style.icon, {className: `w-4 h-4 ${style.titleColor}`})}
-//           </div>
-//           <div className="break-words whitespace-pre-line leading-snug">
-//             {title}
-//           </div>
-//         </div>
-//         <div className={`space-y-1 text-mi pl-[1.3rem] ${style.titleColor}`}>
-//           {rest.map((line, i) => (
-//               <div key={i}>{line}</div>
-//           ))}
-//         </div>
-//       </>
-//   );
-// }
-//
-//
-// export default function InfoPanel({type = 'info', children}: InfoPanelProps) {
-//   const style = typeStyles[type];
-//
-//   return (
-//       <div className={`my-4 px-4 py-3 rounded-md prose ${style.bg} ${style.border} ${style.text}`}>
-//         {renderText(type, children)}
-//       </div>
-//   );
-// }
