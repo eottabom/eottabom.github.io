@@ -1,0 +1,380 @@
+---
+title: "Java Application on kubernetes"
+date: "2024-05-22"
+tags: ["Java"]
+updated: "2025-09-02"
+summary: "Practical JVM and container tuning tips: memory sizing, CPU settings, probes, and GC choices tailored for K8s."
+description: "컨테이너/Kubernetes 환경에서 Java 애플리케이션을 안정적으로 운영하기 위한 메모리/CPU 설정, 프로브, GC, QoS 전략 정리"
+---
+
+:::info
+kubernetes 환경에서 Java 어플리케이션의 리소스(CPU, Memory)는 <b>실제 지표 기반</b> 으로 조정하는 것이 가장 바람직하다.
+하지만, 신규 서비스나 아직 지표가 충분하지 않은 경우를 위해, 각 best practice 를 찾아보았고, 안정적인 초기 설정 가이드를 정리해보았다.
+:::
+
+
+---
+
+## Best Practices: Java Memory Arguments for Containers
+
+:::quote
+[Best Practices : Java Memory Arguments for Containers](https://dzone.com/articles/best-practices-java-memory-arguments-for-container) 에 대한 내용
+:::
+
+### 모범 사례 1
+
+* 힙 크기 구성에 사용하는 옵션 (`-XX: MaxRAMFraction`, `-XX: MaxRAMPercentage`, `-Xmx`) 에 관계 없이 항상 컨테이너에 <RedText>최소 25%</RedText> 더 많은 메모리를 할당한다.
+* Java Thread, Garbage Collection, Metaspace, Native Memory, Socket buffers 를 위한 공간이 필요하다.
+  * ex) MaxRAMPercentage: 75
+
+
+### 모범 사례 2
+
+* 초기 힙 크기(`-XX:InitialRAMFraction`, `-XX:InitialRAMPercentage`, `-Xms`) 를 최대 힙 크기(`-XX: MaxRAMFraction`, `-XX: MaxRAMPercentage`, `-Xmx`) 와 동일한 크기로 설정한다.
+
+:::note
+<b>초기 힙 크기 = 최대 힙 크기 설정시 장점</b>
+[Benefits of setting initial and maximum memory size to the same value](https://blog.ycrash.io/benefits-of-setting-initial-and-maximum-memory-size-to-the-same-value/)
+✔ 힙 크기가 초기 할당 크기보다 커질 때마다 JVM 이 일시 중지 되어서, `초기 힙 크기 = 최대 힙 크기` 로 설정하면 Garbage Collection pause time 이 낮아진다.
+:::
+
+
+### 모범 사례 3
+
+* `XX: MaxRAMFraction`, `XX:MaxRAMPercentage` 보다는 `Xmx` 옵션을 사용해서 세밀하고 정밀한 값을 설정해라.
+* Container 의 메모리 설정에 따라 조정되는 것보다는 세밀하고 정밀한 값을 설정할 수 있다.
+
+
+---
+
+## Best Practices for Java Apps on Kubernetes
+
+:::quote
+[Best Practices for Java Apps on Kubernetes](https://piotrminkowski.com/2023/02/13/best-practices-for-java-apps-on-kubernetes/) 일부 내용
+:::
+
+### 1. Don't Set Limits Too Low
+
+* CPU, Memory 의 Limit 을 너무 낮게 설정하지 마라.
+* Java 는 일반적인 작업에서 많은 CPU 를 사용하지 않더라도, 빠르게 시작하려면 많은 CPU 가 필요하다.
+
+:::note
+CPU 제한 설정을 권한하지 않는 글 : https://home.robusta.dev/blog/stop-using-cpu-limits
+해당 글에 대한 반박 글 : https://dnastacio.medium.com/why-you-should-keep-using-cpu-limits-on-kubernetes-60c4e50dfc61
+✔ 결론적으로는 CPU, Memory Limit 을 설정하는 것이 좋다는 내용
+:::
+
+
+### 2. Consider Memory Usage First
+
+* kubernetes 에서 앱을 실행하기 전에 최소한 예상 로드에서 앱이 소비하는 메모리 량을 측정 해야한다.
+
+```shell
+Heap = Total Container Memory - Non heap - Headroom
+
+Non Heap = Direct Memory + Metaspace + Reserved Code Cache + (Thread Stack * Thread Count)
+```
+
+### 3. Proper Liveness and Readiness Probes
+
+* `LivenessProbe` 와 `ReadinessProbe` 를 설정해라.
+* `LivenessProbe` 는 컨테이너를 다시 시작할지 여부를 결정하는데 사용되고, 어떤 이유로든 Application 을 사용할 수 없는 경우 컨테이너를 다시 시작하는 것이 합리적일 수 있다.
+* `ReadinessProbe` 는 컨테이너가 들어오는 트래픽을 처리할 수 있는지 결정하는데 사용되고, Pod 가 준비되지 않은 것으로 인식되면 endpoint 에서 제거된다.
+  * `ReadinessProbe` 가 실패하더라도 Pod 는 다시 시작되지 않는다.
+
+---
+
+## Kubernetes and the JVM
+
+:::quote
+[Kubernetes and the JVM](https://xebia.com/blog/kubernetes-and-the-jvm/) 의 일부 내용
+:::
+
+:::neutral
+If the JVM runs out of memory, it may result in the application crashing or other unexpected behavior.
+To avoid this, it's essential to set appropriate requests and limits for memory
+:::
+
+
+### Request, Limits and the JVM
+
+* request / limit memory 보다 작은 `-Xmx` 를 설정한다.
+* request / limit memory 는 동일하게 설정하는 것이 좋다.
+  * QoS Guaranteed 를 적용해라.
+
+
+### "Helpers" for configuring the Heap Size
+
+* heap 크기를 고정하지 말고, `-XX: InitialRAMPercentage` / `-XX: MaxRAMPercentage` 로 사용 가능한 메모리의 백분율로 설정한다.
+* kubernetes 와 같이 Pod 확장, 노드 확장 등 기타 요인으로 인해 사용 가능한 메모리가 변동 될 수 있는 동적 환경에서는 중요한 역할이 될 수 있다.
+* request 와 limit 을 같이 사용하는 것이 kubernetes 에서 메모리 사용량을 관리하기 위한 안정적이고, 권장되는 접근 방법이다.
+
+
+:::note
+request / limits + -XX: InitialRAMPercentage / -XX: MaxRAMPercentage
+:::
+
+
+### So, how could we find these kubernetes memory settings (request / limit) ?
+
+* Non heap memory 도 고려해라.
+* RAM 기반 파일 시스템도 영향을 미칠 수 있다.
+* -Xmx 힙이 아닌 메모리가 소진되어 OutOfMemoryError 가 발생할 수 있다.
+* Metaspace Memory 는 -XX:MaxMetaspaceSize 로 구성가능하고, 경험적인 규칙은 메모리보다 16배 낮은 값으로 제한 하는 것이다.
+
+```shell
+JVM 에 사용 가능한 메모리가 4GB 일 때 = XX:MaxMetaspaceSize=256M
+```
+
+### Garbage Collection
+
+* 가비지 수집의 빈도와 시간은 JVM Application 성능과 안정성에 큰 영향을 미칠 수 있다.
+
+```shell
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis
+```
+
+---
+
+## Some best practices when running JVM on the Kubernetes cluster
+
+:::quote
+[Some best practices when running JVM on the Kubernetes cluster](https://softwaremill.com/jvm-and-kubernetes-walk-into-a-bar/) 에 대한 요약
+:::
+
+1. request / limit 설정을 해라.
+2. request / limit 값을 동일한 값으로 설정해라.
+3. XX: ActiveProcessorCount 플래그를 설정하여 사용 가능한 코어 수를 명시적으로 설정해라.
+4. XX: MaxRAMPercentage 최대 힙 크기 값을 60% 정도로 맞추어라.
+5. UseContainerSupport 를 비활성화해라.
+
+:::note
+UseContainerSupport 를 비활성화하면 JVM 이 Container 가 실행중인 host 즉, worker node 의 리소스 정보를 바라본다.
+:::
+
+---
+
+## alibaba cloud - Best practices for jvm heap size configuration
+
+:::quote
+[alibaba cloud - Best practices for jvm heap size configuration](https://www.alibabacloud.com/help/en/sae/use-cases/best-practices-for-jvm-heap-size-configuration) 에 대한 내용
+:::
+
+### Use the -Xms and -Xms options to control heap size
+
+#### 권장되는 JVM heap size
+
+|Memory|Heap Size|
+|--|--|
+|1 GB|600 MB|
+|2 GB|1,434 MB|
+|4 GB|2,867 MB|
+|8 GB|5,734 MB|
+
+
+```shell
+ex) 4GB 일 때, MaxRAMPercentage=70.0 으로 설정하면 JVM 은 최대 2.8GB 힙 메모리를 할당
+```
+
+---
+
+## CloudBees - Java Heap settings Best Practice
+
+:::quote
+[CloudBees - Java Heap settings Best Practice](https://docs.cloudbees.com/docs/cloudbees-ci-kb/latest/best-practices/jvm-memory-settings-best-practice) 에 대한 내용
+:::
+
+### Encure container memory limits / requests are equal and use -XX:InitialRAMPercentage / -XX:MaxRAMPercentage
+
+* -Xmx, -Xms 대신 -XX:InitialRAMPercentage / -XX: MaxRAMPercentage 을 사용해라.
+* VM 힙 / 컨테이너 메모리 비율은 0.5 은 불안정한 것으로 알려졌다.
+
+---
+
+## Azure - Kubernetes 용 Java 애플리케이션 컨테이너화 / 자바 메모리 관리
+
+:::quote
+[Azure - Kubernetes 용 Java 애플리케이션 컨테이너화](https://learn.microsoft.com/ko-kr/azure/developer/java/containers/overview)
+[Azure - Kubernetes 용 Java 애플리케이션 메모리](https://learn.microsoft.com/en-us/azure/spring-apps/concepts-for-java-memory-management)
+:::
+
+
+1. CPU / Memory request / limit 을 동일한 값을 설정한다.
+2. JVM 사용 가능한 프로세서 이해
+* Kubernetes CPU 할당량은 프로세스에서 사용할 수 있는 CPU 수가 아니라 프로세스에서 CPU 에 소요되는 시간과 관련 있다.
+* JVM 과 같은 다중 스레드 런타임은 여러 스레드가 있는 여러 프로세서를 동시에 사용할 수 있다.
+* 컨테이너 하나의 CPU 제한이 있더라도 JVM 에 사용 가능한 프로세스를 지정할 수 있다.
+
+```shell
+-XX:ActiveProcessorCount=N
+```
+
+3. Default maximum heap size
+* Azure Spring App 은 기본적으로 heap memory size 가 50~80% 으로 설정된다.
+
+```
+1GB 보다 작으면 50%
+1GB < app memory < 2GB = 60%
+2GB < app memory < 3GB = 70%
+3GB < app memory = 80%
+```
+
+---
+
+## Pretius - JVM Kubernetes: Optimizing Kubernetes for Java Developers
+
+:::quote
+[Pretius - JVM Kubernetes: Optimizing Kubernetes for Java Developers](https://pretius.com/blog/jvm-kubernetes/) 에 대한 내용
+:::
+
+### JVM Kubernetes - memory limit and usage
+
+:::neutral
+"The default limits are very small, so you should always set the memory limits in your java application when running it in a container"
+기본 설정은 낮으니 항상 memory limit 을 설정해라.
+:::
+
+#### 메모리 할당량 계산 (Calculating memory usage)
+
+1. SYSTEM AND CLASS DATA
+* 시스템 및 클래스 데이터는 수십 MB만 사용할 가능성이 높으니 50MB 로 설정하는 게 좋다.
+
+2. THREADS
+* 사용중인 Thread 수에 자체 안전 계수를 곱하여 필요한 메모리를 추정해라.
+
+3. MAXIMUM HEAP SIZE
+* 컨테이너의 약 75~80% 로 초기 힙 사이즈를 지정해라.
+
+4. JVM Kubernetes - CPU usage
+
+:::neutral
+"if your container CPU limits is too low, your application will be extremely slow under heavy stress. Your SLA commitment on request handling time will likely be breached."
+CPU limit 이 너무 낮으면, 어플리케이션 속도가 느려질 수 있다.
+:::
+
+5. Other impacts of Kubernetes CPU limits
+* -XX: ActiveProcessorCount 플래그를 사용하여 Java CPU 수를 limit ~ 2배로 설정한다.
+
+6. Java 라이브러리의 중요한 pool 에 대해 스레드 수를 명시적으로 설정한다.
+7. Garbage collection
+* 일반적인 1GB memory, 2 CPU java 어플리케이션에는 병렬 GC 를 사용해라.
+* 힙이 약 2~4GB 인 경우 G1(JDK < 17) /Z GC(JDK +17) 로 전환하는 것이 좋다.
+
+
+<br/>
+
+## Summary
+
+---
+
+
+위의 내용을 아래와 같이 정리 할 수 있을 것 같다.
+
+1) 초기 힙 사이즈와 최대 힙 사이즈를 동일하게 맞춘다.
+
+```shell
+ex) -Xms = -Xmx
+```
+
+2) Guaranteed QoS 설정을 해라.
+* request / limit 동일하게 맞추지 않는다면, 너무 차이가 나지 않는 값으로 설정한다.
+* request 는 <BlueText>평균 사용량 + 10%, limit 은 peek 사용량 중 최대 사용량 </BlueText> 으로 설정한다.
+
+3) -Xms, -Xmx 보다는 MaxRAMPercentage 를 준다. (일부는 -Xms, -Xmx 와 같이 세밀한 값을 주는게 좋다고 말함)
+* MaxRAMPercentage 옵션을 주면 -xmx 옵션은 무시된다. (InitialRAMPercentage 옵션을 주면 -xms 는 무시됨)
+* 상황에 따라 다르겠지만, <BlueText>대부분 80.0 ~ 75.0 정도로 권장</BlueText>하고 많은 리소스를 낭비하지 않는다.
+* 단, JDK 17 부터 가능하다. (원래는 JDK 8 부터 지원했지만 Container 로 인식을 하지 못하는 버그가 있었고, JDK 13 에서 수정되었다.)
+
+4) LivenessProbe 와 ReadinessProbe 를 설정해준다.
+5) XX: ActiveProcessorCount 플래그를 사용하여 limit CPU 의 2배로 설정한다.
+6) 병렬 GC 를 사용하거나, 힙을 많이 사용하면 G1/Z GC 를 사용해라.
+
+
+
+## 🔑 Key Summary !!
+
+
+---
+
+### 메모리 전략 (Heap / Non-heap / 여유분)
+
+:::note
+Container 메모리 대비 Heap 만 생각하지 말고, <b>Non-heap + thread stack + native memory + buffer</b> 등을 합산해야한다.
+초기에는 <b>Container 메모리의 60 ~ 70% 수준의 heap 상한</b> 을 두고 나머지를 여유분으로 확보하는 방식이 안전하다.
+:::
+
+```shell
+Heap ~= ContainerMemory × 0.60 ~ 0.75
+Non-heap = Direct + Metaspace + CodeCache + (ThreadStack × ThreadCount)
+Headroom = 최소 20~25% 권장
+```
+
+#### 1) 권장 JVM 플래그
+* 퍼센트 기반은 컨테이너 메모리 변동에 유연하다.
+
+```shell
+-XX:InitialRAMPercentage=60.0
+-XX:MaxRAMPercentage=70.0
+# 퍼센트 기반을 쓰면 -Xms/-Xmx는 무시됨
+```
+
+#### 2) 고정 Heap 이 필요한 경우
+* 성능 예측 가능성이 중요하거나, 워크로드가 일정하다면 고정값도 유효하다.
+
+```shell
+-Xms=2048m -Xmx=2048m
+# 고정 힙을 쓸 때는 컨테이너 메모리 대비 Headroom(≥25%)을 반드시 확보
+```
+:::tip
+Metaspace는 대개 수백 MB 선에서 충분하다. 필요 시 `-XX:MaxMetaspaceSize=256m`처럼 상한을 지정해 메모리 예측 가능성을 높일 수 있다.
+:::
+
+---
+
+### CPU 전략 (Request/Limit, 스레드 수)
+
+#### 1) QoS 와 Request / Limit 제한
+* <BlueText>QoS Guaranteed</BlueText>를 위해 <BlueText>request = limit</BlueText>을 동일하게 두는 구성이 가장 예측 가능하다.
+* 그렇지 않다면 request는 <BlueText>평균 + 10%</BlueText>, limit은 <BlueText>피크 상한</BlueText>에 가깝게 설정하되 **차이를 과도하게 벌리지 않기**.
+
+#### 2) CPU 개수 명시
+* 컨테이너의 제한 코어 수와 JVM 스레딩이 어긋나면 원하는 성능이 안 나올 수 있다.
+
+```shell
+-XX:ActiveProcessorCount=<컨테이너 limit 코어 수 또는 그에 준하는 값>
+```
+
+:::note
+CPU limit에 대해서는 “설정하지 말자” vs “설정하자” 논쟁이 있으나,
+<b>엔터프라이즈 환경에서는 예측 가능성</b>을 위해 적절한 limit 사용이 실무적으로 더 안전한 경우가 많다.
+:::
+
+---
+
+:::success
+<b>Think..</b>
+✔ request / limit memory, cpu 설정하자.
+✔ -xss(ThreadStackSize) 는 default 값이 1M 이므로 굳이 설정하지 말자.
+✔ QoS Guaranteed 인 Pod 를 생성하자.
+✔ livenessProbe, readinessProbe 를 설정하자.
+✔ ActiveProcessorCount 플래그를 설정하는 것이 좋다.
+✔ Xms = Xmx 를 사용한다면 동일한 값으로 맞추는 것이다.
+→ 최대 힙 크기를 고정한다면, Request / Limit memory 의 60 ~ 80% 으로 맞추자.
+✔ (update) 환경에 따라서 다를 수 있지만, QoS 를 적용하고 퍼센테이지로 조정하는 것이 보다 더 안정적으로 운영이 되는 것 같다..!
+:::
+
+
+---
+
+## 📚 Reference
+
+* [JVM-in-Linux-containers-surviving-the-isolation](https://bell-sw.com/announcements/2020/10/28/JVM-in-Linux-containers-surviving-the-isolation/)
+* [컨테이너와 JVM의 메모리 Limit 및 Request](https://gist.github.com/petrbouda/92d794370134fc9dda1fdc05473c7165)
+* [JVM 어플리케이션 용 Kubernetes 의 힙크기, 메모리 사용량 및 리소스 제한](https://akobor.me/posts/heap-size-and-resource-limits-in-kubernetes-for-jvm-applications)
+* [컨테이너 환경에서의 Java 어플리케이션의 리소스와 메모리 설정](https://findstar.pe.kr/2022/07/10/java-application-memory-size-on-container/)
+* [Kubernetes 컨테이너 환경에서의 컴퓨팅 리소스 정보 및 제한](https://effectivesquid.tistory.com/entry/Kubernetes-%EC%BB%A8%ED%85%8C%EC%9D%B4%EB%84%88-%ED%99%98%EA%B2%BD%EC%97%90%EC%84%9C%EC%9D%98-%EC%BB%B4%ED%93%A8%ED%8C%85-%EB%A6%AC%EC%86%8C%EC%8A%A4-%EC%A0%95%EB%B3%B4-%EB%B0%8F-%EC%A0%9C%ED%95%9C)
+* [K8s 환경에서 더 나은 CPU 및 메모리 활용을 위해 JVM 컨테이너를 조정합니다.](https://medium.com/@anurag2397/solving-javas-core-problems-around-memory-and-cpu-4d0c97748c43)
+* [Kubernetes 의 JVM 14 메모리에 대한 실용적인 가이드](https://focusedlabs.io/blog/the-no-nonsense-guide-to-jvm-14-memory-on-kubernetes-508m)
+* [Kubernetes Resource Request와 Limit의 이해](https://online.cocktailcloud.io/2019/04/30/kubernetes-resource-request%EC%99%80-limit%EC%9D%98-%EC%9D%B4%ED%95%B4/)
+* [쿠버네티스에서 쉽게 저지르는 10가지 실수](https://coffeewhale.com/kubernetes/mistake/2020/11/29/mistake-10/)
