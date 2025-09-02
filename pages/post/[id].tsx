@@ -49,8 +49,7 @@ export const getStaticProps: ({params}: { params: any }) => Promise<{
           (post) =>
               post.id !== postData.id &&
               post.tags?.some((tag) => postData.tags?.includes(tag))
-      )
-      .slice(0, 5);
+      );
 
   return {
     props: {
@@ -159,7 +158,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                   {hasMoreRelated && (
                       <div className="mt-6 text-center">
                         <button
-                            onClick={() => setVisibleRelatedCount((prev) => prev + 5)}
+                            onClick={() => setVisibleRelatedCount((prev) => prev + 3)}
                             className="px-5 py-2 text-sm font-medium rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white transition"
                         >
                           더 보기
