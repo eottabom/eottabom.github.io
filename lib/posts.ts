@@ -9,7 +9,7 @@ import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkDirective from 'remark-directive';
 import remarkDirectiveTransformer from './remarkDirectiveTransformer';
 
-const postsDirectory = path.join(process.cwd(), 'posts');
+const postsDirectory = path.join(process.cwd(), 'contents', 'posts');
 
 type PostFrontmatter = {
   title: string;

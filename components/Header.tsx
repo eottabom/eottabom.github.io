@@ -15,10 +15,13 @@ export default function Header({ isDark }: { isDark: boolean }) {
         <Link href="/post" className={`${isDark ? "text-white" : "text-black"} hover:text-blue-300 font-bold`}>
           Post
         </Link>
+        <Link href="/book" className={`${isDark ? "text-white" : "text-black"} hover:text-blue-300 font-bold`}>
+          Book-Review
+        </Link>
         <Link href="/about" className={`${isDark ? "text-white" : "text-black"} hover:text-blue-300 font-bold`}>
           About
         </Link>
-        <ThemeToggle />
+        {/*<ThemeToggle />*/}
       </div>
     </header>
   );
