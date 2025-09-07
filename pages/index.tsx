@@ -105,7 +105,7 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
                 Latest Post
               </span>
 
-                            <h2 className="mt-4 text-4xl font-extrabold text-gray-900">
+                            <h2 className="mt-4 text-3xl font-bold text-gray-900">
                                 {latest.title}
                             </h2>
 
