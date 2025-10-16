@@ -1,15 +1,6 @@
 import Link from 'next/link';
 import type { BookMeta } from '../lib/books';
 
-function Stars({ rating = 0 }: { rating?: number }) {
-    const r = Math.max(0, Math.min(5, Math.round(rating)));
-    return (
-        <div aria-label={`rating ${r} of 5`} className="text-sm">
-            {'★★★★★☆☆☆☆☆'.slice(5 - r, 10 - r)}
-        </div>
-    );
-}
-
 export default function BookCard({ meta }: { meta: BookMeta }) {
     return (
         <article className="w-full rounded-2xl border p-6 md:p-7 mb-8 shadow-sm bg-white/60 dark:bg-zinc-900/60 backdrop-blur">
@@ -20,7 +11,7 @@ export default function BookCard({ meta }: { meta: BookMeta }) {
                         <img
                             src={meta.cover}
                             alt={meta.title}
-                            className="w-24 h-32 sm:w-28 sm:h-36 lg:w-32 lg:h-44 object-cover rounded-lg"
+                            className="w-32 h-44 sm:w-36 sm:h-52 lg:w-40 lg:h-56 object-cover rounded-lg"
                             loading="lazy"
                         />
                     )}
@@ -38,7 +29,6 @@ export default function BookCard({ meta }: { meta: BookMeta }) {
                                 {meta.summary}
                             </p>
                         )}
-                        {/* <div className="mt-2"><Stars rating={meta.rating} /></div> */}
                     </div>
                 </div>
             </Link>
