@@ -1,0 +1,161 @@
+---
+title: "빠르게 이해하는 Envoy 컴포넌트 구조"
+date: "2025-10-21"
+tags: ["Envoy"]
+summary: "A quick and practical overview of Envoy's core architecture."
+description: "Envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름, 로드밸런싱, Connection 관리, xDS 에 대해서 빠르게 알아보자."
+---
+
+:::info
+envoy 는 service-mesh 를 구성할 때 핵심적인 역할을 담당하는 프록시이다.
+downstream/upstream 개념을 기반으로 Listener, Route, Cluster, Endpoint 를 통해 트래픽을 효율적으로 제어한다.
+envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filter chain -> Router Filter -> Cluster),
+로드밸런싱 및 Connection 관리, xDS 를 통한 동적 설정 방식까지 빠르게 이해해보자.
+:::
+
+<Tabs>
+    <Tab label="Basic">
+        <div style={{ textAlign: 'center' }}>
+            <img src="/img/post/envoy/envoy.png" alt="envoy"  style={{ display: 'inline-block' }} />
+        </div>
+        * <b>Downstream</b>
+          * Envoy 에게 요청을 보내는 호스트
+        * <b>Upstream</b>
+          * Envoy 가 요청을 보내는 호스트
+        * <b>Listener</b>
+          * 어떤 IP, Port 를 처리 할 지 정의한다. (=downstream 으로부터 요청을 받는 부분)
+        * <b>Route</b>
+          * Listener 로 들어온 요청을 어디로 보낼지 정의한다 (routing 대상은 Cluster)
+        * <b>Cluster</b>
+          * 실제 요청이 처리되는 IP 또는 Endpoint 들이다. (=upstream 들)
+        * <b>Endpoint</b>
+          * 실제로 접근 가능한 Endpoint (여러 endpoint 가 모여서 cluster 가 된다)
+    </Tab>
+    <Tab label="Listener">
+        :::success
+        Listener 는? 어떤 IP, Port 를 처리 할 지 정의한다. (=downstream 으로 부터 요청 받은 부분)
+        :::
+        * Listener 를 통해서 트래픽이 전달되면, Cluster 로 전달하기 위해서 여러 과정을 거치게 된다.
+        * Listener 는 Listener Filters 와 Filter Chains <GreenText>(Network Filter)</GreenText> 를 지니고 있다.
+        * Listener filters = Connection 에 대한 Metadata 를 조작하거나 추가하는데 사용된다.
+        * Filters Chains = 이 정보를 바탕으로 실제 요청을 처리하는 부분이다.
+        * Filters Chains 이 L3/L4 Filter 기능을 담당한다.
+        <div style={{ textAlign: 'center' }}>
+            <img src="/img/post/envoy/listener.png" alt="listener"  style={{ display: 'inline-block' }} />
+        </div>
+    </Tab>
+    <Tab label="HTTP Connection manager">
+        * HTTP 를 담당하는 Network Level 의 Filter 로 Filter Chain 의 가장 마지막에 위치한다.
+        * 주요 기능은 raw byte 를 HTTP 메시지로 Convert 를 담당하고,
+          * HTTP Header 조작, Retry 설정, Redirect, Timeout
+        * 내부적으로 HTTP L7 Filter 들이 존재하여 부가적인 작업을 수행한다.
+    </Tab>
+    <Tab label="Cluster">
+        :::success
+        Cluster 는? 실제 요청이 처리되는 IP 또는 Endpoint 들이다. (=upstream 들)
+        Endpoint 는? 실제로 접근 가능한 Endpoint
+        :::
+        <BlueText>Cluster - Load Balancing</BlueText> <br/>
+        * Cluster 컴포넌트를 통해서 Endpoint 를 그룹핑해서 관리할 수 있고,
+        * Endpoint 중에서 어디로 트래픽을 보낼지 결정하는 <b>Load Balancing</b> 을 결정할 수 있다.
+        <div style={{ textAlign: 'center' }}>
+            <img src="/img/post/envoy/cluster.png" alt="cluster"  style={{ display: 'inline-block' }} />
+        </div>
+
+        ```yaml
+        clusters:
+        - name: some_service
+          connection_timeout: 0.25s
+          type: STATIC
+          lb_policy: ROUND_ROBIN
+          load_assignment:
+            cluster_name: some_service
+            endpoints:
+            - lb_endpoints:
+              - endpoint:
+                address:
+                  socket_address:
+                    address: 127.0.0.1
+                    port_value: 1234
+        ```
+        :::note
+        <b>Service Discovery Type</b>
+        - upstream cluster 가 정의 되면 Envoy 가 Cluster 구성원을 확인하는 방법
+        1) STATIC
+        - 가장 간단한 유형 (기본값)
+        2) STRICT_DNS
+        - DNS 쿼리 결과를 엄격하게 취하여 전체 upstream cluster 를 구성
+        3) LOGICAL_DNS
+        - 비동기 확인 메커니즘이나, 첫번째 IP 주소만 사용
+        4) EDS
+        - xDS 관리 서버에서 가져온다.
+        5) ORIGINAL_DST
+        - 원래 목적지
+        :::
+
+        <BlueText>Cluster - Connection Pool</BlueText> <br/>
+        * Cluster 는 Connection Pool 관리 기능도 수행한다.
+
+        :::warning
+        <b>common_http_protocol_option</b>의 idle_timeout 을 지정하지 않으면 1시간이다.
+        요청이 들어왔을 때, application 에서 먼저 연결을 끊을 경우,
+        upstream connect error or disconnect/reset before headers. reset reason: connection termination 이 발생할 수 있다.
+        :::
+
+        ```yaml
+        "connect_timeout": "5s", ### Tomcat / Netty connection timeout 보다 작게 설정한다. (기본 값 5초)
+        "typed_extension_protocol_options": {
+            "envoy.extension_protocol_options": {
+                "@type":"type.googleapis.com/envoy.extensions.upostreams.http.v3.HttpProtocolOptions",
+                "common_http_protocol_options": {
+                    "idle_timeout":"60s"
+                    ### Tomcat / Netty idle timeout 설정보다 작게 설정한다.
+                    ### 지정하지 않으면 기본 값은 1시간이고,
+                    ### 0 으로 비활성화가 가능하지만, TCP FIN 패킷 손실등으로 인한 연결 누출이 발생할 수 있다.
+                },
+                "explicit_http_config": {
+                    ### 여기서 http_protocol_options 나 http2_protocol_options 를 설정할 수 있다.
+                }
+            }
+        }
+        ```
+    </Tab>
+    <Tab label="Flow">
+        :::success
+        Downstream 은? Envoy 에게 요청을 보내는 호스트
+        Upstream 은? Envoy 가 요청을 보내는 호스트
+        Listener 는? 어떤 IP, Port 를 처리 할 지 정의한다. (=downstream 으로 부터 요청 받은 부분)
+        Route 는? Listener 로 들어온 요청을 어디로 보낼지 정의한다 (routing 대상은 Cluster)
+        Cluster 는? 실제 요청이 처리되는 IP 또는 Endpoint 들이다. (=upstream 들)
+        Endpoint 는? 실제로 접근 가능한 Endpoint (여러 endpoint 가 모여서 cluster 가 된다)
+        :::
+
+        HTTP 요청에 대한 내부 흐름은, 아래와 같다고 생각하면 된다.
+        <div style={{ textAlign: 'center' }}>
+            <img src="/img/post/envoy/flow.png" alt="flow"  style={{ display: 'inline-block' }} />
+        </div>
+
+        * 다른 노드나 Client 에서 <BlueText>(Downstream)</BlueText> Envoy 에게 요청을 보내고,
+        * Envoy Listener 가 요청을 받아서 <BlueText>(Downstream 으로 부터 요청을 받음)</BlueText>
+        * Listener 내부적으로 Listener Filters로 전달하고, Filter Chains를 순회하면서 요청을 처리하는데 적합한 Filter를 찾고 해당 Filter 가 요청을 처리한다.
+        * Router Filter 는 요청에 적합한 Cluster 를 찾아서 해당 Cluster <BlueText>(Upstream 호스트 집단)</BlueText> 에게 트래픽을 Forwarding 한다.
+        * Cluster 는 내부에 설정된 로드밸린싱 정책을 고려해서 적합한 Endpoint 를 선정하고, 매칭된 곳으로 트래픽을 전달한다. <BlueText>(To Upstream)</BlueText>
+    </Tab>
+    <Tab label="xDS">
+        * Envoy 컴포넌트(Listener, Cluster, Filter...) 들을 등록하는 방식에는 Static, Dynamic 이 있다.
+        * Static 은 Envoy 기동 시점에 config 파일 정보를 기반으로 컴포넌트들을 등록하는 방식
+        * Dynamic 은 Envoy 가 기동 중인 상태로 config 를 변경할 수 있는 방식
+          * 내부 컴포넌트 설정을 변경할 수 있도록 인터페이스를 제공해주는데, 그게 xDS API 이다.
+        <div style={{ textAlign: 'center' }}>
+            <img src="/img/post/envoy/xds.png" alt="xds"  style={{ display: 'inline-block' }} />
+        </div>
+    </Tab>
+</Tabs>
+
+---
+
+### 📚 Reference
+
+- [Envoy-internals 아키텍쳐 Overview by 북극 펭귄](https://cla9.tistory.com/191)
+
+<br/><br/>
