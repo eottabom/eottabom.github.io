@@ -11,9 +11,7 @@ export function Tabs({ children }: { children: ReactNode }) {
                 {tabList.map((child: any, idx) => {
                     const isActive = idx === activeTab;
 
-                    const borderClass = isActive
-                        ? ''
-                        : '';
+                    const borderClass = isActive ? '' : '';
 
                     return (
                         <div
@@ -29,7 +27,7 @@ export function Tabs({ children }: { children: ReactNode }) {
                                 }
                             `}
                         >
-                            {child.props.label ?? `Tab ${idx + 1}`}
+                            {child.props.label}
                         </div>
                     );
                 })}
