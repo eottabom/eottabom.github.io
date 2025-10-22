@@ -87,7 +87,7 @@ export default function BookDetail({mdxSource, title, author, date, updated, sum
                             alt={title}
                             className="mx-auto mb-6
                                       w-48 sm:w-56 lg:w-64
-                                      aspect-[3/4] object-cover
+                                      object-cover
                                       rounded-xl shadow-sm"
                             loading="lazy"
                             width={384} height={512} // CLS 방지용 대략치

@@ -11,7 +11,7 @@ export default function BookCard({ meta }: { meta: BookMeta }) {
                         <img
                             src={meta.cover}
                             alt={meta.title}
-                            className="w-32 h-44 sm:w-36 sm:h-52 lg:w-40 lg:h-56 object-cover rounded-lg"
+                            className="w-32 h-44 sm:w-36 sm:h-52 lg:w-40 lg:h-56 rounded-lg"
                             loading="lazy"
                         />
                     )}
