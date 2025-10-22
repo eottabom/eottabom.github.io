@@ -16,6 +16,8 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
 
 ### Envoy 컴포넌트 구조
 
+---
+
 <Tabs>
     <Tab label="Basic">
         <div style={{ textAlign: 'center' }}>
@@ -52,6 +54,11 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
         * 주요 기능은 raw byte 를 HTTP 메시지로 Convert 를 담당하고,
           * HTTP Header 조작, Retry 설정, Redirect, Timeout
         * 내부적으로 HTTP L7 Filter 들이 존재하여 부가적인 작업을 수행한다.
+
+        :::quote
+        <b>Reference</b>
+        https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/http_filters
+        :::
     </Tab>
     <Tab label="Cluster">
         :::success
@@ -96,6 +103,12 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
         - 원래 목적지
         :::
 
+        :::quote
+        <b>Reference</b>
+        https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/cluster/v3/cluster.proto
+        https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/service_discovery
+        :::
+
         <BlueText>Cluster - Connection Pool</BlueText> <br/>
         * Cluster 는 Connection Pool 관리 기능도 수행한다.
 
@@ -108,8 +121,8 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
         ```yaml
         "connect_timeout": "5s", ### Tomcat / Netty connection timeout 보다 작게 설정한다. (기본 값 5초)
         "typed_extension_protocol_options": {
-            "envoy.extension_protocol_options": {
-                "@type":"type.googleapis.com/envoy.extensions.upostreams.http.v3.HttpProtocolOptions",
+            "envoy.extensions.upstreams.http.v3.HttpProtocolOptions": {
+                "@type":"type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions",,
                 "common_http_protocol_options": {
                     "idle_timeout":"60s"
                     ### Tomcat / Netty idle timeout 설정보다 작게 설정한다.
@@ -122,6 +135,13 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
             }
         }
         ```
+
+        :::quote
+        <b>Reference</b>
+        https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/protocol.proto#config-core-v3-httpprotocoloptions
+        https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/core/v3/protocol.proto#config-core-v3-http2protocoloptions
+        :::
+
     </Tab>
     <Tab label="Flow">
         :::success
@@ -143,6 +163,14 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
         * Listener 내부적으로 Listener Filters로 전달하고, Filter Chains를 순회하면서 요청을 처리하는데 적합한 Filter를 찾고 해당 Filter 가 요청을 처리한다.
         * Router Filter 는 요청에 적합한 Cluster 를 찾아서 해당 Cluster <BlueText>(Upstream 호스트 집단)</BlueText> 에게 트래픽을 Forwarding 한다.
         * Cluster 는 내부에 설정된 로드밸린싱 정책을 고려해서 적합한 Endpoint 를 선정하고, 매칭된 곳으로 트래픽을 전달한다. <BlueText>(To Upstream)</BlueText>
+
+        다시 정리하면, 아래의 과정이다.
+        1. **요청 수신**: Downstream → Envoy Listener (예: 0.0.0.0:8080)
+        2. **필터 체인 실행**: Listener Filters → Network Filters → HTTP Filters
+        3. **라우팅 결정**: Router Filter가 Route 규칙에 따라 Cluster 선택
+        4. **로드밸런싱**: Cluster가 LB 정책으로 Endpoint 선택
+        5. **요청 전달**: 선택된 Upstream Endpoint로 프록시
+        6. **응답 반환**: Upstream → Envoy → Downstream
     </Tab>
     <Tab label="xDS">
         * Envoy 컴포넌트(Listener, Cluster, Filter...) 들을 등록하는 방식에는 Static, Dynamic 이 있다.
@@ -152,6 +180,13 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
         <div style={{ textAlign: 'center' }}>
             <img src="/img/post/envoy/xds.png" alt="xds"  style={{ display: 'inline-block' }} />
         </div>
+
+        **주요 xDS API 종류**
+        - LDS (Listener Discovery Service): Listener 설정
+        - RDS (Route Discovery Service): Route 설정
+        - CDS (Cluster Discovery Service): Cluster 설정
+        - EDS (Endpoint Discovery Service): Endpoint 설정
+        - SDS (Secret Discovery Service): TLS 인증서 관리
     </Tab>
 </Tabs>
 
@@ -159,6 +194,11 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
 
 ### 📚 Reference
 
-- [Envoy-internals 아키텍쳐 Overview by 북극 펭귄](https://cla9.tistory.com/191)
+- [Envoy 공식 문서](https://www.envoyproxy.io/docs/envoy/latest/)
+- [Listener](https://www.envoyproxy.io/docs/envoy/latest/configuration/listeners/listeners)
+- [Cluster](https://www.envoyproxy.io/docs/envoy/latest/configuration/upstream/cluster_manager/cluster_manager)
+- [Routing](https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/http/http_routing)
+- [xDS API](https://www.envoyproxy.io/docs/envoy/latest/api-docs/xds_protocol)
+- [아키텍처 설명 by 북극 펭귄](https://cla9.tistory.com/191)
 
 <br/><br/>
