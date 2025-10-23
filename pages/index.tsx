@@ -7,6 +7,7 @@ import AdSense from '../components/AdSense';
 import { catImages } from '../lib/mainImage';
 import BookCard from '../components/BookCard';
 import { getBooksMetaOnly, BookMeta } from '../lib/books';
+import { useEffect, useState } from 'react';
 
 type Post = {
     id: string;
@@ -19,7 +20,6 @@ type Post = {
 
 type HomeProps = {
     allPostsData: Post[];
-    gradientsForPosts: string[];
     latestBook?: BookMeta | null;
 };
 
@@ -35,17 +35,12 @@ function shuffle<T>(array: T[]): T[] {
 export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     const allPostsData = getPostsMetaOnly();
 
-    const [latest, ...restAll] = allPostsData;
-    const rest = restAll.filter((post) => post.id !== latest.id).slice(0, 3);
-    const shuffledImages = shuffle(catImages).slice(0, rest.length);
-
     const books = getBooksMetaOnly?.() ?? [];
     const latestBook = books.length > 0 ? books[0] : null;
 
     return {
         props: {
             allPostsData,
-            gradientsForPosts: shuffledImages,
             latestBook,
         },
     };
@@ -57,7 +52,6 @@ const byDesc = (a?: string, b?: string) =>
 
 export default function Home({
                                  allPostsData,
-                                 gradientsForPosts,
                                  latestBook,
                              }: HomeProps) {
     if (!allPostsData.length) {
@@ -85,6 +79,15 @@ export default function Home({
     const rest = restAll
         .filter((post) => post.id !== updatedPost.id)
         .slice(0, 3);
+
+    const [bgImages, setBgImages] = useState<string[]>(
+        () => Array(rest.length).fill('')
+    );
+
+    useEffect(() => {
+        // rest 길이가 바뀌면 새로 셔플
+        setBgImages(shuffle(catImages).slice(0, rest.length));
+    }, [rest.length]);
 
     return (
         <>
@@ -214,7 +217,9 @@ export default function Home({
                                         <div
                                             className="flex flex-col justify-end p-6 h-48 sm:h-64 rounded-xl text-white shadow hover:shadow-xl transition"
                                             style={{
-                                                backgroundImage: `url(${gradientsForPosts[idx]})`,
+                                                backgroundImage: bgImages[idx]
+                                                    ? `url(${bgImages[idx]})`
+                                                    : undefined,
                                                 backgroundSize: 'cover',
                                                 backgroundPosition: 'center',
                                             }}
