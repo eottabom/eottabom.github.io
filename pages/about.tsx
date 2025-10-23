@@ -1,8 +1,7 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import {Briefcase, GraduationCap, Award, Info, List} from 'lucide-react';
+import { Briefcase, GraduationCap, Award, Info, Home, BookOpen } from 'lucide-react';
 import Link from "next/link";
-import { Home } from 'lucide-react';
 
 export default function About() {
   return (
@@ -36,6 +35,16 @@ export default function About() {
               <p>현재는 <strong>NCSOFT</strong>에서 커뮤니티 플랫폼을 담당하며, <strong>150+ API를 gRPC + Service Mesh</strong> 구조로 운영하고 있어요.</p>
               <p>새로운 기술을 배우는 데 거리낌이 없고, <strong>Deep Dive 분석</strong>을 즐깁니다.</p>
               <p>코드 리뷰, 정적/통합 테스트 자동화 환경에서 일하며, 더 나은 프로세스를 제안합니다.</p>
+              <div className="pt-2">
+                  <a
+                      href="https://www.notion.so/eottabom/18bf74cd685d804a8fa2e4cd21e77b60"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded transition"
+                  >
+                     Notion 경력기술서 보기
+                  </a>
+              </div>
             </div>
           </section>
 
@@ -104,6 +113,17 @@ export default function About() {
       >
         <Home className="w-6 h-6 text-gray-800"/>
       </Link>
+
+      {/* 노션으로 이동 */}
+      <a
+          href="https://eottabom.notion.site/18bf74cd685d804a8fa2e4cd21e77b60"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-20 right-6 z-50 bg-white border border-gray-300 rounded-lg shadow-md p-3 hover:shadow-lg transition"
+          aria-label="Notion으로 이동"
+      >
+          <BookOpen className="w-6 h-6 text-gray-800" />
+      </a>
 
       <Footer />
     </div>
