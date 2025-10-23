@@ -4,8 +4,9 @@ import Footer from '../components/Footer';
 import { GetStaticProps } from 'next';
 import { getPostsMetaOnly } from '../lib/posts';
 import AdSense from '../components/AdSense';
-import TopNotice from "../components/TopNotice";
-import { catImages } from "../lib/mainImage";
+import { catImages } from '../lib/mainImage';
+import BookCard from '../components/BookCard';
+import { getBooksMetaOnly, BookMeta } from '../lib/books';
 
 type Post = {
     id: string;
@@ -19,6 +20,7 @@ type Post = {
 type HomeProps = {
     allPostsData: Post[];
     gradientsForPosts: string[];
+    latestBook?: BookMeta | null;
 };
 
 function shuffle<T>(array: T[]): T[] {
@@ -37,10 +39,14 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     const rest = restAll.filter((post) => post.id !== latest.id).slice(0, 3);
     const shuffledImages = shuffle(catImages).slice(0, rest.length);
 
+    const books = getBooksMetaOnly?.() ?? [];
+    const latestBook = books.length > 0 ? books[0] : null;
+
     return {
         props: {
             allPostsData,
             gradientsForPosts: shuffledImages,
+            latestBook,
         },
     };
 };
@@ -49,11 +55,14 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
 const byDesc = (a?: string, b?: string) =>
     new Date(b ?? '1970-01-01').getTime() - new Date(a ?? '1970-01-01').getTime();
 
-export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
+export default function Home({
+                                 allPostsData,
+                                 gradientsForPosts,
+                                 latestBook,
+                             }: HomeProps) {
     if (!allPostsData.length) {
         return (
             <>
-                <TopNotice />
                 <Header isDark={false} />
                 <main className="max-w-3xl mx-auto px-6 py-24">
                     <h1 className="text-3xl font-bold">No posts yet</h1>
@@ -79,7 +88,6 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
 
     return (
         <>
-            <TopNotice />
             <div className="min-h-screen">
                 <Header isDark={false} />
 
@@ -89,11 +97,16 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
                         Hi, I’m a <strong>considerate developer</strong>.
                     </h1>
                     <p className="text-lg text-gray-600 leading-loose space-y-2">
-                        I believe being considerate means writing <strong>clean, readable code</strong>,<br />
+                        I believe being considerate means writing{' '}
+                        <strong>clean, readable code</strong>,<br />
                         building <strong>predictable and testable systems</strong>,<br />
-                        and delivering <strong>reliable, trustworthy services</strong> that users can depend on.<br /><br />
-                        I’m constantly <strong>learning and growing</strong> to become better at this,<br />
-                        and this blog is where I share my <strong>journey as a learning developer</strong>.
+                        and delivering <strong>reliable, trustworthy services</strong> that
+                        users can depend on.<br />
+                        <br />
+                        I’m constantly <strong>learning and growing</strong> to become
+                        better at this,<br />
+                        and this blog is where I share my{' '}
+                        <strong>journey as a learning developer</strong>.
                     </p>
                 </section>
 
@@ -101,9 +114,9 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
                     <main className="max-w-4xl mx-auto px-4 pb-32 space-y-24">
                         {/* Latest Post */}
                         <section>
-              <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
-                Latest Post
-              </span>
+                            <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
+                                Latest Post
+                            </span>
 
                             <h2 className="mt-4 text-3xl font-bold text-gray-900">
                                 {latest.title}
@@ -129,9 +142,9 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
 
                         {/* Recently Updated */}
                         <section>
-              <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
-                Recently Updated
-              </span>
+                            <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
+                                Recently Updated
+                            </span>
 
                             <h2 className="mt-4 text-3xl font-bold text-gray-900">
                                 {updatedPost.title}
@@ -161,12 +174,32 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
 
                         <AdSense />
 
+                        {/* Latest Book (1권) */}
+                        {latestBook && (
+                            <section>
+                                <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
+                                    Latest Book Review
+                                </span>
+
+                                <div className="mt-6 max-w-4xl">
+                                    <BookCard meta={latestBook} />
+                                </div>
+
+                                <Link
+                                    href="/book"
+                                    className="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-2 rounded transition"
+                                >
+                                    Read All Books →
+                                </Link>
+                            </section>
+                        )}
+
                         {/* More Posts */}
                         <section>
                             <div className="flex justify-between items-center mb-4">
-                <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
-                  More Posts
-                </span>
+                                <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
+                                    More Posts
+                                </span>
                                 <Link
                                     href="/post"
                                     className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
@@ -174,6 +207,7 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
                                     Read all →
                                 </Link>
                             </div>
+
                             <div className="grid md:grid-cols-3 gap-6">
                                 {rest.map(({ id, title }, idx) => (
                                     <Link key={id} href={`/post/${id}`}>
@@ -181,8 +215,8 @@ export default function Home({ allPostsData, gradientsForPosts }: HomeProps) {
                                             className="flex flex-col justify-end p-6 h-48 sm:h-64 rounded-xl text-white shadow hover:shadow-xl transition"
                                             style={{
                                                 backgroundImage: `url(${gradientsForPosts[idx]})`,
-                                                backgroundSize: "cover",
-                                                backgroundPosition: "center",
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
                                             }}
                                         >
                                             <h3 className="text-lg font-semibold leading-snug bg-black/50 p-2 rounded">
