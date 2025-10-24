@@ -2,6 +2,8 @@ import { GetStaticProps } from 'next';
 import Header from '../components/Header';
 import BookCard from '../components/BookCard';
 import { getBooksMetaOnly, BookMeta } from '../lib/books';
+import { Home } from "lucide-react";
+import Link from "next/link";
 
 export default function BooksPage({ books }: { books: BookMeta[] }) {
     return (
@@ -24,6 +26,13 @@ export default function BooksPage({ books }: { books: BookMeta[] }) {
                     </div>
                 )}
             </main>
+            <Link
+                href="/"
+                className="fixed bottom-6 right-6 z-50 bg-white border border-gray-300 rounded-lg shadow-md p-3 hover:shadow-lg transition"
+                aria-label="홈으로 가기"
+            >
+                <Home className="w-6 h-6 text-gray-800"/>
+            </Link>
         </>
     );
 }
