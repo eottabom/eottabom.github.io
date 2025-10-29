@@ -256,6 +256,13 @@ CPU limit 이 너무 낮으면, 어플리케이션 속도가 느려질 수 있�
 5. Other impacts of Kubernetes CPU limits
 * -XX: ActiveProcessorCount 플래그를 사용하여 Java CPU 수를 limit ~ 2배로 설정한다.
 
+:::note
+ActiveProcessorCount 플래그를 limit ~ 2배로 설정하는 것은 오히려 잘못된 설정일 수도 있다.
+보통은 request cpu = limit cpu = ActiveProcessorCount 를 동일하게 가져가는게 맞다.
+오히려, limit cpu 보다 크게 되면 context switching 비용이 더 들어서 오버헤드가 심해진다.
+따라서, 적절한 값은 테스트를 해보고 결정 하는 것이 좋다.
+:::
+
 6. Java 라이브러리의 중요한 pool 에 대해 스레드 수를 명시적으로 설정한다.
 7. Garbage collection
 * 일반적인 1GB memory, 2 CPU java 어플리케이션에는 병렬 GC 를 사용해라.
@@ -287,8 +294,7 @@ ex) -Xms = -Xmx
 * 단, JDK 17 부터 가능하다. (원래는 JDK 8 부터 지원했지만 Container 로 인식을 하지 못하는 버그가 있었고, JDK 13 에서 수정되었다.)
 
 4) LivenessProbe 와 ReadinessProbe 를 설정해준다.
-5) XX: ActiveProcessorCount 플래그를 사용하여 limit CPU 의 2배로 설정한다.
-6) 병렬 GC 를 사용하거나, 힙을 많이 사용하면 G1/Z GC 를 사용해라.
+5) 병렬 GC 를 사용하거나, 힙을 많이 사용하면 G1/Z GC 를 사용해라.
 
 
 
@@ -358,7 +364,7 @@ CPU limit에 대해서는 “설정하지 말자” vs “설정하자” 논쟁
 ✔ -xss(ThreadStackSize) 는 default 값이 1M 이므로 굳이 설정하지 말자.
 ✔ QoS Guaranteed 인 Pod 를 생성하자.
 ✔ livenessProbe, readinessProbe 를 설정하자.
-✔ ActiveProcessorCount 플래그를 설정하는 것이 좋다.
+✔ ActiveProcessorCount 플래그를 명시적으로 설정하는 것이 좋다.
 ✔ Xms = Xmx 를 사용한다면 동일한 값으로 맞추는 것이다.
 → 최대 힙 크기를 고정한다면, Request / Limit memory 의 60 ~ 80% 으로 맞추자.
 ✔ (update) 환경에 따라서 다를 수 있지만, QoS 를 적용하고 퍼센테이지로 조정하는 것이 보다 더 안정적으로 운영이 되는 것 같다..!
