@@ -37,7 +37,7 @@ export default function About() {
               <p>코드 리뷰, 정적/통합 테스트 자동화 환경에서 일하며, 더 나은 프로세스를 제안합니다.</p>
               <div className="pt-2">
                   <a
-                      href="https://www.notion.so/eottabom/18bf74cd685d804a8fa2e4cd21e77b60"
+                      href="https://eottabom.notion.site/29ef74cd685d803b80a5e872f8ca6c38"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded transition"
