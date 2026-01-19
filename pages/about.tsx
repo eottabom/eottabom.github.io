@@ -116,7 +116,7 @@ export default function About() {
 
       {/* 노션으로 이동 */}
       <a
-          href="https://eottabom.notion.site/18bf74cd685d804a8fa2e4cd21e77b60"
+          href="https://eottabom.notion.site/29ef74cd685d803b80a5e872f8ca6c38"
           target="_blank"
           rel="noopener noreferrer"
           className="fixed bottom-20 right-6 z-50 bg-white border border-gray-300 rounded-lg shadow-md p-3 hover:shadow-lg transition"
