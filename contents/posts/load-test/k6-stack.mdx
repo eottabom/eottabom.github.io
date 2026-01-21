@@ -1,5 +1,5 @@
 ---
-title: "k6 (with InfluxDB + Grafana)"
+title: "Quick Start - k6 (with InfluxDB + Grafana)"
 date: "2026-01-20"
 tags: ["load-test"]
 summary: "Build a reproducible load testing environment with k6, InfluxDB, and Grafana using Docker for reliable performance comparison"
@@ -13,15 +13,18 @@ description: "Docker 기반으로 k6 부하 테스트 스택을 구성하고, �
 그래서 부하 테스트는 한 번의 실행이 아니라, 반복 가능하고 누적 가능한 환경으로 관리되어야 한다.
 초기 구축에는 약간의 비용이 들지만, 한 번 만들어두면 테스트 실행과 결과 확인이 훨씬 쉬워진다.
 
-이 글의 목표는 k6 + InfluxDB + Grafana 를 Docker 로 구성해,
+이 글의 목표는 간단히 k6에 대해서 알아보고, k6 + InfluxDB + Grafana 를 Docker 로 구성해,
 테스트 실행 → 메트릭 저장 → 대시보드 시각화까지 **재현 가능한 부하 테스트 스택**을 빠르게 준비하는 것이다.
 :::
+
 
 
 ## Q. k6 는 무엇인가요?
 
 <BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>
 [k6](https://k6.io/)는 Grafana Labs에서 개발한 오픈소스 부하 테스트 도구로, 개발자 친화적이고 확장 가능한 성능 테스트 도구이다.
+
+---
 
 
 ## Q. 다른 테스트 도구들이 많은데 왜 k6 를 이용하나요?
@@ -30,25 +33,269 @@ description: "Docker 기반으로 k6 부하 테스트 스택을 구성하고, �
 사실 nGrinder, Locust, Gatling 등 다양한 도구들이 많이 있다.
 각각 장점이 분명하겠지만, 무엇보다 빠르게 환경을 구성하고, 반복 가능한 테스트를 운영한다는 관점에서 보면 k6 는 몇 가지 장점을 보인다.
 
-1) 설치와 실행이 단순하다.
+**1) 설치와 실행이 단순하다.**
 - 바이너리 하나 또는 docker 이미지로 바로 실행 할 수 있어서 별도의 에이전트 구성이나 복잡한 서버 세팅이 필요 없다.
 
-2) 다양한 프로토콜을 폭넓게 지원한다.
+**2) 다양한 프로토콜을 폭넓게 지원한다.**
 - HTTP 뿐만 아니라, WebSocket, gRPC, GraphQL 기반 트래픽 생성도 가능하여, 단순 REST API 를 넘어 실서비스와 유사한 시나리오를 구성할 수 있다.
 
-3) 테스트 결과를 옵저버빌리티 관점에서 리포팅 할 수 있다.
+**3) 테스트 결과를 옵저버빌리티 관점에서 리포팅 할 수 있다.**
 - 테스트 결과를 InfluxDB, Prometheus, Cloud 등 외부 스토리지로 전송 할 수 있으며, Grafana 와 연동하여 지표를 시각화 할 수 있다.
 
-4) k6 Operator 를 활용하면 k8s 클러스터 내부에서도 부하 테스트를 실행 할 수 있다.
+**4) k6 Operator 를 활용하면 k8s 클러스터 내부에서도 부하 테스트를 실행 할 수 있다.**
 - 실제 운영 환경과 유사한 네트워크 토폴로지에서 트래픽을 생성하거나, 클러스터 단위 성능 검증도 가능하다.
 
-5) 시나리오 기반 부하 테스트가 가능하다.
+**5) 시나리오 기반 부하 테스트가 가능하다.**
 - ramp-up, spike, soak, mixed workload 등 다양한 부하 패턴을 하나의 테스트 안에서 정의 가능하다.
 - 시간에 따른 사용자 증가, 트래픽 증가, 장시간 안정성 검증, API 조합 시나리오 등 실제 서비스 사용 패턴 시나리오가 가능하다.
 
+---
+
+
+## Project Structure
+
+```shell
+k6-stack/
+├── docker-compose.yml         # Docker 서비스 정의
+├── grafana/
+│   ├── dashboards/
+│   │   └── k6.json            # k6 대시보드 (자동 다운로드)
+│   └── provisioning/
+│       ├── dashboards/
+│       │   └── dashboards.yml # 대시보드 프로비저닝 자동화
+│       └── datasources/
+│           └── datasource.yml # Grafana - InfluxDB 연결 설정 자동화
+├── influxdb/
+│   └── init/
+│       └── init.influxql      # 7일 보존 정책 설정
+└── scripts/                   # k6 테스트 스크립트
+    ├── ....
+```
+
+---
+
+
+## Stack Flow
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/load-test/k6-stack/stack-flow.png" alt="stack-flow"  style={{ display: 'inline-block' }} />
+</div>
+
+1) InfluxDB 생성
+2) (Optional) InfluxDB Retention Policy 세팅
+3) Grafana 데이터소스 자동 연결
+4) Grafana 대시보드 자동 다운로드
+5) 데이터 소스 UID/Name 을 InfluxDB 로 치환 (`${DS_DUMMY}` 와 같은 변수, Dashboard 마다 다르므로 유의!)
+
+|컴포넌트|역할|
+|--|--|
+|influxdb|k6 메트릭 저장소|
+|influxdb-int|DB / Retention Policy 전용 컨테이너|
+|grafana|대시보드 UI|
+|dashboard-downloader|대시보드 자동 다운로드|
+
+:::note
+<a href="https://grafana.com/grafana/dashboards/14801-k6-dashboard/"> K6 Dashboard </a> 를 사용했지만, 적절한 대시보드로 대체하면 된다.
+:::
+
+---
+
+
+## Detail
+
+### 1. docker-compose.yml
+```yaml
+services:
+  influxdb:
+    image: influxdb:1.8
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    environment:
+      INFLUXDB_HTTP_AUTH_ENABLED: "false"
+      INFLUXDB_DB: "k6"
+    volumes:
+      - influxdb-data:/var/lib/influxdb
+    networks: [k6net]
+
+  influxdb-init:
+    image: curlimages/curl:8.5.0
+    container_name: influxdb-init
+    depends_on:
+      - influxdb
+    networks: [k6net]
+    volumes:
+      - ./influxdb/init:/scripts
+    command:
+      - /bin/sh
+      - -c
+      - |
+        until curl -sf http://influxdb:8086/ping >/dev/null; do
+          sleep 1
+        done
+
+        grep -v '^--' /scripts/init.influxql | grep -v '^$$' | while read -r q; do
+          curl -sG http://influxdb:8086/query --data-urlencode "q=$$q" >/dev/null
+        done
+
+  grafana:
+    image: grafana/grafana:10.4.3
+    container_name: grafana
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    networks: [k6net]
+
+  dashboard-downloader:
+    image: curlimages/curl:8.5.0
+    container_name: dashboard-downloader
+    depends_on:
+      - grafana
+    networks: [k6net]
+    volumes:
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    command:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /var/lib/grafana/dashboards
+        echo "download k6 dashboard json..."
+
+        curl -fsSL "https://grafana.com/api/dashboards/14801/revisions/2/download" \
+          -o /tmp/k6-raw.json || exit 1
+
+        echo "replacing datasource name..."
+        sed "s/\$${DS_DUMMY}/InfluxDB/g" /tmp/k6-raw.json \
+          > /var/lib/grafana/dashboards/k6.json
+
+        echo "done"
+
+  k6:
+    image: grafana/k6:0.49.0
+    container_name: k6
+    depends_on:
+      - influxdb
+    networks: [k6net]
+    volumes:
+      - ./scripts:/scripts
+    environment:
+      K6_OUT: influxdb=http://influxdb:8086/k6
+    entrypoint: ["k6"]
+
+networks:
+  k6net:
+
+volumes:
+  influxdb-data:
+  grafana-data:
+```
+
+<br/>
+
+### 2. datasource.yml
+
+```yaml
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    database: k6
+    isDefault: true
+    editable: false
+```
+
+<br/>
+
+### 3. dashboards.yml
+
+```yaml
+apiVersion: 1
+
+providers:
+  - name: "k6"
+    orgId: 1
+    folder: "k6"
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+```
+
+---
+
+## Execute
+
+```shell
+docker compose up -d
+```
+
+<br/>
+
+### Dashboards
+
+* 자동 설정된 대시보드를 확인할 수 있다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/load-test/k6-stack/k6-dashboard.png" alt="dashboard"  style={{ display: 'inline-block' }} />
+</div>
+
+<br/>
+
+### Datasource
+
+* 자동 설정된 데이터 소스를 확일 할 수 있다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/load-test/k6-stack/datasource.png" alt="datasource"  style={{ display: 'inline-block' }} />
+</div>
+
+<br/>
+
+### Test
+* k6 를 실행할 때 docker 로 실행했지만, cli 로 실행도 가능하다.
+
+```shell
+docker-compose run --rm k6 run /scripts/01-basic.js
+```
+
+:::note
+k6 operator 를 이용하게 된다면, k8s 클러스터 안에서 테스트가 가능하다.
+:::
+
+<br/>
+
+### Result
+
+* 다양한 지표를 실시간으로 확인 할 수 있다.
+
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/load-test/k6-stack/result.png" alt="result"  style={{ display: 'inline-block' }} />
+</div>
+
+:::note
+k6 를 실행하면 콘솔에서 로그가 나오는데, 그 결과를 influxdb 에 적재하고 적재된 데이터를 Grafana 쿼리로 보여주는 것이다.
+:::
+
+---
 
 ## 📚 Reference
 
-*
+- [K6 공식 문서](https://k6.io/docs/)
+- [Grafana Dashboard #14801](https://grafana.com/grafana/dashboards/14801-k6-dashboard/)
+- [InfluxDB 1.x 문서](https://docs.influxdata.com/influxdb/v1.8/)
 
 
