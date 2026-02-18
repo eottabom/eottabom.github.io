@@ -111,6 +111,14 @@ export default function Home({
                         and this blog is where I share my{' '}
                         <strong>journey as a learning developer</strong>.
                     </p>
+                    <div className="mt-8">
+                        <Link
+                            href="/toolkit"
+                            className="inline-block bg-gray-800 hover:bg-gray-900 text-white font-semibold px-6 py-2 rounded transition"
+                        >
+                            View My Toolkit →
+                        </Link>
+                    </div>
                 </section>
 
                 <div className="bg-gray-50 pt-32 pb-20 px-4">

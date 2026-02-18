@@ -13,6 +13,7 @@ export default function Header({ isDark }: HeaderProps) {
         { href: "/post", label: "Posts" },
         { href: "/book", label: "Book-Reviews" },
         { href: "/link", label: "Useful-Links" },
+        { href: "/toolkit", label: "Toolkit" },
         { href: "/about", label: "About" },
     ];
 
