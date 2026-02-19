@@ -12,6 +12,6 @@
   },
   "include": ["scripts/**/*.ts"],
   "ts-node": {
-    "esm": true
+    "transpileOnly": true
   }
 }
