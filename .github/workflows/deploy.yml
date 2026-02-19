@@ -38,7 +38,8 @@ jobs:
       - name: Generate SEO files (simple)
         run: |
           mkdir -p public
-          POSTS=$(find posts -type f -name '*.mdx' | sed 's|posts/||;s|.mdx||')
+          POSTS=$(find contents/posts -type f -name '*.mdx' | xargs -I {} basename {} .mdx)
+          BOOKS=$(find contents/books -type f -name '*.mdx' | xargs -I {} basename {} .mdx)
 
           # sitemap.xml 생성
           echo '<?xml version="1.0" encoding="UTF-8"?>' > public/sitemap.xml
@@ -48,6 +49,13 @@ jobs:
             echo "    <loc>https://eottabom.github.io/post/$POST</loc>" >> public/sitemap.xml
             echo "    <changefreq>weekly</changefreq>" >> public/sitemap.xml
             echo "    <priority>0.7</priority>" >> public/sitemap.xml
+            echo "  </url>" >> public/sitemap.xml
+          done
+          for BOOK in $BOOKS; do
+            echo "  <url>" >> public/sitemap.xml
+            echo "    <loc>https://eottabom.github.io/book/$BOOK</loc>" >> public/sitemap.xml
+            echo "    <changefreq>monthly</changefreq>" >> public/sitemap.xml
+            echo "    <priority>0.6</priority>" >> public/sitemap.xml
             echo "  </url>" >> public/sitemap.xml
           done
           echo '</urlset>' >> public/sitemap.xml
@@ -65,6 +73,14 @@ jobs:
             echo "    <title>$POST</title>" >> public/feed.xml
             echo "    <link>https://eottabom.github.io/post/$POST</link>" >> public/feed.xml
             echo "    <guid>https://eottabom.github.io/post/$POST</guid>" >> public/feed.xml
+            echo "    <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>" >> public/feed.xml
+            echo "  </item>" >> public/feed.xml
+          done
+          for BOOK in $BOOKS; do
+            echo "  <item>" >> public/feed.xml
+            echo "    <title>$BOOK</title>" >> public/feed.xml
+            echo "    <link>https://eottabom.github.io/book/$BOOK</link>" >> public/feed.xml
+            echo "    <guid>https://eottabom.github.io/book/$BOOK</guid>" >> public/feed.xml
             echo "    <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>" >> public/feed.xml
             echo "  </item>" >> public/feed.xml
           done
