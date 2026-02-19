@@ -3,5 +3,197 @@
 <title>eottabom.github.io</title>
 <link>https://eottabom.github.io</link>
 <description>Blog RSS Feed</description>
-<lastBuildDate>Wed, 18 Feb 2026 05:55:53 +0000</lastBuildDate>
+<lastBuildDate>Thu, 19 Feb 2026 11:44:35 +0000</lastBuildDate>
+  <item>
+    <title>java-application-on-kubernetes</title>
+    <link>https://eottabom.github.io/post/java-application-on-kubernetes</link>
+    <guid>https://eottabom.github.io/post/java-application-on-kubernetes</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>jvm-tuning</title>
+    <link>https://eottabom.github.io/post/jvm-tuning</link>
+    <guid>https://eottabom.github.io/post/jvm-tuning</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>lombok-using-points</title>
+    <link>https://eottabom.github.io/post/lombok-using-points</link>
+    <guid>https://eottabom.github.io/post/lombok-using-points</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>try-with-resources</title>
+    <link>https://eottabom.github.io/post/try-with-resources</link>
+    <guid>https://eottabom.github.io/post/try-with-resources</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>about-final</title>
+    <link>https://eottabom.github.io/post/about-final</link>
+    <guid>https://eottabom.github.io/post/about-final</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>system-out-println-vs-logger</title>
+    <link>https://eottabom.github.io/post/system-out-println-vs-logger</link>
+    <guid>https://eottabom.github.io/post/system-out-println-vs-logger</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>lombok-precess</title>
+    <link>https://eottabom.github.io/post/lombok-precess</link>
+    <guid>https://eottabom.github.io/post/lombok-precess</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>play-with-playwright</title>
+    <link>https://eottabom.github.io/post/play-with-playwright</link>
+    <guid>https://eottabom.github.io/post/play-with-playwright</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>kubernetes-qos</title>
+    <link>https://eottabom.github.io/post/kubernetes-qos</link>
+    <guid>https://eottabom.github.io/post/kubernetes-qos</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>utterances로-댓글-기능-추가하기</title>
+    <link>https://eottabom.github.io/post/utterances로-댓글-기능-추가하기</link>
+    <guid>https://eottabom.github.io/post/utterances로-댓글-기능-추가하기</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>Rich-feature-hierarchies-for-accurate-object-detection-and-semantic-segmentation</title>
+    <link>https://eottabom.github.io/post/Rich-feature-hierarchies-for-accurate-object-detection-and-semantic-segmentation</link>
+    <guid>https://eottabom.github.io/post/Rich-feature-hierarchies-for-accurate-object-detection-and-semantic-segmentation</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>virtualbox-centos-disk</title>
+    <link>https://eottabom.github.io/post/virtualbox-centos-disk</link>
+    <guid>https://eottabom.github.io/post/virtualbox-centos-disk</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>tipuesearch-검색기능</title>
+    <link>https://eottabom.github.io/post/tipuesearch-검색기능</link>
+    <guid>https://eottabom.github.io/post/tipuesearch-검색기능</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>uptime-kuma-open-source-uptime-monitoring-tool</title>
+    <link>https://eottabom.github.io/post/uptime-kuma-open-source-uptime-monitoring-tool</link>
+    <guid>https://eottabom.github.io/post/uptime-kuma-open-source-uptime-monitoring-tool</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>intellij-indexing</title>
+    <link>https://eottabom.github.io/post/intellij-indexing</link>
+    <guid>https://eottabom.github.io/post/intellij-indexing</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>in-memory</title>
+    <link>https://eottabom.github.io/post/in-memory</link>
+    <guid>https://eottabom.github.io/post/in-memory</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>jpa-determine-entity-is-new</title>
+    <link>https://eottabom.github.io/post/jpa-determine-entity-is-new</link>
+    <guid>https://eottabom.github.io/post/jpa-determine-entity-is-new</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>why-using-grpc</title>
+    <link>https://eottabom.github.io/post/why-using-grpc</link>
+    <guid>https://eottabom.github.io/post/why-using-grpc</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>mysql-validation-errors</title>
+    <link>https://eottabom.github.io/post/mysql-validation-errors</link>
+    <guid>https://eottabom.github.io/post/mysql-validation-errors</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>quick-start-envoy</title>
+    <link>https://eottabom.github.io/post/quick-start-envoy</link>
+    <guid>https://eottabom.github.io/post/quick-start-envoy</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>why-new-line</title>
+    <link>https://eottabom.github.io/post/why-new-line</link>
+    <guid>https://eottabom.github.io/post/why-new-line</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>comments</title>
+    <link>https://eottabom.github.io/post/comments</link>
+    <guid>https://eottabom.github.io/post/comments</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>meaningful-names</title>
+    <link>https://eottabom.github.io/post/meaningful-names</link>
+    <guid>https://eottabom.github.io/post/meaningful-names</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>9-Rules-of-Object-Oriented-Programming</title>
+    <link>https://eottabom.github.io/post/9-Rules-of-Object-Oriented-Programming</link>
+    <guid>https://eottabom.github.io/post/9-Rules-of-Object-Oriented-Programming</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>local-variable-type-inference-style-guidelines</title>
+    <link>https://eottabom.github.io/post/local-variable-type-inference-style-guidelines</link>
+    <guid>https://eottabom.github.io/post/local-variable-type-inference-style-guidelines</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>springformatter-checkstyle</title>
+    <link>https://eottabom.github.io/post/springformatter-checkstyle</link>
+    <guid>https://eottabom.github.io/post/springformatter-checkstyle</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>refactoring-category-summary</title>
+    <link>https://eottabom.github.io/post/refactoring-category-summary</link>
+    <guid>https://eottabom.github.io/post/refactoring-category-summary</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>ddd-fact-misunderstanding</title>
+    <link>https://eottabom.github.io/post/ddd-fact-misunderstanding</link>
+    <guid>https://eottabom.github.io/post/ddd-fact-misunderstanding</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>ddd-core-concept</title>
+    <link>https://eottabom.github.io/post/ddd-core-concept</link>
+    <guid>https://eottabom.github.io/post/ddd-core-concept</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>k6-stack</title>
+    <link>https://eottabom.github.io/post/k6-stack</link>
+    <guid>https://eottabom.github.io/post/k6-stack</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>silicon-valley-team-leaders-1</title>
+    <link>https://eottabom.github.io/book/silicon-valley-team-leaders-1</link>
+    <guid>https://eottabom.github.io/book/silicon-valley-team-leaders-1</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
+  <item>
+    <title>technical-leader</title>
+    <link>https://eottabom.github.io/book/technical-leader</link>
+    <guid>https://eottabom.github.io/book/technical-leader</guid>
+    <pubDate>Thu, 19 Feb 2026 11:44:35 +0000</pubDate>
+  </item>
 </channel></rss>
