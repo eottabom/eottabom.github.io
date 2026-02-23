@@ -1,0 +1,18 @@
+name: 🐛 Bug Report
+description: 버그를 제보합니다.
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 버그 설명
+      description: 어떤 문제가 발생했는지, 어떻게 재현할 수 있는지 알려주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+      description: 정상적으로 동작했어야 할 결과를 알려주세요.
+    validations:
+      required: false
