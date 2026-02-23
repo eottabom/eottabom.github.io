@@ -123,7 +123,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                   {postData.tags.map((tag) => (
                       <span
                           key={tag}
-                          className="px-2 py-1 text-mi font-medium bg-blue-50 text-blue-700 rounded-md"
+                          className="px-2 py-1 text-sm font-medium bg-blue-50 text-blue-700 rounded-md"
                       >
                       #{tag}
                       </span>
