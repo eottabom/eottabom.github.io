@@ -154,7 +154,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                 {/* 상단 영역만 배경색 적용 */}
                 <div
                     className={`${selectedTag !== 'latest' ? gradientStyle : 'bg-white'} ${selectedTag !== 'latest' ? 'text-white' : 'text-black'}`}>
-                    <Header isDark={selectedTag !== 'latest'}/>
+                    <Header />
                     {/* PostSection */}
                     <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
                         <h1 className={`text-5xl font-extrabold tracking-tight mb-4 ${selectedTag === "latest" ? "text-gray-900" : "text-white"}`}>
@@ -175,8 +175,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                                     className="w-full rounded-xl border border-gray-300 bg-white px-5 py-3.5
                                             text-base sm:text-lg font-medium
                                             text-black placeholder-gray-400
-                                            outline-none focus:ring-2 focus:ring-blue-500
-                                            dark:bg-white dark:text-black"
+                                            outline-none focus:ring-2 focus:ring-blue-500"
                                     aria-label="검색"
                                 />
                             </div>
@@ -208,7 +207,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                             </div>
 
                             {/* 결과 요약 */}
-                            <p className="text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-200 mt-1">
+                            <p className="text-sm sm:text-base font-semibold text-gray-700 mt-1">
                                 {(() => {
                                     const label = globalSearch ? "전체" : selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1);
                                     const count = filteredPosts.length;
@@ -222,7 +221,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                 </div>
 
                 {/* Tag 필터 탭 */}
-                <div className="py-6 px-4 sm:px-6 lg:px-8 bg-white dark:bg-black">
+                <div className="py-6 px-4 sm:px-6 lg:px-8 bg-white">
                     <nav className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-6xl mx-auto">
                         {tagList.map(tag => {
                             const isActive = selectedTag === tag && !globalSearch; // 전체 검색 중이면 활성 표시 해제
