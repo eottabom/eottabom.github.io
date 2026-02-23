@@ -15,7 +15,6 @@
     "lucide-react": "^0.268.0",
     "next": "16.1.5",
     "next-mdx-remote": "4.3.0",
-    "next-themes": "^0.2.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "rehype-autolink-headings": "6.1.1",

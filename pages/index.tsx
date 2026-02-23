@@ -57,7 +57,7 @@ export default function Home({
     if (!allPostsData.length) {
         return (
             <>
-                <Header isDark={false} />
+                <Header />
                 <main className="max-w-3xl mx-auto px-6 py-24">
                     <h1 className="text-3xl font-bold">No posts yet</h1>
                 </main>
@@ -92,7 +92,7 @@ export default function Home({
     return (
         <>
             <div className="min-h-screen">
-                <Header isDark={false} />
+                <Header />
 
                 {/* Hero */}
                 <section className="text-center pt-40 pb-28 px-4">

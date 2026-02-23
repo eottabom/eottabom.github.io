@@ -63,7 +63,7 @@ export default function BookDetail({mdxSource, title, author, date, updated, sum
     return (
         <>
             <ScrollProgressBar />
-            <Header isDark={false} />
+            <Header />
 
             <Head>
                 <title>{pageTitle}</title>

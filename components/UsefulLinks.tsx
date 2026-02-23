@@ -102,31 +102,31 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
                     </nav>
                 </div>
 
-                <ol className="rounded-xl border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 overflow-hidden bg-white dark:bg-zinc-950">
+                <ol className="rounded-xl border border-zinc-200 divide-y divide-zinc-200 overflow-hidden bg-white">
                     {filtered.map((a, idx) => (
                         <li key={`${a.url}-${idx}`}>
                             <a
                                 href={a.url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="block px-4 py-3 sm:px-5 sm:py-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition"
+                                className="block px-4 py-3 sm:px-5 sm:py-4 hover:bg-zinc-50 transition"
                                 title={a.url}
                             >
                                 <div className="flex items-start gap-3">
                                     <span className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500/90" />
                                     <div className="min-w-0 flex-1">
-                                        <p className="truncate font-semibold text-zinc-900 dark:text-zinc-50 hover:text-zinc-700 dark:hover:text-zinc-200">
+                                        <p className="truncate font-semibold text-zinc-900 hover:text-zinc-700">
                                             {a.title}
                                         </p>
                                         {a.note ? (
-                                            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300 line-clamp-2">
+                                            <p className="mt-1 text-sm text-zinc-600 line-clamp-2">
                                                 {a.note}
                                             </p>
                                         ) : null}
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
-                                        <span className="rounded-full border px-2 py-0.5 text-xs text-zinc-600 dark:text-zinc-300">
+                                        <span className="rounded-full border px-2 py-0.5 text-xs text-zinc-600">
                                             {a.category}
                                         </span>
                                         {a.added ? (

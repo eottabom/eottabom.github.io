@@ -1,8 +1,10 @@
-@import 'prism-themes/themes/prism-vsc-dark-plus.css';
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
 
 body {
   @apply bg-white text-gray-900 font-display leading-relaxed;

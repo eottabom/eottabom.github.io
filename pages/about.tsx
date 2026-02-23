@@ -6,7 +6,7 @@ import Link from "next/link";
 export default function About() {
   return (
     <div className="min-h-screen flex flex-col">
-      <Header isDark={false} />
+      <Header />
 
       {/* Hero Section */}
       <section className="text-center pt-40 pb-28 px-4">

@@ -33,7 +33,7 @@ export function Tabs({children, defaultIndex = 0, }: {
                                         // 기존 스타일 유지
                                         'bg-white text-blue-600 border-gray-300 border-b-0 font-semibold z-20 relative scale-105',
                                         // 활성 탭이 "첫 번째"일 때 왼쪽 경계선을 재도색
-                                        "first:before:content-[''] first:before:absolute first:before:top-0 first:before:-left-px first:before:h-full first:before:w-px first:before:bg-gray-300 first:dark:before:bg-gray-700",
+                                        "first:before:content-[''] first:before:absolute first:before:top-0 first:before:-left-px first:before:h-full first:before:w-px first:before:bg-gray-300",
                                         // 스케일 기준점을 왼쪽-아래로 둬서 왼쪽 선이 밀리지 않게 함
                                         'origin-bottom-left',
                                     ].join(' ')
@@ -46,7 +46,7 @@ export function Tabs({children, defaultIndex = 0, }: {
                     );
                 })}
                 {/* 오른쪽 빈 공간 라인 맞추기 */}
-                <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700" />
+                <div className="flex-1 h-px bg-gray-300" />
             </div>
 
             {/* Panel */}
@@ -54,8 +54,7 @@ export function Tabs({children, defaultIndex = 0, }: {
                 role="tabpanel"
                 id={`${uid}-panel-${active}`}
                 aria-labelledby={`${uid}-tab-${active}`}
-                className="rounded-b-lg border border-gray-300 border-t-0 bg-white p-5 md:p-7 shadow-sm
-                   dark:border-gray-700 dark:bg-gray-900"
+                className="rounded-b-lg border border-gray-300 border-t-0 bg-white p-5 md:p-7 shadow-sm"
             >
                 {tabList[active]}
             </div>

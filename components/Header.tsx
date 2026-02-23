@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-type HeaderProps = {
-    isDark: boolean;
-};
-
-export default function Header({ isDark }: HeaderProps) {
+export default function Header() {
     const pathname = usePathname();
 
     const items = [
@@ -20,7 +16,7 @@ export default function Header({ isDark }: HeaderProps) {
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname?.startsWith(href);
 
-    const base = `${isDark ? "text-white" : "text-black"}`;
+    const base = "text-current";
     const hover = "hover:text-blue-300";
     const active = "font-extrabold underline underline-offset-4";
     const idle = "font-bold";
@@ -41,7 +37,6 @@ export default function Header({ isDark }: HeaderProps) {
                         </Link>
                     );
                 })}
-                {/* <ThemeToggle /> */}
             </nav>
         </header>
     );

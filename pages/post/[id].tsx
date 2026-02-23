@@ -112,7 +112,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
   return (
       <>
         <ScrollProgressBar />
-        <Header isDark={false} />
+        <Header />
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
           {/* Main content */}
           <main className="flex-1 prose prose-xl max-w-none">
@@ -123,7 +123,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                   {postData.tags.map((tag) => (
                       <span
                           key={tag}
-                          className="px-2 py-1 text-mi font-medium bg-blue-50 text-blue-700 rounded-md dark:bg-blue-900 dark:text-blue-200"
+                          className="px-2 py-1 text-mi font-medium bg-blue-50 text-blue-700 rounded-md"
                       >
                       #{tag}
                       </span>
@@ -134,7 +134,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
               <MDXRemote {...postData.mdxSource} components={components}/>
             </article>
             {relatedPosts.length > 0 && (
-                <div className="mt-20 p-6 border rounded-2xl bg-gray-50 dark:bg-gray-800 shadow-sm">
+                <div className="mt-20 p-6 border rounded-2xl bg-gray-50 shadow-sm">
                   <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
                     🏷️ <span>같은 태그의 글 보기</span>
                   </h2>
@@ -144,11 +144,11 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                         <li key={post.id} className="flex flex-col">
                           <Link
                               href={`/post/${post.id}`}
-                              className="text-base font-medium text-gray-800 hover:text-blue-600 no-underline dark:text-gray-100 dark:hover:text-blue-400 transition"
+                              className="text-base font-medium text-gray-800 hover:text-blue-600 no-underline transition"
                           >
                             {post.title}
                           </Link>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="text-sm text-gray-500">
                             {post.tags?.map((tag) => `#${tag}`).join(' ')}
                           </span>
                         </li>
@@ -159,7 +159,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                       <div className="mt-6 text-center">
                         <button
                             onClick={() => setVisibleRelatedCount((prev) => prev + 3)}
-                            className="px-5 py-2 text-sm font-medium rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white transition"
+                            className="px-5 py-2 text-sm font-medium rounded-md bg-gray-200 hover:bg-gray-300 text-gray-800 transition"
                         >
                           더 보기
                         </button>

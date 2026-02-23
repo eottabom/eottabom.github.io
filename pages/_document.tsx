@@ -4,6 +4,7 @@ export default function Document() {
   return (
     <Html lang="ko">
       <Head>
+        <meta name="color-scheme" content="light" />
         {/* 광고 스크립트 삽입 위치 */}
         <script
           async
