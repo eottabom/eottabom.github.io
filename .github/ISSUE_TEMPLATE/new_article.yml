@@ -1,17 +1,9 @@
 name: ✍️ New Article
 description: 새로운 게시글 작성을 위한 템플릿
 labels: ["article"]
-title: "[Article] "
+title: "📌 글 제목 - "
 
 body:
-  - type: input
-    id: article_title
-    attributes:
-      label: 📌 글 제목
-      placeholder: Envoy Service Mesh 에서 발생한 gRPC 로드밸런싱 트러블 슈팅
-    validations:
-      required: true
-
   - type: textarea
     id: summary
     attributes:
