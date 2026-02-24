@@ -1,0 +1,22 @@
+name: ✍️ New Article
+description: 새로운 게시글 작성을 위한 템플릿
+labels: ["article"]
+title: "[Article] "
+
+body:
+  - type: textarea
+    id: title
+    attributes:
+      label: 📌 글 제목
+      placeholder: Envoy Service Mesh 에서 발생한 gRPC 로드밸런싱 트러블 슈팅
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 🧾 한 줄 요약
+      description: 이 글을 한 문장으로 요약해주세요.
+      placeholder: HTTP/2 커넥션 재사용으로 인해 특정 Pod에 트래픽이 몰리는 문제를 분석하고 해결한 경험 정리
+    validations:
+      required: true
