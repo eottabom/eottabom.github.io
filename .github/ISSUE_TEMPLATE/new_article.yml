@@ -1,7 +1,7 @@
 name: ✍️ New Article
 description: 새로운 게시글 작성을 위한 템플릿
 labels: ["article"]
-title: "📌 글 제목 - "
+title: "📌 주제 - "
 
 body:
   - type: textarea
