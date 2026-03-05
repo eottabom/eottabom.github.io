@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: http://eottabom.github.io/sitemap.xml
+Sitemap: https://eottabom.github.io/sitemap.xml
+Sitemap: https://eottabom.github.io/toolkit/sitemap.xml
