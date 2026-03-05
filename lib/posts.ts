@@ -64,8 +64,8 @@ export async function getPostData(id: string): Promise<PostData> {
 
   const mdxSource = await serialize(content, {
     mdxOptions: {
-      remarkPlugins: [remarkDirective, remarkDirectiveTransformer, remarkGfm],
-      rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings, rehypePrism],
+      remarkPlugins: [remarkDirective, remarkDirectiveTransformer, remarkGfm] as any,
+      rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings, rehypePrism] as any,
     },
     scope: data,
   });
@@ -87,8 +87,8 @@ export async function getSortedPostsDataWithContent(): Promise<PostData[]> {
       const { content, data } = matter(fileContents);
       const mdxSource = await serialize(content, {
         mdxOptions: {
-          remarkPlugins: [remarkGfm],
-          rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings],
+          remarkPlugins: [remarkGfm] as any,
+          rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings] as any,
           format: 'mdx',
         },
         scope: data,

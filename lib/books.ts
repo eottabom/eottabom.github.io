@@ -109,8 +109,8 @@ export async function getBookData(slug: string): Promise<BookData> {
 
     const mdxSource = await serialize(content, {
         mdxOptions: {
-            remarkPlugins: [remarkDirective, remarkDirectiveTransformer, remarkGfm],
-            rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings, rehypePrism],
+            remarkPlugins: [remarkDirective, remarkDirectiveTransformer, remarkGfm] as any,
+            rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings, rehypePrism] as any,
             format: 'mdx',
         },
         scope: data,

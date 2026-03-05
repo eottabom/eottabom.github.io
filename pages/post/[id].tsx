@@ -35,12 +35,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   return { paths, fallback: false };
 };
 
-export const getStaticProps: ({params}: { params: any }) => Promise<{
-  props: {
-    relatedPosts: PostMeta[];
-    postData: PostData & { id: string; mdxSource: Awaited<ReturnType<typeof serialize>> }
-  }
-}> = async ({ params }) => {
+export const getStaticProps = async ({ params }: { params: any }) => {
   const postData = await getPostData(params?.id as string);
   const allPosts = getPostsMetaOnly();
 
