@@ -9,5 +9,8 @@ package-lock.json
 
 out
 
+public/sitemap.xml
+public/feed.xml
+
 tsconfig.tsbuildinfo
 next-env.d.ts
