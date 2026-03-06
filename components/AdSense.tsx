@@ -11,7 +11,7 @@ export default function AdSense() {
   }, []);
 
   return (
-    <div style={{ minHeight: 250, margin: '1rem 0' }}>
+    <div className="my-4">
       <ins
         className="adsbygoogle"
         style={{ display: 'block', textAlign: 'center' }}
