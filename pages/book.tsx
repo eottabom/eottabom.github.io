@@ -15,8 +15,9 @@ export default function BooksPage({ books }: { books: BookMeta[] }) {
             />
             <div className="bg-white text-black">
                 <Header />
-                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-                    <h1 className="text-5xl font-extrabold tracking-tight mb-4">Book Reviews</h1>
+                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Book Reviews</h1>
+                    <p className="mt-2 text-sm text-gray-400">A space where I review and reflect on the books I have read.</p>
                 </div>
             </div>
 

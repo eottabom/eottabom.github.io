@@ -11,8 +11,9 @@ export default function LinkPage() {
         <>
             <div className="bg-white text-black">
                 <Header />
-                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-                    <h1 className="text-5xl font-extrabold tracking-tight mb-4">Useful Links</h1>
+                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Useful Links</h1>
+                    <p className="mt-2 text-sm text-gray-400">A curated collection of articles and resources I find genuinely useful.</p>
                 </div>
             </div>
             <main className="mx-auto px-6 pb-20 max-w-5xl xl:max-w-6xl">
