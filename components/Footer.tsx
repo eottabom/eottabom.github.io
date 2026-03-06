@@ -8,9 +8,9 @@ const links = [
 
 export default function Footer() {
     return (
-        <footer className="bg-gray-900 text-gray-400">
+        <footer className="bg-slate-50 text-slate-600 border-t border-slate-200">
             <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500">
                     &copy; 2025 Eottabom&apos;s Lab. All rights reserved.
                 </p>
 
@@ -19,7 +19,7 @@ export default function Footer() {
                         <a
                             key={link.label}
                             href={link.href}
-                            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-white transition"
+                            className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-700 text-slate-100 border border-slate-700 hover:bg-white hover:text-slate-700 hover:border-slate-300 transition"
                             {...(link.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                             aria-label={link.label}
                             title={link.label}
