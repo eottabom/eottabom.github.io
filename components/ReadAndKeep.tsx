@@ -29,7 +29,7 @@ function getSourceFromUrl(url: string) {
     }
 }
 
-export default function UsefulLinks({ articles }: { articles?: Article[] }) {
+export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
     const [selected, setSelected] = useState<string>("All");
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeft, setShowLeft] = useState(false);

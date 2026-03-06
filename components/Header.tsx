@@ -19,7 +19,7 @@ export default function Header() {
         { href: "/", label: "Home" },
         { href: "/post", label: "Posts" },
         { href: "/book", label: "Books" },
-        { href: "/link", label: "Links" },
+        { href: "/link", label: "Read & Keep" },
         { href: "/toolkit", label: "Toolkit" },
         { href: "/about", label: "About" },
     ];
