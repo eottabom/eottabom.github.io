@@ -14,6 +14,7 @@ type SeoProps = {
   publishedTime?: string;
   modifiedTime?: string;
   tags?: string[];
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   noindex?: boolean;
 };
 
@@ -25,6 +26,7 @@ export default function Seo({
   publishedTime,
   modifiedTime,
   tags,
+  jsonLd,
   noindex = false,
 }: SeoProps) {
   const router = useRouter();
@@ -63,6 +65,21 @@ export default function Seo({
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={description} />
       <meta name="twitter:image" content={ogImage} />
+
+      {Array.isArray(jsonLd)
+        ? jsonLd.map((item, idx) => (
+            <script
+              key={`jsonld-${idx}`}
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(item) }}
+            />
+          ))
+        : jsonLd && (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+          )}
     </Head>
   );
 }

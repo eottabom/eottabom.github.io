@@ -7,11 +7,29 @@ import { Home } from "lucide-react";
 import Link from "next/link";
 
 export default function BooksPage({ books }: { books: BookMeta[] }) {
+    const bookListJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "Book Reviews",
+        url: "https://eottabom.github.io/book/",
+        description: "개발 서적 리뷰 및 독서 기록 - 소프트웨어 개발, 리더십, 설계 관련 책 정리와 인사이트",
+        mainEntity: {
+            "@type": "ItemList",
+            itemListElement: books.map((book, index) => ({
+                "@type": "ListItem",
+                position: index + 1,
+                url: `https://eottabom.github.io/book/${book.slug}/`,
+                name: book.title,
+            })),
+        },
+    };
+
     return (
         <>
             <Seo
               title="Book Reviews"
               description="개발 서적 리뷰 및 독서 기록 - 소프트웨어 개발, 리더십, 설계 관련 책 정리와 인사이트"
+              jsonLd={bookListJsonLd}
             />
             <div className="bg-white text-black">
                 <Header />

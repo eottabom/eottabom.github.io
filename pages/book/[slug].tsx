@@ -19,7 +19,7 @@ declare global {
     }
 }
 
-export default function BookDetail({mdxSource, title, author, date, updated, summary, cover}: BookData) {
+export default function BookDetail({mdxSource, slug, title, author, date, updated, summary, cover}: BookData) {
     const [toc, activeId] = useTocObserver();
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showScrollHint, setShowScrollHint] = useState(false);
@@ -58,6 +58,18 @@ export default function BookDetail({mdxSource, title, author, date, updated, sum
     };
 
     const pageTitle = `${title} · Review`;
+    const canonical = `https://eottabom.github.io/book/${slug}/`;
+    const bookJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Book",
+        name: title,
+        author: author ? { "@type": "Person", name: author } : undefined,
+        description: summary ?? title,
+        image: cover ? `https://eottabom.github.io${cover}` : undefined,
+        datePublished: date,
+        dateModified: updated ?? date,
+        url: canonical,
+    };
 
     return (
         <>
@@ -70,6 +82,7 @@ export default function BookDetail({mdxSource, title, author, date, updated, sum
               publishedTime={date}
               modifiedTime={updated}
               ogImage={cover}
+              jsonLd={bookJsonLd}
             />
 
             <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
