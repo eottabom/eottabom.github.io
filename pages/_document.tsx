@@ -5,6 +5,18 @@ export default function Document() {
     <Html lang="ko">
       <Head>
         <meta name="color-scheme" content="light" />
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-C4G71YP1XT"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-C4G71YP1XT');
+            `,
+          }}
+        />
         <link rel="alternate" type="application/rss+xml" title="Eottabom Blog RSS" href="/feed.xml" />
         <script
           type="application/ld+json"
