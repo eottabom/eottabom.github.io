@@ -1,4 +1,5 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export type Article = {
     title: string;
@@ -30,6 +31,9 @@ function getSourceFromUrl(url: string) {
 
 export default function UsefulLinks({ articles }: { articles?: Article[] }) {
     const [selected, setSelected] = useState<string>("All");
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showLeft, setShowLeft] = useState(false);
+    const [showRight, setShowRight] = useState(false);
 
     useEffect(() => {
         if (typeof window === "undefined") { return; } else {
@@ -37,6 +41,13 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
             const init = p.get("category") || "All";
             setSelected(init);
         }
+    }, []);
+
+    const checkScroll = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setShowLeft(el.scrollLeft > 4);
+        setShowRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
     }, []);
 
     const safeArticles = useMemo(() => {
@@ -69,6 +80,21 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
         }
     }, [selected]);
 
+    useEffect(() => {
+        checkScroll();
+        const el = scrollRef.current;
+        el?.addEventListener("scroll", checkScroll, { passive: true });
+        window.addEventListener("resize", checkScroll);
+        return () => {
+            el?.removeEventListener("scroll", checkScroll);
+            window.removeEventListener("resize", checkScroll);
+        };
+    }, [checkScroll, safeArticles.length, selected]);
+
+    const scroll = (dir: number) => {
+        scrollRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
+    };
+
     const chips = useMemo(() => {
         const counts = new Map<string, number>();
         for (const a of safeArticles) {
@@ -95,27 +121,59 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
     } else {
         return (
             <div className="space-y-6">
-                <div className="py-2">
-                    <nav className="flex flex-wrap justify-start gap-2 sm:gap-3">
-                        {chips.map(({ name, count }) => {
-                            const isActive = selected === name;
-                            return (
+                <div className="bg-white border-b border-gray-200 sticky top-14 z-30">
+                    <div className="max-w-5xl mx-auto px-4 py-3">
+                        <div className="relative">
+                            {showLeft && (
                                 <button
-                                    key={name}
-                                    onClick={() => { setSelected(name); }}
-                                    className={`capitalize px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150
-                                        ${isActive ? "bg-gray-800 text-white shadow-sm" : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"}
-                                    `}
-                                    aria-pressed={isActive}
+                                    onClick={() => scroll(-1)}
+                                    className="absolute left-0 top-0 bottom-0 z-10 w-14 flex items-center justify-start pl-1.5 bg-gradient-to-r from-white via-white/90 to-transparent"
+                                    aria-label="카테고리 왼쪽 스크롤"
                                 >
-                                    {name} ({count})
+                                    <ChevronLeft className="w-4 h-4 text-gray-500" />
                                 </button>
-                            );
-                        })}
-                    </nav>
+                            )}
+                            <nav
+                                ref={scrollRef}
+                                className="flex gap-1.5 overflow-x-auto scrollbar-hide px-1 pb-0.5"
+                                aria-label="카테고리 필터"
+                            >
+                                {chips.map(({ name, count }) => {
+                                    const isActive = selected === name;
+                                    return (
+                                        <button
+                                            key={name}
+                                            onClick={() => { setSelected(name); }}
+                                            className={`
+                                                flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium
+                                                transition-all duration-150 whitespace-nowrap
+                                                ${isActive
+                                                    ? "bg-gray-900 text-white"
+                                                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                                }
+                                            `}
+                                            aria-pressed={isActive}
+                                        >
+                                            {name}
+                                            <span className="ml-0.5 text-gray-400">{count}</span>
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+                            {showRight && (
+                                <button
+                                    onClick={() => scroll(1)}
+                                    className="absolute right-0 top-0 bottom-0 z-10 w-14 flex items-center justify-end pr-1.5 bg-gradient-to-l from-white via-white/90 to-transparent"
+                                    aria-label="카테고리 오른쪽 스크롤"
+                                >
+                                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
-                <ol className="rounded-xl border border-zinc-200 divide-y divide-zinc-200 overflow-hidden bg-white">
+                <ol className="mt-8 rounded-xl border border-zinc-200 divide-y divide-zinc-200 overflow-hidden bg-white">
                     {filtered.map((a, idx) => (
                         <li key={`${a.url}-${idx}`}>
                             <a
