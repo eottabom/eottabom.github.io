@@ -2,8 +2,37 @@
   {
     "title": "나는 왜 계속 불안할까? 개발자를 위한 불안 관리법",
     "url": "https://yozm.wishket.com/magazine/detail/3406/",
+    "source": "요즘IT",
     "category": "Career",
+    "keywords": ["불안"],
     "note": "",
     "added": "2025-10-24"
+  },
+  {
+    "title": "A complete guide to building skills for Claude",
+    "url": "https://claude.com/blog/complete-guide-to-building-skills-for-claude",
+    "source": "Claude Blog",
+    "category": ["AI", "Claude"],
+    "keywords": ["Claude", "Skills", "Claude Code", "AI Agent", "Prompt"],
+    "note": "",
+    "added": "2026-03-06"
+  },
+  {
+    "title": "Claude Skills 완벽 가이드",
+    "url": "https://www.fullstackfamily.com/@urstory/posts/13752",
+    "source": "김성박의 즐거운 에이전틱 코딩",
+    "category": ["AI", "Claude"],
+    "keywords": ["Claude", "Skills", "Claude Code", "완벽 가이드"],
+    "note": "",
+    "added": "2026-03-06"
+  },
+  {
+    "title": "우리는 왜 어떤 코드를 읽기 쉽다고 느낄까",
+    "url": "https://evan-moon.github.io/2026/01/30/developer-intuition-readable-code-and-neuroscience/",
+    "source": "Evans Library",
+    "category": ["Clean Code"],
+    "keywords": ["가독성", "클린코드", "인지과학", "코드 품질"],
+    "note": "",
+    "added": "2026-03-06"
   }
 ]
