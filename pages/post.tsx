@@ -1,10 +1,98 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
 import Seo from '../components/Seo';
 import { GetStaticProps } from 'next';
 import { getPostsMetaOnly } from '../lib/posts';
-import { Home } from 'lucide-react';
+import { Home, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+
+function TagScroller({ tagList, tagCounts, selectedTag, globalSearch, onSelect }: {
+    tagList: string[];
+    tagCounts: Record<string, number>;
+    selectedTag: string;
+    globalSearch: boolean;
+    onSelect: (tag: string) => void;
+}) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [showLeft, setShowLeft] = useState(false);
+    const [showRight, setShowRight] = useState(false);
+
+    const checkScroll = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setShowLeft(el.scrollLeft > 4);
+        setShowRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+    }, []);
+
+    useEffect(() => {
+        checkScroll();
+        const el = scrollRef.current;
+        el?.addEventListener('scroll', checkScroll, { passive: true });
+        window.addEventListener('resize', checkScroll);
+        return () => {
+            el?.removeEventListener('scroll', checkScroll);
+            window.removeEventListener('resize', checkScroll);
+        };
+    }, [checkScroll]);
+
+    const scroll = (dir: number) => {
+        scrollRef.current?.scrollBy({ left: dir * 200, behavior: 'smooth' });
+    };
+
+    return (
+        <div className="relative">
+            {showLeft && (
+                <button
+                    onClick={() => scroll(-1)}
+                    className="absolute left-0 top-0 bottom-0 z-10 w-14 flex items-center justify-start pl-1.5 bg-gradient-to-r from-white via-white/90 to-transparent"
+                    aria-label="태그 왼쪽 스크롤"
+                >
+                    <ChevronLeft className="w-4 h-4 text-gray-500" />
+                </button>
+            )}
+            <nav
+                ref={scrollRef}
+                className="flex gap-1.5 overflow-x-auto scrollbar-hide px-1 pb-0.5"
+                aria-label="태그 필터"
+            >
+                {tagList.map(tag => {
+                    const isActive = selectedTag === tag && !globalSearch;
+                    return (
+                        <button
+                            key={tag}
+                            onClick={() => onSelect(tag)}
+                            className={`
+                                flex-shrink-0 px-4 py-1.5 rounded-full text-[13px] font-medium
+                                transition-all duration-150 whitespace-nowrap
+                                ${isActive
+                                    ? "bg-gray-900 text-white"
+                                    : globalSearch
+                                        ? "bg-gray-50 text-gray-300 cursor-default"
+                                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                }
+                            `}
+                            disabled={globalSearch}
+                        >
+                            {tag === 'latest' ? 'Latest' : tag === 'updated' ? 'Updated' : tag}
+                            <span className={`ml-0.5 ${isActive ? "text-gray-400" : "text-gray-400"}`}>
+                                {tagCounts[tag]}
+                            </span>
+                        </button>
+                    );
+                })}
+            </nav>
+            {showRight && (
+                <button
+                    onClick={() => scroll(1)}
+                    className="absolute right-0 top-0 bottom-0 z-10 w-14 flex items-center justify-end pr-1.5 bg-gradient-to-l from-white via-white/90 to-transparent"
+                    aria-label="태그 오른쪽 스크롤"
+                >
+                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                </button>
+            )}
+        </div>
+    );
+}
 
 type Post = {
     id: string;
@@ -27,7 +115,6 @@ const byDesc = (a: string | undefined, b: string | undefined) =>
 export const getStaticProps: GetStaticProps<Props> = async () => {
     const posts = getPostsMetaOnly();
 
-    const byCreatedDesc = [...posts].sort((a, b) => byDesc(a.date, b.date));
     const byUpdatedDesc = [...posts].sort(
         (a, b) => byDesc(a.updated ?? a.date, b.updated ?? b.date)
     );
@@ -63,42 +150,28 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 export default function PostPage({ postsByTag, tagCounts }: Props) {
     const [selectedTag, setSelectedTag] = useState("latest");
     const [visibleCount, setVisibleCount] = useState(10);
-    const [gradientStyle, setGradientStyle] = useState("");
+    const [gradientIndex, setGradientIndex] = useState(0);
 
-    // 검색 상태
     const [query, setQuery] = useState("");
-    const [globalSearch, setGlobalSearch] = useState(false); // 전체 검색 토글
+    const [globalSearch, setGlobalSearch] = useState(false);
 
-    // 원본 목록(태그 or 전체)
     const basePosts = useMemo(() => {
         return globalSearch ? (postsByTag['latest'] || []) : (postsByTag[selectedTag] || []);
     }, [globalSearch, postsByTag, selectedTag]);
 
-    // 검색 매칭 함수 (대소문자 무시, title/summary/description/tags 전부 검색)
     const matches = (post: Post, q: string) => {
         if (!q) return true;
         const needle = q.trim().toLowerCase();
         if (!needle) return true;
-
-        const haystack = [
-            post.title,
-            post.summary,
-            post.description,
-            ...(post.tags || [])
-        ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
+        const haystack = [post.title, post.summary, post.description, ...(post.tags || [])]
+            .filter(Boolean).join(" ").toLowerCase();
         return haystack.includes(needle);
     };
 
-    // 필터링된 목록
     const filteredPosts = useMemo(() => {
         return basePosts.filter(p => matches(p, query));
     }, [basePosts, query]);
 
-    // 페이징
     const visiblePosts = filteredPosts.slice(0, visibleCount);
     const hasMore = visibleCount < filteredPosts.length;
 
@@ -114,39 +187,45 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
         ? "Posts sorted by last updated timestamp (falls back to created date)."
         : `Posts related to the '${selectedTag}' category.`;
 
-    const gradientOptions = [
-        "from-yellow-400 to-pink-500",
-        "from-green-400 to-blue-500",
-        "from-indigo-500 to-purple-500",
-        "from-pink-500 to-red-500",
-        "from-sky-400 to-cyan-600",
-        "from-orange-400 to-rose-500",
-        "from-teal-400 to-emerald-500",
-        "from-violet-500 to-fuchsia-500",
+    const gradients = [
+        "from-slate-200 via-slate-100 to-blue-100",
+        "from-zinc-200 via-stone-100 to-amber-100",
+        "from-sky-200 via-blue-100 to-cyan-100",
+        "from-emerald-200 via-teal-100 to-cyan-100",
+        "from-rose-200 via-orange-100 to-amber-100",
+        "from-teal-200 via-emerald-100 to-lime-100",
+        "from-fuchsia-200 via-rose-100 to-orange-100",
+        "from-purple-200 via-violet-100 to-fuchsia-100",
+        "from-purple-200 via-pink-100 to-rose-100",
+        "from-blue-200 via-sky-100 to-teal-100",
+        "from-cyan-200 via-blue-100 to-sky-100",
+        "from-emerald-200 via-green-100 to-lime-100",
+        "from-green-200 via-emerald-100 to-teal-100",
+        "from-orange-200 via-amber-100 to-yellow-100",
+        "from-orange-200 via-rose-100 to-pink-100",
+        "from-blue-200 via-cyan-100 to-emerald-100",
+        "from-violet-200 via-purple-100 to-pink-100",
+        "from-sky-200 via-cyan-100 to-teal-100",
+        "from-lime-200 via-green-100 to-emerald-100",
     ];
 
-    useEffect(() => {
-        if (selectedTag !== "latest") {
-            const random = gradientOptions[Math.floor(Math.random() * gradientOptions.length)];
-            setGradientStyle(`bg-gradient-to-r ${random}`);
-        }
-    }, [selectedTag]);
+    const tagGradient = selectedTag === 'latest'
+        ? ''
+        : `bg-gradient-to-r ${gradients[gradientIndex % gradients.length]}`;
 
-    // 태그 목록
     const otherTags = Object.keys(tagCounts).filter(t => t !== 'latest' && t !== 'updated');
-    const tagList = [
-        'latest',
-        'updated',
-        ...otherTags.sort((a, b) => a.localeCompare(b))
-    ];
+    const tagList = ['latest', 'updated', ...otherTags.sort((a, b) => a.localeCompare(b))];
 
-    // 태그 변경 시 검색/페이지 초기화
     const handleSelectTag = (tag: string) => {
         setSelectedTag(tag);
+        setGradientIndex(Math.floor(Math.random() * gradients.length));
         setVisibleCount(10);
-        if (!globalSearch) {
-            setQuery("");
-        }
+        if (!globalSearch) setQuery("");
+    };
+
+    const clearQuery = () => {
+        setQuery("");
+        setVisibleCount(10);
     };
 
     return (
@@ -155,102 +234,93 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
               title="Posts"
               description="Java, Spring, gRPC, Kubernetes, DDD 등 백엔드 개발 글 목록 - 태그별 필터와 검색으로 원하는 글을 찾아보세요."
             />
+            <Header />
             <main>
-                {/* 상단 영역만 배경색 적용 */}
+                {/* 상단 영역 */}
                 <div
-                    className={`${selectedTag !== 'latest' ? gradientStyle : 'bg-white'} ${selectedTag !== 'latest' ? 'text-white' : 'text-black'}`}>
-                    <Header />
-                    {/* PostSection */}
-                    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-                        <h1 className={`text-5xl font-extrabold tracking-tight mb-4 ${selectedTag === "latest" ? "text-gray-900" : "text-white"}`}>
+                    className={`${selectedTag !== 'latest' ? tagGradient : 'bg-white'} ${selectedTag !== 'latest' ? 'text-gray-800 border-b border-black/5' : 'text-black'} backdrop-blur-sm`}>
+                    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+                        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
                             {title}
                         </h1>
-                        <p className={`text-lg ${selectedTag === "latest" ? "text-gray-500" : "text-white"}`}>
+                        <p className={`mt-2 text-sm ${selectedTag === "latest" ? "text-gray-400" : "text-gray-700"}`}>
                             {description}
                         </p>
-
-                        {/* 검색 바 + 전체 검색 토글 */}
-                        <div className="mt-8 flex flex-col items-center gap-3">
-                            <div className="w-full max-w-2xl">
-                                <input
-                                    type="search"
-                                    value={query}
-                                    onChange={(e) => { setQuery(e.target.value); setVisibleCount(10); }}
-                                    placeholder={globalSearch ? "전체 글에서 검색..." : `${selectedTag} 태그에서 검색...`}
-                                    className="w-full rounded-xl border border-gray-300 bg-white px-5 py-3.5
-                                            text-base sm:text-lg font-medium
-                                            text-black placeholder-gray-400
-                                            outline-none focus:ring-2 focus:ring-blue-500"
-                                    aria-label="검색"
-                                />
-                            </div>
-                            {/* 토글 스위치 */}
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    role="switch"
-                                    aria-checked={globalSearch}
-                                    onClick={() => { setGlobalSearch(v => !v); setVisibleCount(10); }}
-                                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors
-                                        ${globalSearch ? 'bg-gray-900' : 'bg-gray-300'}
-                                        focus:outline-none focus:ring-2 focus:ring-blue-500
-                                    `}
-                                    title="전체 검색 (모든 글 대상)"
-                                >
-                                    <span
-                                        className={`
-                                            inline-block h-6 w-6 transform rounded-full bg-white shadow
-                                            transition-transform duration-200
-                                            ${globalSearch ? 'translate-x-7' : 'translate-x-1'}
-                                        `}
-                                    />
-                                    <span className="sr-only">전체 검색</span>
-                                </button>
-                                <span className="text-sm sm:text-base font-medium">
-                                  전체 검색 (모든 글 대상)
-                                </span>
-                            </div>
-
-                            {/* 결과 요약 */}
-                            <p className="text-sm sm:text-base font-semibold text-gray-700 mt-1">
-                                {(() => {
-                                    const label = globalSearch ? "전체" : selectedTag.charAt(0).toUpperCase() + selectedTag.slice(1);
-                                    const count = filteredPosts.length;
-                                    return query
-                                        ? `${label}: ${count} 개 글 (검색어: "${query}")`
-                                        : "";
-                                })()}
-                            </p>
-                        </div>
                     </div>
                 </div>
 
-                {/* Tag 필터 탭 */}
-                <div className="py-6 px-4 sm:px-6 lg:px-8 bg-white">
-                    <nav className="flex flex-wrap justify-center gap-2 sm:gap-3 max-w-6xl mx-auto">
-                        {tagList.map(tag => {
-                            const isActive = selectedTag === tag && !globalSearch; // 전체 검색 중이면 활성 표시 해제
-                            return (
-                                <button
-                                    key={tag}
-                                    onClick={() => handleSelectTag(tag)}
-                                    className={
-                                        `capitalize px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-150
-                                        ${isActive ? "bg-gray-800 text-white shadow-sm"
-                                            : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200"}
-                                    `}
-                                    disabled={globalSearch} // 전체 검색 중엔 태그 선택 비활성화
-                                    title={globalSearch ? "전체 검색 중에는 태그 선택이 비활성화됩니다." : undefined}
-                                >
-                                    {tag.charAt(0).toUpperCase() + tag.slice(1)} ({tagCounts[tag]})
-                                </button>
-                            );
-                        })}
-                    </nav>
+                {/* 검색 + 태그 (sticky) */}
+                <div className="bg-white border-b border-gray-200 sticky top-14 z-30">
+                    <div className="max-w-5xl mx-auto px-4 py-3 space-y-4">
+                        {/* 검색바 */}
+                        <div className="flex items-center justify-center gap-3">
+                            <div className={`w-full max-w-sm relative rounded-full p-[1.5px] transition-all duration-300 ${
+                                query
+                                    ? "bg-gradient-to-r from-green-500 via-emerald-400 to-teal-500"
+                                    : "bg-gradient-to-r from-green-300 via-emerald-200 to-teal-300"
+                            }`}>
+                                <div className="relative bg-white rounded-full">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        type="search"
+                                        value={query}
+                                        onChange={(e) => { setQuery(e.target.value); setVisibleCount(10); }}
+                                        placeholder="글 제목, 태그, 키워드로 검색"
+                                        className="w-full pl-9 pr-8 py-2 rounded-full bg-transparent
+                                            text-sm text-black placeholder-gray-400
+                                            outline-none"
+                                        aria-label="검색"
+                                    />
+                                    {query && (
+                                        <button
+                                            onClick={clearQuery}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            aria-label="검색어 지우기"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* 전체 검색 토글 */}
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={globalSearch}
+                                onClick={() => { setGlobalSearch(v => !v); setVisibleCount(10); }}
+                                className="flex-shrink-0 flex items-center gap-2"
+                            >
+                                <span className={`
+                                    relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200
+                                    ${globalSearch ? "bg-green-500" : "bg-gray-300"}
+                                `}>
+                                    <span className={`
+                                        inline-block h-3.5 w-3.5 rounded-full bg-white shadow transform transition-transform duration-200
+                                        ${globalSearch ? "translate-x-[18px]" : "translate-x-[3px]"}
+                                    `} />
+                                </span>
+                                <span className="text-xs text-gray-500 whitespace-nowrap">전체</span>
+                            </button>
+
+                            {query && (
+                                <span className="flex-shrink-0 text-xs text-gray-400">{filteredPosts.length}건</span>
+                            )}
+                        </div>
+
+                        {/* 태그 */}
+                        <TagScroller
+                            tagList={tagList}
+                            tagCounts={tagCounts}
+                            selectedTag={selectedTag}
+                            globalSearch={globalSearch}
+                            onSelect={handleSelectTag}
+                        />
+                    </div>
                 </div>
 
-                {/* 카드 리스트 영역 */}
-                <div className="card-section max-w-6xl mx-auto px-4 pb-16 bg-white">
+                {/* 카드 리스트 영역 (기존 유지) */}
+                <div className="card-section max-w-6xl mx-auto px-4 pt-8 pb-16 bg-white">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
                         {visiblePosts.map(({id, title, summary, description, date, updated}) => (
                             <Link key={id} href={`/post/${id}`} legacyBehavior>
@@ -271,7 +341,6 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                         ))}
                     </div>
 
-                    {/* 더 보기 버튼 */}
                     {hasMore && (
                         <div className="mt-10 text-center">
                             <button
@@ -283,7 +352,6 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                         </div>
                     )}
 
-                    {/* 검색 결과가 없을 때 */}
                     {!filteredPosts.length && (
                         <div className="mt-10 text-center text-sm text-gray-500">
                             검색 결과가 없습니다.
