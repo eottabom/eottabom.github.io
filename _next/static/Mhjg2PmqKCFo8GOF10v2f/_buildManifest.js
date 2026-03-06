@@ -1,6 +1,6 @@
 self.__BUILD_MANIFEST = {
   "/": [
-    "static/chunks/7247b57c872f60ef.js"
+    "static/chunks/d45a3df0e41ac1b5.js"
   ],
   "/_error": [
     "static/chunks/5d7c4f8e98e8acf3.js"
@@ -9,19 +9,19 @@ self.__BUILD_MANIFEST = {
     "static/chunks/9f20ac0a769edf2b.js"
   ],
   "/book": [
-    "static/chunks/27b18386a2236d7a.js"
+    "static/chunks/5d6c9bd9080e0fea.js"
   ],
   "/book/[slug]": [
-    "static/chunks/fdb3965563c7098f.js"
+    "static/chunks/ebdb110693ec4352.js"
   ],
   "/link": [
     "static/chunks/87ffb7e61da6c076.js"
   ],
   "/post": [
-    "static/chunks/ad9a1a2c224039d3.js"
+    "static/chunks/24c6bedc36c06de0.js"
   ],
   "/post/[id]": [
-    "static/chunks/e0958d0dd37d9b85.js"
+    "static/chunks/33479f0deeda4618.js"
   ],
   "__rewrites": {
     "afterFiles": [],
