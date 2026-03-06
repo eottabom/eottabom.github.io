@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import ScrollProgressBar from "./ScrollProgressBar";
 
 export default function Header() {
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
+    const showProgressBar = Boolean(pathname && pathname.startsWith("/post/") && pathname !== "/post/");
 
     useEffect(() => { setOpen(false); }, [pathname]);
 
@@ -26,7 +28,7 @@ export default function Header() {
         href === "/" ? pathname === "/" : pathname?.startsWith(href);
 
     return (
-        <header className="sticky top-0 z-50 bg-white shadow-sm">
+        <header className="sticky top-0 z-50 bg-white shadow-sm relative">
             <div className="px-6 h-14 flex items-center justify-between">
                 {/* Brand */}
                 <Link href="/" className="flex items-center gap-1.5 group font-mono">
@@ -93,6 +95,7 @@ export default function Header() {
                     </nav>
                 </div>
             )}
+            {showProgressBar && <ScrollProgressBar />}
         </header>
     );
 }
