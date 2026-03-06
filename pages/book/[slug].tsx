@@ -1,8 +1,8 @@
 // pages/book/[slug].tsx
 import { GetStaticPaths, GetStaticProps } from 'next';
-import Head from 'next/head';
 import { MDXRemote } from 'next-mdx-remote';
 import Header from '../../components/Header';
+import Seo from '../../components/Seo';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
 import { useTocObserver } from '../../lib/useTocObserver';
@@ -65,10 +65,14 @@ export default function BookDetail({mdxSource, title, author, date, updated, sum
             <ScrollProgressBar />
             <Header />
 
-            <Head>
-                <title>{pageTitle}</title>
-                <meta name="description" content={summary ?? title} />
-            </Head>
+            <Seo
+              title={pageTitle}
+              description={summary ?? title}
+              ogType="article"
+              publishedTime={date}
+              modifiedTime={updated}
+              ogImage={cover}
+            />
 
             <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
                 {/* Main */}

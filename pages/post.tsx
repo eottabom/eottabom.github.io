@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import Header from '../components/Header';
+import Seo from '../components/Seo';
 import { GetStaticProps } from 'next';
 import { getPostsMetaOnly } from '../lib/posts';
 import { Home } from 'lucide-react';
@@ -150,6 +151,10 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
 
     return (
         <>
+            <Seo
+              title="Posts"
+              description="개발 관련 글 목록 - Clean Code, gRPC, DDD, JPA 등 백엔드 개발 경험을 공유합니다."
+            />
             <main>
                 {/* 상단 영역만 배경색 적용 */}
                 <div

@@ -5,6 +5,7 @@ import {
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import {getAllPostIds, getPostData, getPostsMetaOnly, PostMeta} from '../../lib/posts';
 import Header from '../../components/Header';
+import Seo from '../../components/Seo';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
 import { useTocObserver } from '../../lib/useTocObserver';
@@ -26,7 +27,10 @@ type PostData = {
   id: string;
   title: string;
   date: string;
+  updated?: string;
   tags?: string[];
+  summary?: string;
+  description?: string;
   mdxSource: MDXRemoteSerializeResult;
 };
 
@@ -104,8 +108,18 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     Tab
   };
 
+  const seoDescription = postData.summary || postData.description || postData.title;
+
   return (
       <>
+        <Seo
+          title={postData.title}
+          description={seoDescription}
+          ogType="article"
+          publishedTime={postData.date}
+          modifiedTime={postData.updated}
+          tags={postData.tags}
+        />
         <ScrollProgressBar />
         <Header />
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">

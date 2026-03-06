@@ -1,5 +1,6 @@
 import { GetStaticProps } from 'next';
 import Header from '../components/Header';
+import Seo from '../components/Seo';
 import BookCard from '../components/BookCard';
 import { getBooksMetaOnly, BookMeta } from '../lib/books';
 import { Home } from "lucide-react";
@@ -8,6 +9,10 @@ import Link from "next/link";
 export default function BooksPage({ books }: { books: BookMeta[] }) {
     return (
         <>
+            <Seo
+              title="Book Reviews"
+              description="개발 서적 리뷰 - 읽은 책에 대한 정리와 인사이트를 공유합니다."
+            />
             <div className="bg-white text-black">
                 <Header />
                 <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Seo from '../components/Seo';
 import { GetStaticProps } from 'next';
 import { getPostsMetaOnly } from '../lib/posts';
 import AdSense from '../components/AdSense';
@@ -91,6 +92,7 @@ export default function Home({
 
     return (
         <>
+            <Seo />
             <div className="min-h-screen">
                 <Header />
 
