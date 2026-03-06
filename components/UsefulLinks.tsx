@@ -3,7 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 export type Article = {
     title: string;
     url: string;
-    category?: string;
+    category?: string | string[];
+    source?: string;
     note?: string;
     added?: string; // YYYY-MM-DD
 };
@@ -17,6 +18,14 @@ function byAddedDesc(a?: string, b?: string) {
     const ad = new Date(av).getTime() || 0;
     const bd = new Date(bv).getTime() || 0;
     return bd - ad;
+}
+
+function getSourceFromUrl(url: string) {
+    try {
+        return new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+        return "unknown";
+    }
 }
 
 export default function UsefulLinks({ articles }: { articles?: Article[] }) {
@@ -40,8 +49,11 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
                 return true;
             })
             .map((a) => {
-                const category = a.category?.trim() || "Uncategorized";
-                return { ...a, category };
+                const raw = a.category;
+                const categories = Array.isArray(raw)
+                    ? raw.map((c) => c?.trim()).filter(Boolean) as string[]
+                    : [raw?.trim()].filter(Boolean) as string[];
+                return { ...a, categories: categories.length ? categories : ["Uncategorized"] };
             });
     }, [articles]);
 
@@ -60,8 +72,9 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
     const chips = useMemo(() => {
         const counts = new Map<string, number>();
         for (const a of safeArticles) {
-            const k = a.category!;
-            counts.set(k, (counts.get(k) ?? 0) + 1);
+            for (const k of a.categories) {
+                counts.set(k, (counts.get(k) ?? 0) + 1);
+            }
         }
         const cats = Array.from(counts.entries())
             .map(([name, count]) => ({ name, count }))
@@ -72,7 +85,7 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
     const filtered = useMemo(() => {
         const base = selected === "All"
             ? [...safeArticles]
-            : safeArticles.filter((a) => a.category === selected);
+            : safeArticles.filter((a) => a.categories.includes(selected));
         base.sort((a, b) => byAddedDesc(a.added, b.added));
         return base;
     }, [safeArticles, selected]);
@@ -118,6 +131,9 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
                                         <p className="truncate font-semibold text-zinc-900 hover:text-zinc-700">
                                             {a.title}
                                         </p>
+                                        <p className="mt-1 text-xs text-zinc-500">
+                                            source : {a.source?.trim() || getSourceFromUrl(a.url)}
+                                        </p>
                                         {a.note ? (
                                             <p className="mt-1 text-sm text-zinc-600 line-clamp-2">
                                                 {a.note}
@@ -126,9 +142,16 @@ export default function UsefulLinks({ articles }: { articles?: Article[] }) {
                                     </div>
 
                                     <div className="flex flex-col items-end gap-1.5 shrink-0 pl-2">
-                                        <span className="rounded-full border px-2 py-0.5 text-xs text-zinc-600">
-                                            {a.category}
-                                        </span>
+                                        <div className="flex flex-wrap justify-end gap-1">
+                                            {a.categories.map((category) => (
+                                                <span
+                                                    key={`${a.url}-${category}`}
+                                                    className="rounded-full border px-2 py-0.5 text-xs text-zinc-600"
+                                                >
+                                                    {category}
+                                                </span>
+                                            ))}
+                                        </div>
                                         {a.added ? (
                                         <span className="text-[11px] text-zinc-500">
                                             added : {a.added}
