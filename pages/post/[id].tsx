@@ -9,7 +9,6 @@ import Seo from '../../components/Seo';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
 import { useTocObserver } from '../../lib/useTocObserver';
-import ScrollProgressBar from '../../components/ScrollProgressBar';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { List } from 'lucide-react';
@@ -120,7 +119,6 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
           modifiedTime={postData.updated}
           tags={postData.tags}
         />
-        <ScrollProgressBar />
         <Header />
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
           {/* Main content */}

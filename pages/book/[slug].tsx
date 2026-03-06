@@ -6,7 +6,6 @@ import Seo from '../../components/Seo';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
 import { useTocObserver } from '../../lib/useTocObserver';
-import ScrollProgressBar from '../../components/ScrollProgressBar';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { List } from 'lucide-react';
@@ -62,7 +61,6 @@ export default function BookDetail({mdxSource, title, author, date, updated, sum
 
     return (
         <>
-            <ScrollProgressBar />
             <Header />
 
             <Seo
