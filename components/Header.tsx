@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { Home, FileText, BookOpen, Bookmark, Wrench, User, type LucideIcon } from "lucide-react";
 import ScrollProgressBar from "./ScrollProgressBar";
 
 export default function Header() {
@@ -15,13 +16,13 @@ export default function Header() {
         return () => { document.body.style.overflow = ""; };
     }, [open]);
 
-    const items = [
-        { href: "/", label: "Home" },
-        { href: "/post", label: "Posts" },
-        { href: "/book", label: "Books" },
-        { href: "/link", label: "Read & Keep" },
-        { href: "/toolkit", label: "Toolkit" },
-        { href: "/about", label: "About" },
+    const items: { href: string; label: string; icon: LucideIcon }[] = [
+        { href: "/", label: "Home", icon: Home },
+        { href: "/post", label: "Posts", icon: FileText },
+        { href: "/book", label: "Books", icon: BookOpen },
+        { href: "/link", label: "Read & Keep", icon: Bookmark },
+        { href: "/toolkit", label: "Toolkit", icon: Wrench },
+        { href: "/about", label: "About", icon: User },
     ];
 
     const isActive = (href: string) =>
@@ -41,12 +42,14 @@ export default function Header() {
 
                 {/* Desktop nav */}
                 <nav className="hidden md:flex items-center gap-0.5 bg-gray-100 rounded-full p-1" aria-label="Main Navigation">
-                    {items.map((it) => (
+                    {items.map((it) => {
+                        const Icon = it.icon;
+                        return (
                         <Link
                             key={it.href}
                             href={it.href}
                             className={`
-                                px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200
+                                px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
                                 ${isActive(it.href)
                                     ? "bg-white text-gray-900 shadow-sm"
                                     : "text-gray-500 hover:text-gray-800"
@@ -54,9 +57,11 @@ export default function Header() {
                             `}
                             aria-current={isActive(it.href) ? "page" : undefined}
                         >
+                            <Icon className="w-3.5 h-3.5" />
                             {it.label}
                         </Link>
-                    ))}
+                        );
+                    })}
                 </nav>
 
                 {/* Mobile hamburger */}
@@ -76,12 +81,14 @@ export default function Header() {
             {open && (
                 <div className="md:hidden fixed inset-0 top-14 bg-white z-40">
                     <nav className="flex flex-col p-4 gap-1" aria-label="Mobile Navigation">
-                        {items.map((it) => (
+                        {items.map((it) => {
+                            const Icon = it.icon;
+                            return (
                             <Link
                                 key={it.href}
                                 href={it.href}
                                 className={`
-                                    px-4 py-3 rounded-xl text-[15px] font-semibold transition-all
+                                    px-4 py-3 rounded-xl text-[15px] font-semibold transition-all flex items-center gap-2
                                     ${isActive(it.href)
                                         ? "bg-gray-100 text-gray-900"
                                         : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
@@ -89,9 +96,11 @@ export default function Header() {
                                 `}
                                 aria-current={isActive(it.href) ? "page" : undefined}
                             >
+                                <Icon className="w-4 h-4" />
                                 {it.label}
                             </Link>
-                        ))}
+                            );
+                        })}
                     </nav>
                 </div>
             )}
