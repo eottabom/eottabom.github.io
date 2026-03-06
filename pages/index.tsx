@@ -97,7 +97,7 @@ export default function Home({
                 <Header />
 
                 {/* Hero */}
-                <section className="text-center pt-40 pb-28 px-4">
+                <section className="text-center pt-24 pb-16 px-4">
                     <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">
                         Hi, I’m a <strong>considerate developer</strong>.
                     </h1>

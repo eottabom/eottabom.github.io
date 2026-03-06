@@ -9,7 +9,7 @@ export default function About() {
       <Header />
 
       {/* Hero Section */}
-      <section className="text-center pt-40 pb-28 px-4">
+      <section className="text-center pt-24 pb-16 px-4">
         <h1 className="text-4xl sm:text-5xl font-extrabold mb-6">Hi, I’m a <strong>considerate developer</strong>.</h1>
         <p className="text-lg text-gray-600 leading-loose space-y-2">
           I believe being considerate means writing <strong>clean, readable code</strong>,<br />

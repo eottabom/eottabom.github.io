@@ -192,7 +192,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
 
           {/* Table of contents */}
           <aside
-              className="hidden lg:block sticky top-[96px] w-60 h-[calc(100vh-96px)] pl-4 z-40 pb-[120px]"
+              className="hidden lg:block sticky top-[72px] w-60 h-[calc(100vh-72px)] pl-4 z-40 pb-[120px]"
           >
             <div className="relative h-full">
               {/* Scrollable 목차 영역 */}
