@@ -5,6 +5,7 @@ export type Article = {
     title: string;
     url: string;
     category?: string | string[];
+    keywords?: string[];
     source?: string;
     note?: string;
     added?: string; // YYYY-MM-DD
@@ -64,7 +65,14 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
                 const categories = Array.isArray(raw)
                     ? raw.map((c) => c?.trim()).filter(Boolean) as string[]
                     : [raw?.trim()].filter(Boolean) as string[];
-                return { ...a, categories: categories.length ? categories : ["Uncategorized"] };
+                const keywords = Array.isArray(a.keywords)
+                    ? a.keywords.map((k) => k?.trim()).filter(Boolean) as string[]
+                    : [];
+                return {
+                    ...a,
+                    categories: categories.length ? categories : ["Uncategorized"],
+                    keywords,
+                };
             });
     }, [articles]);
 
@@ -192,6 +200,11 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
                                         <p className="mt-1 text-xs text-zinc-500">
                                             source : {a.source?.trim() || getSourceFromUrl(a.url)}
                                         </p>
+                                        {a.keywords.length > 0 ? (
+                                            <p className="mt-1 text-xs text-zinc-500">
+                                                keywords : {a.keywords.join(", ")}
+                                            </p>
+                                        ) : null}
                                         {a.note ? (
                                             <p className="mt-1 text-sm text-zinc-600 line-clamp-2">
                                                 {a.note}
