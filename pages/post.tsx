@@ -153,7 +153,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
         <>
             <Seo
               title="Posts"
-              description="개발 관련 글 목록 - Clean Code, gRPC, DDD, JPA 등 백엔드 개발 경험을 공유합니다."
+              description="Java, Spring, gRPC, Kubernetes, DDD 등 백엔드 개발 글 목록 - 태그별 필터와 검색으로 원하는 글을 찾아보세요."
             />
             <main>
                 {/* 상단 영역만 배경색 적용 */}

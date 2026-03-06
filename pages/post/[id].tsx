@@ -108,7 +108,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     Tab
   };
 
-  const seoDescription = postData.summary || postData.description || postData.title;
+  const seoDescription = postData.description || postData.summary || postData.title;
 
   return (
       <>

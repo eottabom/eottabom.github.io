@@ -11,7 +11,7 @@ export default function BooksPage({ books }: { books: BookMeta[] }) {
         <>
             <Seo
               title="Book Reviews"
-              description="개발 서적 리뷰 - 읽은 책에 대한 정리와 인사이트를 공유합니다."
+              description="개발 서적 리뷰 및 독서 기록 - 소프트웨어 개발, 리더십, 설계 관련 책 정리와 인사이트"
             />
             <div className="bg-white text-black">
                 <Header />

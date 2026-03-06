@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 const SITE_URL = 'https://eottabom.github.io';
 const DEFAULT_TITLE = "Eottabom's Lab.";
-const DEFAULT_DESCRIPTION = '공부하는 개발자 기술 블로그 - Clean Code, gRPC, DDD, JPA 등 백엔드 개발 경험을 공유합니다.';
+const DEFAULT_DESCRIPTION = 'Java, Spring, gRPC, Kubernetes, DDD, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그';
 const DEFAULT_OG_IMAGE = `${SITE_URL}/og-default.png`;
 
 type SeoProps = {
@@ -28,7 +28,7 @@ export default function Seo({
   noindex = false,
 }: SeoProps) {
   const router = useRouter();
-  const pageTitle = title ? `${title} | ${DEFAULT_TITLE}` : `${DEFAULT_TITLE} - 공부하는 개발자 기술 블로그`;
+  const pageTitle = title ? `${title} | ${DEFAULT_TITLE}` : `${DEFAULT_TITLE} - 백엔드 개발자 기술 블로그`;
   const canonical = `${SITE_URL}${router.asPath.split('?')[0]}`;
 
   return (
