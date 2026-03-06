@@ -11,13 +11,15 @@ export default function AdSense() {
   }, []);
 
   return (
-    <ins
-      className="adsbygoogle"
-      style={{ display: 'block', textAlign: 'center', margin: '1rem 0' }}
-      data-ad-client="ca-pub-5103032140213770"
-      data-ad-slot="1100099846"
-      data-ad-format="auto"
-      data-full-width-responsive="true"
-    ></ins>
+    <div style={{ minHeight: 250, margin: '1rem 0' }}>
+      <ins
+        className="adsbygoogle"
+        style={{ display: 'block', textAlign: 'center' }}
+        data-ad-client="ca-pub-5103032140213770"
+        data-ad-slot="1100099846"
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      ></ins>
+    </div>
   );
 }
