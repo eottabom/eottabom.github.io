@@ -8,7 +8,7 @@ const links = [
 
 export default function Footer() {
     return (
-        <footer className="bg-slate-50 text-slate-600 border-t border-slate-200">
+        <footer className="bg-white text-slate-600 border-t border-slate-200">
             <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p className="text-xs text-slate-500">
                     &copy; 2025 Eottabom&apos;s Lab. All rights reserved.
