@@ -1,4 +1,5 @@
 import '../styles/globals.css';
+import 'prism-themes/themes/prism-one-light.css';
 import Head from 'next/head';
 import type { AppProps } from 'next/app';
 
