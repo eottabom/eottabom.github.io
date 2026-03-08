@@ -7,6 +7,13 @@
     <language>ko</language>
     
     <item>
+      <title>MongoDB Pagination 성능 개선 - skip + limit 에서 Range Query</title>
+      <link>https://eottabom.github.io/post/mongodb-skip-to-range-query</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/mongodb-skip-to-range-query</guid>
+      <description>MongoDB skip 기반 pagination의 성능 한계와 Range Query(cursor) 방식으로의 전환</description>
+      <pubDate>Sun, 08 Mar 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>Quick Start - k6 (with InfluxDB + Grafana)</title>
       <link>https://eottabom.github.io/post/k6-stack</link>
       <guid isPermaLink="true">https://eottabom.github.io/post/k6-stack</guid>
@@ -138,13 +145,6 @@
       <guid isPermaLink="true">https://eottabom.github.io/post/kubernetes-qos</guid>
       <description>Pod Qos, Quality of Service Classes</description>
       <pubDate>Mon, 27 May 2024 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>Spring formatter 와 Check Style 사용하기</title>
-      <link>https://eottabom.github.io/post/springformatter-checkstyle</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/springformatter-checkstyle</guid>
-      <description>Using Spring formatter and Check Style</description>
-      <pubDate>Sun, 26 May 2024 00:00:00 GMT</pubDate>
     </item>
   </channel>
 </rss>
