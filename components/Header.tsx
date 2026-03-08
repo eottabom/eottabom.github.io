@@ -16,12 +16,12 @@ export default function Header() {
         return () => { document.body.style.overflow = ""; };
     }, [open]);
 
-    const items: { href: string; label: string; icon: LucideIcon }[] = [
+    const items: { href: string; label: string; icon: LucideIcon; newTab?: boolean }[] = [
         { href: "/", label: "Home", icon: Home },
         { href: "/post", label: "Posts", icon: FileText },
         { href: "/book", label: "Books", icon: BookOpen },
         { href: "/link", label: "Read & Keep", icon: Bookmark },
-        { href: "/toolkit", label: "Toolkit", icon: Wrench },
+        { href: "/toolkit", label: "Toolkit", icon: Wrench, newTab: true },
         { href: "/about", label: "About", icon: User },
     ];
 
@@ -48,6 +48,7 @@ export default function Header() {
                         <Link
                             key={it.href}
                             href={it.href}
+                            {...(it.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                             className={`
                                 px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
                                 ${isActive(it.href)
@@ -87,6 +88,7 @@ export default function Header() {
                             <Link
                                 key={it.href}
                                 href={it.href}
+                                {...(it.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                                 className={`
                                     px-4 py-3 rounded-xl text-[15px] font-semibold transition-all flex items-center gap-2
                                     ${isActive(it.href)

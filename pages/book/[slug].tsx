@@ -55,6 +55,7 @@ export default function BookDetail({mdxSource, slug, title, author, date, update
         GreenText,
         Tabs,
         Tab,
+        a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
     };
 
     const pageTitle = `${title} · Review`;

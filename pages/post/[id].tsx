@@ -104,7 +104,8 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     RedText,
     GreenText,
     Tabs,
-    Tab
+    Tab,
+    a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
 
   const seoDescription = postData.description || postData.summary || postData.title;
