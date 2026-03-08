@@ -5,15 +5,20 @@ export default function Document() {
     <Html lang="ko">
       <Head>
         <meta name="color-scheme" content="light" />
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-C4G71YP1XT"></script>
+        {/* Google tag (gtag.js) - 로컬에서는 비활성화 */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-C4G71YP1XT');
+              if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                var s = document.createElement('script');
+                s.async = true;
+                s.src = 'https://www.googletagmanager.com/gtag/js?id=G-C4G71YP1XT';
+                document.head.appendChild(s);
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-C4G71YP1XT');
+              }
             `,
           }}
         />
