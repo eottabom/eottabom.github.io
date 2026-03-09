@@ -12,7 +12,7 @@ self.__BUILD_MANIFEST = {
     "static/chunks/9f143258adecd7c1.js"
   ],
   "/book/[slug]": [
-    "static/chunks/03e0fb7c60e45542.js"
+    "static/chunks/0a1b131ee08291b2.js"
   ],
   "/link": [
     "static/chunks/9b33b57fe5865ae5.js"
@@ -21,7 +21,7 @@ self.__BUILD_MANIFEST = {
     "static/chunks/afb78cd163023b26.js"
   ],
   "/post/[id]": [
-    "static/chunks/f464d564d6543955.js"
+    "static/chunks/fe79ece6eb4ce433.js"
   ],
   "__rewrites": {
     "afterFiles": [],
