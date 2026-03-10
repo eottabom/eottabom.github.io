@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Home, FileText, BookOpen, Bookmark, Wrench, User, type LucideIcon } from "lucide-react";
 import ScrollProgressBar from "./ScrollProgressBar";
+import TranslateButton from "./TranslateButton";
 
 export default function Header() {
     const pathname = usePathname();
@@ -65,6 +66,11 @@ export default function Header() {
                     })}
                 </nav>
 
+                {/* Translate button (desktop) */}
+                <div className="hidden md:block">
+                    <TranslateButton />
+                </div>
+
                 {/* Mobile hamburger */}
                 <button
                     className="md:hidden relative w-9 h-9 flex flex-col items-center justify-center gap-[5px] rounded-lg hover:bg-gray-100 transition"
@@ -103,6 +109,9 @@ export default function Header() {
                             </Link>
                             );
                         })}
+                        <div className="px-4 py-3">
+                            <TranslateButton />
+                        </div>
                     </nav>
                 </div>
             )}
