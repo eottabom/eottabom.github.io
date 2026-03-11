@@ -12,7 +12,7 @@ export default function LinkPage() {
             <div className="bg-white text-black">
                 <Header />
                 <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
-                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Read &amp; Keep</h1>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Read / Keep</h1>
                     <p className="mt-2 text-sm text-gray-400">A place to keep articles I found interesting or worth revisiting. Each link opens the original page in a new tab.</p>
                     <p className="mt-1 text-sm text-gray-400">Keywords are added so I can quickly find them later.</p>
                 </div>

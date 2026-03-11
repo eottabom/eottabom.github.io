@@ -113,13 +113,21 @@ export default function Home({
                         and this blog is where I share my{' '}
                         <strong>journey as a learning developer</strong>.
                     </p>
-                    <div className="mt-8">
+                    <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                         <Link
                             href="/toolkit"
                             className="inline-block bg-gray-800 hover:bg-gray-900 text-white font-semibold px-6 py-2 rounded transition"
                         >
                             View My Toolkit →
                         </Link>
+                        <a
+                            href="/playground/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block border border-gray-300 bg-white hover:bg-gray-50 text-gray-800 font-semibold px-6 py-2 rounded transition"
+                        >
+                            Open Playground →
+                        </a>
                     </div>
                 </section>
 

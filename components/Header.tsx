@@ -1,16 +1,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Home, FileText, BookOpen, Bookmark, Wrench, User, type LucideIcon } from "lucide-react";
+import { Home, FileText, BookOpen, Bookmark, FlaskConical, Wrench, User, type LucideIcon } from "lucide-react";
 import ScrollProgressBar from "./ScrollProgressBar";
 import TranslateButton from "./TranslateButton";
 
 export default function Header() {
     const pathname = usePathname();
     const [open, setOpen] = useState(false);
+    const [labOpen, setLabOpen] = useState(false);
     const showProgressBar = Boolean(pathname && pathname.startsWith("/post/") && pathname !== "/post/");
 
-    useEffect(() => { setOpen(false); }, [pathname]);
+    useEffect(() => {
+        setOpen(false);
+        setLabOpen(false);
+    }, [pathname]);
 
     useEffect(() => {
         document.body.style.overflow = open ? "hidden" : "";
@@ -21,9 +25,12 @@ export default function Header() {
         { href: "/", label: "Home", icon: Home },
         { href: "/post", label: "Posts", icon: FileText },
         { href: "/book", label: "Books", icon: BookOpen },
-        { href: "/link", label: "Read & Keep", icon: Bookmark },
-        { href: "/toolkit", label: "Toolkit", icon: Wrench, newTab: true },
+        { href: "/link", label: "Read/Keep", icon: Bookmark },
         { href: "/about", label: "About", icon: User },
+    ];
+    const labItems: { href: string; label: string; icon: LucideIcon }[] = [
+        { href: "/toolkit", label: "Toolkit", icon: Wrench },
+        { href: "/playground/", label: "Playground", icon: FlaskConical },
     ];
 
     const isActive = (href: string) =>
@@ -64,6 +71,46 @@ export default function Header() {
                         </Link>
                         );
                     })}
+                    <div
+                        className="relative py-2 -my-2"
+                        onMouseEnter={() => setLabOpen(true)}
+                        onMouseLeave={() => setLabOpen(false)}
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setLabOpen((value) => !value)}
+                            className={`
+                                px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
+                                ${labOpen ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}
+                            `}
+                            aria-expanded={labOpen}
+                            aria-haspopup="menu"
+                        >
+                            <FlaskConical className="w-3.5 h-3.5" />
+                            Lab
+                        </button>
+                        {labOpen && (
+                            <div className="absolute right-0 top-full pt-2 w-44">
+                                <div className="rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
+                                {labItems.map((it) => {
+                                    const Icon = it.icon;
+                                    return (
+                                        <a
+                                            key={it.href}
+                                            href={it.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                        >
+                                            <Icon className="w-3.5 h-3.5" />
+                                            {it.label}
+                                        </a>
+                                    );
+                                })}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </nav>
 
                 {/* Translate button (desktop) */}
@@ -109,6 +156,29 @@ export default function Header() {
                             </Link>
                             );
                         })}
+                        <div className="rounded-xl bg-gray-50 px-4 py-3">
+                            <div className="flex items-center gap-2 text-[15px] font-semibold text-gray-900">
+                                <FlaskConical className="w-4 h-4" />
+                                Lab
+                            </div>
+                            <div className="mt-2 flex flex-col gap-1">
+                                {labItems.map((it) => {
+                                    const Icon = it.icon;
+                                    return (
+                                        <a
+                                            key={it.href}
+                                            href={it.href}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900"
+                                        >
+                                            <Icon className="w-4 h-4" />
+                                            {it.label}
+                                        </a>
+                                    );
+                                })}
+                            </div>
+                        </div>
                         <div className="px-4 py-3">
                             <TranslateButton />
                         </div>
