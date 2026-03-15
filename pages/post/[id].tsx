@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { List } from 'lucide-react';
 import { ArrowDownCircle } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
+import Giscus from "../../components/Giscus";
 import {serialize} from "next-mdx-remote/serialize";
 
 declare global {
@@ -196,6 +197,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
             <article className="overflow-x-auto">
               <MDXRemote {...postData.mdxSource} components={components}/>
             </article>
+            <Giscus />
             {relatedPosts.length > 0 && (
                 <div className="mt-20 p-6 border rounded-2xl bg-gray-50 shadow-sm">
                   <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
