@@ -14,7 +14,11 @@ import Link from 'next/link';
 import { List } from 'lucide-react';
 import { ArrowDownCircle } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
-import Giscus from "../../components/Giscus";
+import dynamic from 'next/dynamic';
+
+const Giscus = dynamic(() => import('../../components/Giscus'), {
+  ssr: false,
+});
 import {serialize} from "next-mdx-remote/serialize";
 
 declare global {

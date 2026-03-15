@@ -1,8 +1,10 @@
+'use client';
+
 import GiscusComponent from '@giscus/react';
 
 export default function Giscus() {
   return (
-    <div className="mt-16">
+    <div className="mt-8 lg:mt-16">
       <GiscusComponent
         repo="eottabom/eottabom.github.io"
         repoId="MDEwOlJlcG9zaXRvcnkyNTg4MzEyMzI="
