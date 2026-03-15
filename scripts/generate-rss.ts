@@ -21,6 +21,15 @@ function getMdxFiles(dir: string): string[] {
     return results;
 }
 
+function escapeXml(str: string): string {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+}
+
 async function generateRSS() {
     const files = getMdxFiles(path.join(process.cwd(), 'contents', 'posts'));
 
@@ -31,29 +40,44 @@ async function generateRSS() {
                 id: path.basename(filePath, '.mdx'),
                 title: data.title ?? path.basename(filePath, '.mdx'),
                 summary: data.summary ?? '',
+                description: data.description ?? '',
                 date: data.date ?? '',
+                updated: data.updated ?? '',
+                tags: (data.tags as string[]) ?? [],
             };
         })
         .filter((p) => p.date)
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 20);
 
-    const items = posts.map((post) => `
+    const lastBuildDate = new Date().toUTCString();
+
+    const items = posts.map((post) => {
+        const categories = post.tags
+            .map((tag) => `      <category>${escapeXml(tag)}</category>`)
+            .join('\n');
+        const desc = post.description || post.summary;
+        return `
     <item>
-      <title>${post.title}</title>
-      <link>${BASE_URL}/post/${post.id}</link>
-      <guid isPermaLink="true">${BASE_URL}/post/${post.id}</guid>
-      <description>${post.summary}</description>
+      <title>${escapeXml(post.title)}</title>
+      <link>${BASE_URL}/post/${post.id}/</link>
+      <guid isPermaLink="true">${BASE_URL}/post/${post.id}/</guid>
+      <description>${escapeXml(desc)}</description>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
-    </item>`).join('');
+${categories}
+    </item>`;
+    }).join('');
 
     const rss = `<?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Eottabom Blog</title>
+    <title>Eottabom's Lab.</title>
     <link>${BASE_URL}</link>
-    <description>Learnings from a considerate developer</description>
+    <atom:link href="${BASE_URL}/feed.xml" rel="self" type="application/rss+xml" />
+    <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
+    <lastBuildDate>${lastBuildDate}</lastBuildDate>
+    <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     ${items}
   </channel>
 </rss>`;

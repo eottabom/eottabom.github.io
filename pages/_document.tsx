@@ -31,10 +31,20 @@ export default function Document() {
               '@type': 'WebSite',
               name: "Eottabom's Lab.",
               url: 'https://eottabom.github.io',
-              description: '공부하는 개발자 기술 블로그',
+              description: 'Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그',
+              inLanguage: 'ko',
               author: {
                 '@type': 'Person',
                 name: 'Eottabom',
+                url: 'https://eottabom.github.io/about/',
+              },
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: {
+                  '@type': 'EntryPoint',
+                  urlTemplate: 'https://eottabom.github.io/post/?q={search_term_string}',
+                },
+                'query-input': 'required name=search_term_string',
               },
             }),
           }}

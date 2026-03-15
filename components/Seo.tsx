@@ -56,6 +56,9 @@ export default function Seo({
       {ogType === 'article' && modifiedTime && (
         <meta property="article:modified_time" content={modifiedTime} />
       )}
+      {ogType === 'article' && (
+        <meta property="article:author" content="Eottabom" />
+      )}
       {ogType === 'article' && tags?.map((tag) => (
         <meta property="article:tag" content={tag} key={tag} />
       ))}

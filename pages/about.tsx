@@ -1,11 +1,37 @@
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import Seo from '../components/Seo';
 import { Briefcase, GraduationCap, Award, Info, Home, BookOpen } from 'lucide-react';
 import Link from "next/link";
 
 export default function About() {
+  const personJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: 'Eottabom',
+    url: 'https://eottabom.github.io',
+    jobTitle: 'Backend Developer',
+    worksFor: {
+      '@type': 'Organization',
+      name: 'NCSOFT',
+    },
+    knowsAbout: ['Java', 'Spring', 'gRPC', 'Kubernetes', 'Clean Code', 'DDD'],
+    alumniOf: {
+      '@type': 'EducationalOrganization',
+      name: '연세대학교 공학대학원',
+    },
+    sameAs: [
+      'https://eottabom.notion.site/29ef74cd685d803b80a5e872f8ca6c38',
+    ],
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
+      <Seo
+        title="About"
+        description="CDN, 제조, 게임 산업 분야에서 백엔드 개발 경험을 쌓은 개발자 Eottabom의 소개 페이지입니다. Clean Code, gRPC, Kubernetes 등 기술에 관심이 많습니다."
+        jsonLd={personJsonLd}
+      />
       <Header />
 
       {/* Hero Section */}

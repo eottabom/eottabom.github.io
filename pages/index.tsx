@@ -92,7 +92,29 @@ export default function Home({
 
     return (
         <>
-            <Seo />
+            <Seo
+                jsonLd={{
+                    '@context': 'https://schema.org',
+                    '@type': 'Blog',
+                    name: "Eottabom's Lab.",
+                    url: 'https://eottabom.github.io',
+                    description: 'Java, Spring, gRPC, Kubernetes, DDD, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그',
+                    inLanguage: 'ko',
+                    author: {
+                        '@type': 'Person',
+                        name: 'Eottabom',
+                        url: 'https://eottabom.github.io/about/',
+                    },
+                    blogPost: allPostsData.slice(0, 10).map((post) => ({
+                        '@type': 'BlogPosting',
+                        headline: post.title,
+                        url: `https://eottabom.github.io/post/${post.id}/`,
+                        datePublished: post.date,
+                        ...(post.updated && { dateModified: post.updated }),
+                        description: post.description || post.summary || post.title,
+                    })),
+                }}
+            />
             <div className="min-h-screen">
                 <Header />
 

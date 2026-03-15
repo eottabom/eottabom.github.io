@@ -110,6 +110,60 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
 
   const seoDescription = postData.description || postData.summary || postData.title;
 
+  const blogPostingJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'TechArticle',
+    headline: postData.title,
+    description: seoDescription,
+    datePublished: postData.date,
+    dateModified: postData.updated || postData.date,
+    author: {
+      '@type': 'Person',
+      name: 'Eottabom',
+      url: 'https://eottabom.github.io/about/',
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'Eottabom',
+      url: 'https://eottabom.github.io',
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': `https://eottabom.github.io/post/${postData.id}/`,
+    },
+    inLanguage: 'ko',
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['article h1', 'article h2', 'article p'],
+    },
+    ...(postData.tags && { keywords: postData.tags.join(', ') }),
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: 'https://eottabom.github.io/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Posts',
+        item: 'https://eottabom.github.io/post/',
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: postData.title,
+        item: `https://eottabom.github.io/post/${postData.id}/`,
+      },
+    ],
+  };
+
   return (
       <>
         <Seo
@@ -119,13 +173,14 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
           publishedTime={postData.date}
           modifiedTime={postData.updated}
           tags={postData.tags}
+          jsonLd={[blogPostingJsonLd, breadcrumbJsonLd]}
         />
         <Header />
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
           {/* Main content */}
           <main className="flex-1 prose prose-xl max-w-none">
             <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
-            <p className="text-gray-500 text-sm mb-8">{postData.date}</p>
+            <time dateTime={postData.date} className="text-gray-500 text-sm mb-8 block">{postData.date}</time>
             {postData.tags && (
                 <div className="flex flex-wrap gap-2 mb-8">
                   {postData.tags.map((tag) => (

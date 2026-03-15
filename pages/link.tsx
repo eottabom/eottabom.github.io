@@ -1,4 +1,5 @@
 import Header from "../components/Header";
+import Seo from "../components/Seo";
 import ReadAndKeep from "../components/ReadAndKeep";
 import type { Article } from "../components/ReadAndKeep";
 import data from "../contents/link/data.json";
@@ -9,6 +10,10 @@ export default function LinkPage() {
     const articles = (data as Article[]) ?? [];
     return (
         <>
+            <Seo
+                title="Read / Keep"
+                description="개발자가 읽고 보관할 만한 기술 아티클 큐레이션. 백엔드, 아키텍처, 클린코드 등 주제별 링크 모음."
+            />
             <div className="bg-white text-black">
                 <Header />
                 <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
