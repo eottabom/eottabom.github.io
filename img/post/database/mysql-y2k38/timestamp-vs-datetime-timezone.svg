@@ -1,0 +1,86 @@
+<svg width="1180" height="460" viewBox="0 0 1180 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#EF4444"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#3B82F6"/>
+    </marker>
+    <filter id="cardShadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="1180" height="460" rx="24" fill="#F8FAFC"/>
+  <rect x="32" y="24" width="1116" height="412" rx="18" fill="white" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+
+  <!-- Title -->
+  <text x="56" y="68" fill="#0F172A" font-size="25" font-family="sans-serif" font-weight="700">타임존 처리 방식</text>
+  <text x="56" y="96" fill="#475569" font-size="14" font-family="sans-serif">TIMESTAMP는 저장과 조회 때 변환되고, DATETIME은 입력값을 그대로 유지한다.</text>
+
+  <!-- ═══════ TIMESTAMP Section ═══════ -->
+  <rect x="56" y="124" width="510" height="266" rx="18" fill="#FEF2F2" stroke="#FECACA" stroke-width="1.5"/>
+
+  <!-- Type badge -->
+  <rect x="76" y="140" width="142" height="30" rx="8" fill="#FEE2E2" stroke="#FCA5A5"/>
+  <text x="147" y="160" text-anchor="middle" fill="#DC2626" font-size="16" font-family="sans-serif" font-weight="700">TIMESTAMP</text>
+
+  <!-- Flow boxes -->
+  <rect x="82" y="192" width="120" height="72" rx="12" fill="white" stroke="#FCA5A5" stroke-width="1.5"/>
+  <text x="142" y="216" text-anchor="middle" fill="#9A3412" font-size="12" font-family="sans-serif" font-weight="600">입력</text>
+  <text x="142" y="240" text-anchor="middle" fill="#B91C1C" font-size="15" font-family="sans-serif" font-weight="700">KST 시각</text>
+
+  <rect x="250" y="192" width="120" height="72" rx="12" fill="white" stroke="#FCA5A5" stroke-width="1.5"/>
+  <text x="310" y="216" text-anchor="middle" fill="#9A3412" font-size="12" font-family="sans-serif" font-weight="600">저장</text>
+  <text x="310" y="240" text-anchor="middle" fill="#B91C1C" font-size="15" font-family="sans-serif" font-weight="700">UTC 변환</text>
+
+  <rect x="418" y="192" width="120" height="72" rx="12" fill="white" stroke="#FCA5A5" stroke-width="1.5"/>
+  <text x="478" y="216" text-anchor="middle" fill="#9A3412" font-size="12" font-family="sans-serif" font-weight="600">조회</text>
+  <text x="478" y="240" text-anchor="middle" fill="#B91C1C" font-size="15" font-family="sans-serif" font-weight="700">PST 변환</text>
+
+  <!-- Arrows with markers -->
+  <line x1="202" y1="228" x2="246" y2="228" stroke="#EF4444" stroke-width="3" marker-end="url(#arrowRed)"/>
+  <line x1="370" y1="228" x2="414" y2="228" stroke="#EF4444" stroke-width="3" marker-end="url(#arrowRed)"/>
+
+  <!-- Conversion labels -->
+  <text x="224" y="286" text-anchor="middle" fill="#B45309" font-size="12" font-family="sans-serif" font-weight="600">→ UTC 변환</text>
+  <text x="392" y="286" text-anchor="middle" fill="#B45309" font-size="12" font-family="sans-serif" font-weight="600">→ PST 변환</text>
+
+  <!-- Bottom notes for TIMESTAMP -->
+  <rect x="76" y="308" width="470" height="62" rx="10" fill="#FFF7ED" stroke="#FDBA74"/>
+  <text x="96" y="332" fill="#9A3412" font-size="13" font-family="sans-serif">입력 시 UTC로 변환 저장, 조회 시 세션 타임존으로 재변환.</text>
+  <text x="96" y="354" fill="#7C2D12" font-size="13" font-family="sans-serif" font-weight="500">세션 타임존이 다르면 다른 시각처럼 보일 수 있다.</text>
+
+  <!-- ═══════ DATETIME Section ═══════ -->
+  <rect x="614" y="124" width="510" height="266" rx="18" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1.5"/>
+
+  <!-- Type badge -->
+  <rect x="634" y="140" width="142" height="30" rx="8" fill="#DBEAFE" stroke="#93C5FD"/>
+  <text x="705" y="160" text-anchor="middle" fill="#2563EB" font-size="16" font-family="sans-serif" font-weight="700">DATETIME</text>
+
+  <!-- Flow boxes -->
+  <rect x="640" y="192" width="120" height="72" rx="12" fill="white" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="700" y="216" text-anchor="middle" fill="#1E40AF" font-size="12" font-family="sans-serif" font-weight="600">입력</text>
+  <text x="700" y="240" text-anchor="middle" fill="#1D4ED8" font-size="15" font-family="sans-serif" font-weight="700">KST 시각</text>
+
+  <rect x="808" y="192" width="120" height="72" rx="12" fill="white" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="868" y="216" text-anchor="middle" fill="#1E40AF" font-size="12" font-family="sans-serif" font-weight="600">저장</text>
+  <text x="868" y="240" text-anchor="middle" fill="#1D4ED8" font-size="15" font-family="sans-serif" font-weight="700">그대로 저장</text>
+
+  <rect x="976" y="192" width="120" height="72" rx="12" fill="white" stroke="#93C5FD" stroke-width="1.5"/>
+  <text x="1036" y="216" text-anchor="middle" fill="#1E40AF" font-size="12" font-family="sans-serif" font-weight="600">조회</text>
+  <text x="1036" y="240" text-anchor="middle" fill="#1D4ED8" font-size="15" font-family="sans-serif" font-weight="700">그대로 반환</text>
+
+  <!-- Arrows with markers -->
+  <line x1="760" y1="228" x2="804" y2="228" stroke="#3B82F6" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <line x1="928" y1="228" x2="972" y2="228" stroke="#3B82F6" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <!-- Conversion labels -->
+  <text x="782" y="286" text-anchor="middle" fill="#1D4ED8" font-size="12" font-family="sans-serif" font-weight="600">변환 없음</text>
+  <text x="950" y="286" text-anchor="middle" fill="#1D4ED8" font-size="12" font-family="sans-serif" font-weight="600">변환 없음</text>
+
+  <!-- Bottom notes for DATETIME -->
+  <rect x="634" y="308" width="470" height="62" rx="10" fill="#F0FDF4" stroke="#BBF7D0"/>
+  <text x="654" y="332" fill="#166534" font-size="13" font-family="sans-serif">입력한 값을 변환 없이 그대로 저장하고 반환한다.</text>
+  <text x="654" y="354" fill="#15803D" font-size="13" font-family="sans-serif" font-weight="500">타임존 해석 책임은 애플리케이션에 있다.</text>
+</svg>

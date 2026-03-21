@@ -1,0 +1,94 @@
+<svg width="1180" height="420" viewBox="0 0 1180 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5.5" markerHeight="5.5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#94A3B8"/>
+    </marker>
+    <filter id="cardShadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="progressGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FB923C"/>
+      <stop offset="25%" stop-color="#EAB308"/>
+      <stop offset="50%" stop-color="#3B82F6"/>
+      <stop offset="75%" stop-color="#22C55E"/>
+      <stop offset="100%" stop-color="#64748B"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1180" height="420" rx="24" fill="#F8FAFC"/>
+  <rect x="32" y="24" width="1116" height="372" rx="18" fill="white" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+
+  <!-- Title -->
+  <text x="56" y="68" fill="#0F172A" font-size="25" font-family="sans-serif" font-weight="700">Dual-Write Migration</text>
+  <text x="56" y="96" fill="#475569" font-size="14" font-family="sans-serif">운영 DB에서는 새 컬럼을 추가한 뒤, 읽기와 쓰기를 점진적으로 옮기는 편이 안전하다.</text>
+
+  <!-- Progress bar -->
+  <rect x="56" y="118" width="1052" height="4" rx="2" fill="#E2E8F0"/>
+  <rect x="56" y="118" width="1052" height="4" rx="2" fill="url(#progressGrad)"/>
+
+  <!-- Step 1 - V1 -->
+  <rect x="56" y="142" width="188" height="136" rx="16" fill="#FFF7ED" stroke="#FDBA74" stroke-width="1.5"/>
+  <circle cx="76" cy="160" r="12" fill="#F97316"/>
+  <text x="76" y="165" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="700">1</text>
+  <text x="158" y="166" text-anchor="middle" fill="#9A3412" font-size="16" font-family="sans-serif" font-weight="700">기존 상태</text>
+  <line x1="72" y1="182" x2="228" y2="182" stroke="#FDBA74" stroke-opacity="0.6" stroke-width="1"/>
+  <text x="150" y="204" text-anchor="middle" fill="#7C2D12" font-size="13" font-family="sans-serif">기존 컬럼만 사용</text>
+  <text x="150" y="232" text-anchor="middle" fill="#9A3412" font-size="12" font-family="sans-serif">읽기: 기존 컬럼</text>
+  <text x="150" y="252" text-anchor="middle" fill="#9A3412" font-size="12" font-family="sans-serif">쓰기: 기존 컬럼</text>
+
+  <!-- Arrow 1→2 -->
+  <line x1="244" y1="210" x2="268" y2="210" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Step 2 - V2 -->
+  <rect x="272" y="142" width="188" height="136" rx="16" fill="#FEF3C7" stroke="#FCD34D" stroke-width="1.5"/>
+  <circle cx="292" cy="160" r="12" fill="#EAB308"/>
+  <text x="292" y="165" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="700">2</text>
+  <text x="374" y="166" text-anchor="middle" fill="#92400E" font-size="16" font-family="sans-serif" font-weight="700">이중 쓰기</text>
+  <line x1="288" y1="182" x2="444" y2="182" stroke="#FCD34D" stroke-opacity="0.6" stroke-width="1"/>
+  <text x="366" y="204" text-anchor="middle" fill="#78350F" font-size="13" font-family="sans-serif">새 컬럼 추가 + backfill</text>
+  <text x="366" y="232" text-anchor="middle" fill="#92400E" font-size="12" font-family="sans-serif">읽기: 기존 컬럼</text>
+  <text x="366" y="252" text-anchor="middle" fill="#92400E" font-size="12" font-family="sans-serif">쓰기: 기존 + 신규</text>
+
+  <!-- Arrow 2→3 -->
+  <line x1="460" y1="210" x2="484" y2="210" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Step 3 - V3 -->
+  <rect x="488" y="142" width="188" height="136" rx="16" fill="#DBEAFE" stroke="#93C5FD" stroke-width="1.5"/>
+  <circle cx="508" cy="160" r="12" fill="#3B82F6"/>
+  <text x="508" y="165" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="700">3</text>
+  <text x="590" y="166" text-anchor="middle" fill="#1D4ED8" font-size="16" font-family="sans-serif" font-weight="700">읽기 전환</text>
+  <line x1="504" y1="182" x2="660" y2="182" stroke="#93C5FD" stroke-opacity="0.6" stroke-width="1"/>
+  <text x="582" y="204" text-anchor="middle" fill="#1E3A8A" font-size="13" font-family="sans-serif">신규 컬럼 읽기 시작</text>
+  <text x="582" y="232" text-anchor="middle" fill="#1D4ED8" font-size="12" font-family="sans-serif">읽기: 신규 (fallback)</text>
+  <text x="582" y="252" text-anchor="middle" fill="#1D4ED8" font-size="12" font-family="sans-serif">쓰기: 기존 + 신규</text>
+
+  <!-- Arrow 3→4 -->
+  <line x1="676" y1="210" x2="700" y2="210" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Step 4 - V4 -->
+  <rect x="704" y="142" width="188" height="136" rx="16" fill="#DCFCE7" stroke="#86EFAC" stroke-width="1.5"/>
+  <circle cx="724" cy="160" r="12" fill="#22C55E"/>
+  <text x="724" y="165" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="700">4</text>
+  <text x="806" y="166" text-anchor="middle" fill="#15803D" font-size="16" font-family="sans-serif" font-weight="700">완전 전환</text>
+  <line x1="720" y1="182" x2="876" y2="182" stroke="#86EFAC" stroke-opacity="0.6" stroke-width="1"/>
+  <text x="798" y="204" text-anchor="middle" fill="#166534" font-size="13" font-family="sans-serif">신규 컬럼만 사용</text>
+  <text x="798" y="232" text-anchor="middle" fill="#15803D" font-size="12" font-family="sans-serif">읽기: 신규 컬럼</text>
+  <text x="798" y="252" text-anchor="middle" fill="#15803D" font-size="12" font-family="sans-serif">쓰기: 신규 컬럼</text>
+
+  <!-- Arrow 4→5 -->
+  <line x1="892" y1="210" x2="916" y2="210" stroke="#94A3B8" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <!-- Step 5 - V5 -->
+  <rect x="920" y="142" width="188" height="136" rx="16" fill="#F1F5F9" stroke="#CBD5E1" stroke-width="1.5"/>
+  <circle cx="940" cy="160" r="12" fill="#64748B"/>
+  <text x="940" y="165" text-anchor="middle" fill="white" font-size="12" font-family="sans-serif" font-weight="700">5</text>
+  <text x="1022" y="166" text-anchor="middle" fill="#334155" font-size="16" font-family="sans-serif" font-weight="700">정리</text>
+  <line x1="936" y1="182" x2="1092" y2="182" stroke="#CBD5E1" stroke-opacity="0.6" stroke-width="1"/>
+  <text x="1014" y="204" text-anchor="middle" fill="#334155" font-size="13" font-family="sans-serif">구 컬럼 제거</text>
+  <text x="1014" y="232" text-anchor="middle" fill="#475569" font-size="12" font-family="sans-serif">기존 컬럼 DROP</text>
+  <text x="1014" y="252" text-anchor="middle" fill="#475569" font-size="12" font-family="sans-serif">인덱스 / 코드 정리</text>
+
+  <!-- Bottom note -->
+  <rect x="56" y="302" width="1052" height="44" rx="12" fill="#F0FDF4" stroke="#BBF7D0"/>
+  <text x="82" y="329" fill="#166534" font-size="14" font-family="sans-serif" font-weight="500">핵심: 한 번에 타입을 바꾸는 것이 아니라, 데이터 정합성을 유지하면서 읽기와 쓰기를 점진적으로 옮기는 것이다.</text>
+</svg>

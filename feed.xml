@@ -6,9 +6,19 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Sun, 15 Mar 2026 07:37:29 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 21 Mar 2026 09:17:06 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>MySQL TIMESTAMP vs DATETIME, Y2K38 문제: 언제 컬럼을 바꿔야 할까</title>
+      <link>https://eottabom.github.io/post/mysql-timestamp-vs-datetime-y2k38/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/mysql-timestamp-vs-datetime-y2k38/</guid>
+      <description>MySQL TIMESTAMP의 2038년 한계(Y2K38), DATETIME과의 차이, Spring Boot/JPA 테스트 방법, 운영 DB 마이그레이션 전략까지 실무 기준으로 정리한다.</description>
+      <pubDate>Sat, 21 Mar 2026 00:00:00 GMT</pubDate>
+      <category>Database</category>
+      <category>MySQL</category>
+      <category>JPA</category>
+    </item>
     <item>
       <title>MongoDB Pagination 성능 개선 - skip + limit 에서 Range Query</title>
       <link>https://eottabom.github.io/post/mongodb-skip-to-range-query/</link>
@@ -168,14 +178,6 @@
       <description>Clean Code 관점에서의 Comment(주석) 남기는 방법에 대한 가이드</description>
       <pubDate>Thu, 30 May 2024 00:00:00 GMT</pubDate>
       <category>Clean Code</category>
-    </item>
-    <item>
-      <title>Pod QoS, Quality of Service Classes</title>
-      <link>https://eottabom.github.io/post/kubernetes-qos/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/kubernetes-qos/</guid>
-      <description>Pod Quality of Service Classes 에 대해서 알아보자</description>
-      <pubDate>Mon, 27 May 2024 00:00:00 GMT</pubDate>
-      <category>kubernetes</category>
     </item>
   </channel>
 </rss>
