@@ -1,0 +1,60 @@
+<svg width="960" height="440" viewBox="0 0 960 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#94A3B8"/>
+    </marker>
+    <filter id="cardShadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="440" rx="24" fill="#F8FAFC"/>
+  <rect x="36" y="28" width="888" height="388" rx="18" fill="white" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+
+  <!-- Title -->
+  <text x="60" y="74" fill="#0F172A" font-size="25" font-family="sans-serif" font-weight="700">Y2K38 Overflow</text>
+  <text x="60" y="106" fill="#475569" font-size="14" font-family="sans-serif">32비트 signed integer 최대값에 1을 더하면 sign bit가 뒤집혀 값이 음수 구간으로 넘어간다.</text>
+
+  <!-- Max value box -->
+  <rect x="60" y="138" width="350" height="150" rx="16" fill="#EEF2FF" stroke="#C7D2FE" stroke-width="1.5"/>
+  <text x="235" y="170" text-anchor="middle" fill="#4338CA" font-size="14" font-family="sans-serif" font-weight="600" letter-spacing="0.05em">최대값 (MAX)</text>
+  <text x="235" y="200" text-anchor="middle" fill="#312E81" font-size="22" font-family="sans-serif" font-weight="700">2,147,483,647</text>
+  <!-- Binary with sign bit highlighted green -->
+  <text x="235" y="228" text-anchor="middle" font-size="14" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+    <tspan fill="#16A34A" font-weight="700">0</tspan><tspan fill="#312E81">1111111 11111111</tspan>
+  </text>
+  <text x="235" y="248" text-anchor="middle" fill="#312E81" font-size="14" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace">11111111 11111111</text>
+  <text x="235" y="272" text-anchor="middle" fill="#16A34A" font-size="11" font-family="sans-serif" font-weight="600">sign bit = 0 (양수)</text>
+
+  <!-- Arrow left to +1 -->
+  <line x1="410" y1="213" x2="448" y2="213" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- +1 badge -->
+  <circle cx="486" cy="213" r="32" fill="#FEF3C7" stroke="#F59E0B" stroke-width="2"/>
+  <text x="486" y="221" text-anchor="middle" fill="#92400E" font-size="22" font-family="sans-serif" font-weight="700">+1</text>
+
+  <!-- Arrow +1 to right -->
+  <line x1="518" y1="213" x2="558" y2="213" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Overflow box -->
+  <rect x="562" y="138" width="342" height="150" rx="16" fill="#FEE2E2" stroke="#FCA5A5" stroke-width="1.5"/>
+  <text x="733" y="170" text-anchor="middle" fill="#B91C1C" font-size="14" font-family="sans-serif" font-weight="600" letter-spacing="0.05em">오버플로우</text>
+  <text x="733" y="200" text-anchor="middle" fill="#7F1D1D" font-size="22" font-family="sans-serif" font-weight="700">−2,147,483,648</text>
+  <!-- Binary with sign bit highlighted red -->
+  <text x="733" y="228" text-anchor="middle" font-size="14" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace">
+    <tspan fill="#DC2626" font-weight="700">1</tspan><tspan fill="#7F1D1D">0000000 00000000</tspan>
+  </text>
+  <text x="733" y="248" text-anchor="middle" fill="#7F1D1D" font-size="14" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace">00000000 00000000</text>
+  <text x="733" y="272" text-anchor="middle" fill="#DC2626" font-size="11" font-family="sans-serif" font-weight="600">sign bit = 1 (음수)</text>
+
+  <!-- Timestamp labels -->
+  <rect x="60" y="302" width="350" height="36" rx="10" fill="#F0FDF4" stroke="#BBF7D0"/>
+  <text x="235" y="325" text-anchor="middle" fill="#166534" font-size="13" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="600">2038-01-19 03:14:07 UTC</text>
+
+  <rect x="562" y="302" width="342" height="36" rx="10" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="733" y="325" text-anchor="middle" fill="#991B1B" font-size="13" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="600">1901-12-13 20:45:52 UTC</text>
+
+  <!-- Bottom note -->
+  <rect x="60" y="356" width="844" height="48" rx="14" fill="#FFF7ED" stroke="#FDBA74"/>
+  <text x="84" y="385" fill="#9A3412" font-size="14" font-family="sans-serif">Unix time에 적용되면 2038-01-19 03:14:07 UTC 다음 1초에서 시간이 1901년으로 되돌아간다.</text>
+</svg>

@@ -1,0 +1,62 @@
+<svg width="1120" height="400" viewBox="0 0 1120 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="cardShadow" x="-2%" y="-2%" width="104%" height="108%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <rect width="1120" height="400" rx="24" fill="#F8FAFC"/>
+  <rect x="36" y="28" width="1048" height="344" rx="18" fill="white" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+
+  <!-- Title -->
+  <text x="60" y="74" fill="#0F172A" font-size="25" font-family="sans-serif" font-weight="700">MySQL TIMESTAMP vs DATETIME</text>
+  <text x="60" y="104" fill="#475569" font-size="14" font-family="sans-serif">TIMESTAMP는 2038년까지, DATETIME은 9999년까지 표현할 수 있다.</text>
+
+  <!-- ═══ TIMESTAMP ═══ -->
+  <!-- Type badge -->
+  <rect x="60" y="132" width="142" height="32" rx="8" fill="#FEE2E2" stroke="#FCA5A5"/>
+  <text x="131" y="153" text-anchor="middle" fill="#DC2626" font-size="16" font-family="sans-serif" font-weight="700">TIMESTAMP</text>
+
+  <!-- Timeline bar -->
+  <line x1="220" y1="148" x2="710" y2="148" stroke="#EF4444" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="220" cy="148" r="8" fill="#DC2626" stroke="white" stroke-width="2"/>
+  <circle cx="710" cy="148" r="8" fill="#DC2626" stroke="white" stroke-width="2"/>
+
+  <!-- Start date pill -->
+  <rect x="176" y="168" width="110" height="26" rx="6" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="231" y="186" text-anchor="middle" fill="#991B1B" font-size="13" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="600">1970-01-01</text>
+
+  <!-- End date pill -->
+  <rect x="654" y="168" width="110" height="26" rx="6" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="709" y="186" text-anchor="middle" fill="#991B1B" font-size="13" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="600">2038-01-19</text>
+
+  <!-- Y2K38 danger marker -->
+  <line x1="710" y1="124" x2="710" y2="206" stroke="#EF4444" stroke-width="2" stroke-dasharray="6 4"/>
+  <rect x="726" y="132" width="82" height="30" rx="8" fill="#FEE2E2" stroke="#FCA5A5"/>
+  <text x="767" y="152" text-anchor="middle" fill="#DC2626" font-size="14" font-family="sans-serif" font-weight="700">Y2K38</text>
+
+  <!-- ═══ DATETIME ═══ -->
+  <!-- Type badge -->
+  <rect x="60" y="238" width="142" height="32" rx="8" fill="#DBEAFE" stroke="#93C5FD"/>
+  <text x="131" y="259" text-anchor="middle" fill="#2563EB" font-size="16" font-family="sans-serif" font-weight="700">DATETIME</text>
+
+  <!-- Timeline bar -->
+  <line x1="220" y1="254" x2="1020" y2="254" stroke="#3B82F6" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="220" cy="254" r="8" fill="#2563EB" stroke="white" stroke-width="2"/>
+  <circle cx="1020" cy="254" r="8" fill="#2563EB" stroke="white" stroke-width="2"/>
+
+  <!-- Start date pill -->
+  <rect x="176" y="274" width="110" height="26" rx="6" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="231" y="292" text-anchor="middle" fill="#1E40AF" font-size="13" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="600">1000-01-01</text>
+
+  <!-- End date pill -->
+  <rect x="964" y="274" width="110" height="26" rx="6" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="1019" y="292" text-anchor="middle" fill="#1E40AF" font-size="13" font-family="SFMono-Regular, Menlo, Monaco, Consolas, monospace" font-weight="600">9999-12-31</text>
+
+  <!-- Safe annotation -->
+  <text x="750" y="238" fill="#1D4ED8" font-size="13" font-family="sans-serif">장기 계약, 예약, 만료일도 안전하게 저장 가능</text>
+
+  <!-- Bottom note -->
+  <rect x="60" y="324" width="990" height="36" rx="10" fill="#FFF7ED" stroke="#FDBA74"/>
+  <text x="84" y="347" fill="#9A3412" font-size="13" font-family="sans-serif">TIMESTAMP는 32비트 Unix time 기반이므로 2038년 이후 값을 저장할 수 없다. 장기 데이터에는 DATETIME을 사용해야 한다.</text>
+</svg>

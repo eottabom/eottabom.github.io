@@ -1,0 +1,322 @@
+---
+title: "MySQL TIMESTAMP vs DATETIME, Y2K38 문제: 언제 컬럼을 바꿔야 할까"
+date: "2026-03-21"
+tags: ["Database", "MySQL", "JPA"]
+summary: "MySQL TIMESTAMP vs DATETIME, Y2K38, and when to migrate time columns"
+description: "MySQL TIMESTAMP의 2038년 한계(Y2K38), DATETIME과의 차이, Spring Boot/JPA 테스트 방법, 운영 DB 마이그레이션 전략까지 실무 기준으로 정리한다."
+---
+
+:::info
+created_at, updated_at 같은 시간 컬럼을 만들 때 관성적으로 TIMESTAMP를 선택하는 경우가 많다. <br />
+하지만 MySQL TIMESTAMP는 **2038-01-19 03:14:07 UTC** 까지만 표현할 수 있으므로, 컬럼의 도메인 의미를 따지지 않으면 미래 예약/만료 기능에서 실제 장애로 이어질 수 있다. <br />
+이번 글에서는 Y2K38 문제와 TIMESTAMP, DATETIME 차이, 그리고 운영 DB 에서 어떻게 바꾸면 좋을지에 대해서 알아보자.
+:::
+
+:::note
+먼저 결론부터 말하면, **미래 시각을 담는 컬럼은 DATETIME이 맞고**, `created_at`, `updated_at` 같은 기록용 컬럼도 장기 운영 관점에서는 결국 DATETIME 전환을 검토해야 한다.
+:::
+
+---
+
+### Q. Y2K38 문제란?
+
+Unix time은 `1970-01-01 00:00:00 UTC` 기준으로 흐른 초를 정수로 저장하는데, 32비트 signed integer의 최대값은 `2,147,483,647` 이다.
+
+```text
+Unix time = 1970-01-01 00:00:00 UTC
+```
+
+```text
+32 bit sigend integer = 2,147,483,647
+```
+
+이 값이 가리키는 시간은 `2038-01-19 03:14:07 UTC` 이다. 
+
+```text
+2038-01-19 03:14:07 UTC
+```
+
+즉, 이 시점을 1초라도 넘으면 오버플로우가 발생하고 시간이 음수 구간으로 뒤틀리게 되는데, 이것이 흔히 말하는 **Y2K38 (Year 2038 Problem)** 이다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/database/mysql-y2k38/y2k38-overflow.svg" alt="32비트 signed integer overflow 다이어그램" style={{ display: 'inline-block', width: '100%', maxWidth: '860px' }} />
+</div>
+
+<br />
+
+
+MySQL의 TIMESTAMP도 이 제한을 그대로 가진다.
+
+* TIMESTAMP: `1970-01-01 00:00:01 UTC` ~ `2038-01-19 03:14:07 UTC`
+* DATETIME: `1000-01-01 00:00:00` ~ `9999-12-31 23:59:59`
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/database/mysql-y2k38/timestamp-vs-datetime-timeline.svg" alt="MySQL TIMESTAMP와 DATETIME 범위 비교 타임라인" style={{ display: 'inline-block', width: '100%', maxWidth: '960px' }} />
+</div>
+
+<br />
+
+<RedText>핵심은 컬럼 이름이 아니라, 그 컬럼이 실제로 미래 시간을 담을 수 있는지다.</RedText>
+
+:::note
+참고로 MySQL 공식 문서 기준 TIMESTAMP 범위는 UTC 기준 `1970-01-01 00:00:01` 부터 `2038-01-19 03:14:07.499999` 까지다. <br />
+반면 DATETIME은 `1000-01-01 00:00:00` 부터 `9999-12-31 23:59:59.499999` 까지 표현할 수 있다.
+:::
+
+---
+
+### Why? TIMESTAMP를 많이 써왔을까?
+
+가장 많이 이야기되는 이유 중 하나는 저장 공간 차이다.
+
+예전에는 디스크 공간이 더 비쌌고, TIMESTAMP는 DATETIME보다 작다는 점이 꽤 매력적이었지만, MySQL 5.6.4 이후에는 큰 차이가 거의 없다.
+
+| 타입 | 저장 범위 | 용량 |
+| :--- | :--- | :--- |
+| TIMESTAMP | `1970` ~ `2038` | `4 bytes` |
+| DATETIME | `1000` ~ `9999` | `5 bytes` |
+| DATETIME(6) | `1000` ~ `9999` | `8 bytes` |
+
+기본 상태에서는 고작 **1 byte** 차이다. <br />
+지금 시점에서는 이 작은 이득 때문에 2038년 한계를 감수할 이유는 거의 없다.
+
+그리고, 과거 MySQL의 편한 기본 동작도 영향을 줬다.
+
+과거에는 첫 번째 TIMESTAMP 컬럼이 `DEFAULT CURRENT_TIMESTAMP`, `ON UPDATE CURRENT_TIMESTAMP`와 비슷하게 동작하는 암묵적인 룰이 자주 활용됐다.
+이 때문에 created_at, updated_at에 TIMESTAMP를 쓰는 습관이 오래 남았다.
+
+하지만, 지금은 명시적으로 선언하는 편이 훨씬 안전하다.
+
+```sql
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+```
+
+:::warning
+자동 갱신이 편하다는 이유만으로 TIMESTAMP를 고르면, 미래 날짜를 저장해야 하는 도메인 컬럼에서 언젠가 문제를 만든다. <br />
+편의 기능과 데이터 타입의 표현 범위는 분리해서 판단해야 한다.
+:::
+
+---
+
+### TIMESTAMP vs DATETIME
+
+두 타입의 가장 큰 차이는 **타임존 처리 방식**이다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/database/mysql-y2k38/timestamp-vs-datetime-timezone.svg" alt="TIMESTAMP와 DATETIME의 timezone 처리 방식 비교" style={{ display: 'inline-block', width: '100%', maxWidth: '980px' }} />
+</div>
+
+<br />
+
+**TIMESTAMP**
+
+* 입력 시 세션 타임존 기준 값을 **UTC로 변환**해서 저장한다.
+* 조회 시 저장된 UTC 값을 다시 **세션 타임존으로 변환**해서 보여준다.
+* 같은 레코드라도 접속한 세션 타임존이 다르면 다른 시각처럼 보일 수 있다.
+
+**DATETIME**
+
+* 타임존 정보를 저장하지 않는다.
+* 입력한 값을 **그대로 저장**하고, 조회 시에도 **그대로 반환**한다.
+* 시간대 해석은 애플리케이션이 책임진다.
+
+#### 실무 관점으로 본다면 ?.?
+
+글로벌 서비스라면 대체로 아래 조합이 운영하기 쉽다.
+
+* 애플리케이션 내부 기준 시각은 UTC로 통일
+* DB 컬럼은 DATETIME 또는 DATETIME(6) 사용
+* 사용자에게 보여줄 때만 프론트엔드 또는 애플리케이션에서 지역 시간으로 변환
+
+<BlueText>TIMESTAMP의 자동 변환은 편리해 보이지만, 세션 타임존이 섞이기 시작하면 오히려 추적이 더 어려워질 수 있다.</BlueText>
+
+---
+
+### 어떤 컬럼을 DATETIME으로 바꿔야 할까?
+
+가장 중요한 기준은 <BlueText>컬럼 이름보다 도메인 의미가 더 중요</BlueText>하다라는 것이다.
+
+**DATETIME으로 설계해야 하는 컬럼**
+
+2038년 이후 시각이 들어갈 가능성이 조금이라도 있으면 DATETIME이 맞다.
+
+* expires_at
+* reservation_time
+* contract_end_at
+* publish_at
+* promotion_end_at
+
+특히, `2099-12-31 23:59:59` 같은 사실상의 "무기한" 값을 넣는 기획이 있다면 TIMESTAMP는 바로 사용하면 안된다.
+
+**TIMESTAMP를 유지할 수 있는 컬럼**
+
+현재 시각을 기록하는 용도라면 당장은 TIMESTAMP로도 동작한다.
+
+* created_at
+* updated_at
+* deleted_at
+* processed_at
+* log_time
+
+단, 이 컬럼들도 <RedText>2038년 이후에는 결국 실패</RedText>한다.
+그래서, 장기 운영을 전제로 하는 신규 서비스라면 처음부터 DATETIME으로 통일하는 쪽이 더 단순하다.
+
+:::note
+실무에서는 "미래 시각 컬럼만 DATETIME으로 바꿀지", "아예 시간 컬럼 전부를 DATETIME으로 통일할지" 두 방향이 있다. <br />
+사실, 아예 시간 컬럼을 모두 DATATIME 으로 통일하면 규칙이 단순해져서 팀 내 혼선을 줄이기는 쉬울 수 있다.
+:::
+
+---
+
+### Spring Boot / JPA 테스트
+
+Java 진영에서는 보통 아래처럼 매핑해서 사용한다.
+
+* Instant → 절대 시각, UTC 기준 표현에 적합
+* LocalDateTime → 타임존 없는 로컬 시각 표현에 적합
+
+일반적인 매핑은 다음처럼 이해하면 된다.
+
+* Instant ↔ TIMESTAMP
+* LocalDateTime ↔ DATETIME
+
+하지만 중요한 것은 타입 이름보다도, **JDBC 드라이버와 Hibernate 설정이 실제로 어떤 방식으로 저장/조회하는지 통합 테스트로 검증하는 것**이다. <br />
+시간 타입은 생각보다 설정 영향을 많이 받기 때문에, 감으로 판단하면 틀리기 쉽다.
+
+:::tip
+<a href="https://github.com/eottabom/let-me-code/tree/main/jpa-y2k38" target="_blank" rel="noopener noreferrer">예제 코드 보러가기 (클릭)</a>
+:::
+
+```java
+package com.example.demo;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+@DataJpaTest
+class TimeTestRepositoryTests {
+
+    @Autowired
+    private TimeTestRepository repository;
+
+    @Test
+    @DisplayName("DATETIME(LocalDateTime)은 2099년 날짜를 정상적으로 저장할 수 있다")
+    void datetimeCanStoreFarFutureDate() {
+        LocalDateTime futureDate = LocalDateTime.of(2099, 12, 31, 23, 59, 59);
+        Instant safeTimestamp = Instant.parse("2038-01-19T03:14:07Z");
+
+        TimeTest entity = repository.saveAndFlush(new TimeTest(futureDate, safeTimestamp));
+
+        assertThat(entity.getId()).isNotNull();
+        assertThat(entity.getDatetime()).isEqualTo(futureDate);
+    }
+
+    @Test
+    @DisplayName("TIMESTAMP(Instant)가 2038년 경계를 넘으면 저장 시 예외가 발생한다")
+    void timestampCanFailWhenOverflowingY2k38Boundary() {
+        LocalDateTime futureDate = LocalDateTime.of(2099, 12, 31, 23, 59, 59);
+        Instant overflowTimestamp = Instant.parse("2038-01-19T03:14:08Z");
+
+        assertThatThrownBy(() ->
+            repository.saveAndFlush(new TimeTest(futureDate, overflowTimestamp))
+        ).isInstanceOf(Exception.class);
+    }
+}
+```
+
+:::warning
+`hibernate.jdbc.time_zone`, JDBC URL의 `connectionTimeZone`, MySQL 세션 `time_zone`이 서로 다르면 테스트와 운영 결과가 달라질 수 있다. <br />
+시간 타입 이슈는 단위 테스트보다 실제 MySQL과 붙는 통합 테스트가 훨씬 중요하다.
+:::
+
+---
+
+### 운영 DB 에서는 어떻게 바꿔야 할까?
+
+운영 중인 대용량 테이블에서 바로 `ALTER TABLE ... MODIFY COLUMN ...` 하는 방식은 위험하다. <br />
+실무에서는 보통 새 컬럼을 추가한 뒤, 읽기와 쓰기를 점진적으로 옮기는 패턴을 쓴다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/database/mysql-y2k38/dual-write-migration.svg" alt="TIMESTAMP에서 DATETIME으로 전환하는 dual write migration 흐름" style={{ display: 'inline-block', width: '100%', maxWidth: '980px' }} />
+</div>
+
+<br />
+
+**1) 새 컬럼 추가**
+```sql
+ALTER TABLE coupon ADD COLUMN expires_at_dt DATETIME NULL;
+```
+
+**2) Backfill**
+기존 `expires_at` 값을 배치로 새 컬럼에 채운다.
+
+**3) Dual Write**
+애플리케이션이 구 컬럼과 신 컬럼에 동시에 기록한다.
+
+**4) Read Switch**
+새 컬럼을 우선 읽고, 비어 있으면 구 컬럼으로 fallback 한다.
+
+**5) Drop Old**
+정합성 검증이 끝나면 기존 컬럼을 제거한다.
+
+:::tip
+대용량 테이블에서는 `gh-ost`, `pt-online-schema-change` 같은 온라인 스키마 변경 도구를 같이 검토하는 편이 안전하다.
+:::
+
+---
+
+### 실제 사례와 참고 포인트
+
+32비트 한계는 이미 현실에서 여러 형태로 드러났다.
+
+**1) 강남스타일 유튜브 조회수 사례**
+* 정확히 Y2K38 시간 문제는 아니지만, `2,147,483,647`라는 32비트 signed integer 한계가 실제 서비스에서 얼마나 빨리 현실화될 수 있는지를 보여준 대표 사례다.
+
+**2) AOLserver 사례**
+* Y2K38 관련 문서에서 자주 인용되는 초기 사례 중 하나다.
+* 미래 시각 계산을 크게 잡는 과정에서 2038 경계를 넘기면, 예상과 다른 만료 처리 문제가 생길 수 있음을 보여준다.
+
+**3) 실무에서 더 흔한 문제**
+
+* 20년 이상 장기 계약 종료일
+* 무기한에 가까운 쿠폰/구독 만료일
+* 먼 미래 예약 발행 시각
+* 보존 기간이 긴 아카이브 정책
+
+:::danger
+Y2K38은 2038년에 가서 고민할 문제가 아니라, 오늘 만드는 미래 일정 기능에서 바로 드러날 수 있는 문제다.
+:::
+
+---
+
+:::success
+<b>정리</b>
+✔ Y2K38은 2038년에 가서야 생기는 문제가 아니라, `TIMESTAMP` 컬럼에 2038년 이후 시각이 들어가는 순간 지금도 바로 드러날 수 있는 제약이다.
+✔ 판단 기준은 컬럼 이름이 아니라, 그 컬럼이 담아야 하는 시간의 범위와 수명이다.
+✔ 그래서 `expires_at`, `reservation_time`, `publish_at`처럼 미래 시점을 담는 컬럼은 처음부터 `DATETIME`으로 설계하는 편이 안전하다.
+✔ `created_at`, `updated_at` 같은 기록용 시각은 지금 당장은 `TIMESTAMP`로도 운영할 수 있지만, 장기 운영 서비스라면 결국 2038년 이전에 전환 비용을 치르게 된다.
+✔ 신규 서비스라면 특별한 이유가 없는 한 `DATETIME` 또는 `DATETIME(6)`으로 통일하는 쪽이 더 단순하고 유지보수에도 유리하다.
+:::
+
+---
+
+### 📚 Reference
+
+* <a href="https://dev.mysql.com/doc/refman/8.4/en/datetime.html">MySQL Reference Manual - The DATE, DATETIME, and TIMESTAMP Types</a>
+* <a href="https://dev.mysql.com/doc/refman/8.4/en/time-zone-support.html">MySQL Reference Manual - Time Zone Support</a>
+* <a href="https://dev.mysql.com/doc/refman/8.4/en/fractional-seconds.html">MySQL Reference Manual - Fractional Seconds in Time Values</a>
+* <a href="https://github.com/github/gh-ost">GitHub - gh-ost</a>
+* <a href="https://docs.percona.com/percona-toolkit/pt-online-schema-change.html">Percona Toolkit - pt-online-schema-change</a>
+* <a href="https://planetscale.com/blog/datetimes-vs-timestamps-in-mysql">PlanetScale - Datetimes versus timestamps in MySQL</a>
+* <a href="https://en.wikipedia.org/wiki/Year_2038_problem">Wikipedia - Year 2038 problem</a>
+
+<br/><br/>
