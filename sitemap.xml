@@ -20,6 +20,12 @@
       <lastmod>2026-03-22</lastmod>
     </url>
     <url>
+      <loc>https://eottabom.github.io/projects/</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+      <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
       <loc>https://eottabom.github.io/about/</loc>
       <changefreq>monthly</changefreq>
       <priority>0.5</priority>
@@ -234,5 +240,12 @@
       <changefreq>monthly</changefreq>
       <priority>0.6</priority>
       <lastmod>2025-10-16</lastmod>
+    </url>
+  
+    <url>
+      <loc>https://eottabom.github.io/projects/agent-space/</loc>
+      <changefreq>monthly</changefreq>
+      <priority>0.6</priority>
+      <lastmod>2026-03-22</lastmod>
     </url>
 </urlset>
