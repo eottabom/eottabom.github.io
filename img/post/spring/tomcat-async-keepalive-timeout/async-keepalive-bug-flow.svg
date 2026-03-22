@@ -1,0 +1,56 @@
+<svg width="960" height="792" viewBox="0 0 960 792" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748B"/>
+    </marker>
+  </defs>
+
+  <rect width="960" height="792" rx="24" fill="#F8FAFC"/>
+  <text x="480" y="52" text-anchor="middle" fill="#0F172A" font-size="28" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">비정상 경로: async 요청 뒤에는 60초가 남아 있었다</text>
+  <text x="480" y="80" text-anchor="middle" fill="#475569" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">Tomcat Bug 69748 관점에서 보면, HTTP/1.1 async request 이후 keepAliveTimeout 설정 호출이 누락된 흐름이다.</text>
+
+  <rect x="226" y="112" width="508" height="74" rx="16" fill="#E0F2FE" stroke="#7DD3FC"/>
+  <text x="480" y="142" text-anchor="middle" fill="#0369A1" font-size="16" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">[1] NioEndpoint.setSocketOptions()</text>
+  <text x="480" y="168" text-anchor="middle" fill="#0C4A6E" font-size="14" font-family="SFMono-Regular, Menlo, Consolas, monospace">초기 readTimeout = connectionTimeout = 60s</text>
+
+  <line x1="480" y1="186" x2="480" y2="214" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-async)"/>
+
+  <rect x="226" y="224" width="508" height="82" rx="16" fill="#EEF2FF" stroke="#C7D2FE"/>
+  <text x="480" y="254" text-anchor="middle" fill="#4338CA" font-size="16" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">[2] Http11InputBuffer.parseRequestLine()</text>
+  <text x="480" y="278" text-anchor="middle" fill="#312E81" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">첫 요청은 동기 경로와 동일하게 시작</text>
+  <text x="480" y="298" text-anchor="middle" fill="#312E81" font-size="14" font-family="SFMono-Regular, Menlo, Consolas, monospace">readTimeout = 60s</text>
+
+  <line x1="480" y1="306" x2="480" y2="334" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-async)"/>
+
+  <rect x="226" y="344" width="508" height="104" rx="16" fill="#F5F3FF" stroke="#C4B5FD"/>
+  <text x="480" y="374" text-anchor="middle" fill="#6D28D9" font-size="16" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">[3] CoyoteAdapter.service()</text>
+  <text x="480" y="398" text-anchor="middle" fill="#5B21B6" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">Spring async 핸들러 호출</text>
+  <text x="480" y="420" text-anchor="middle" fill="#5B21B6" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">Callable / DeferredResult /</text>
+  <text x="480" y="440" text-anchor="middle" fill="#5B21B6" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">startAsync() 등</text>
+
+  <line x1="480" y1="448" x2="480" y2="476" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-async)"/>
+
+  <rect x="226" y="486" width="508" height="122" rx="16" fill="#FEF2F2" stroke="#FCA5A5" stroke-width="1.5"/>
+  <text x="480" y="510" text-anchor="middle" fill="#B91C1C" font-size="16" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">[4] async complete 이후 keepAliveTimeout 설정 호출 누락</text>
+  <text x="480" y="540" text-anchor="middle" fill="#991B1B" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">정상이라면 keep-alive 대기 직전에</text>
+  <text x="480" y="560" text-anchor="middle" fill="#991B1B" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">readTimeout 이 100s 로 바뀌어야 한다.</text>
+  <text x="480" y="582" text-anchor="middle" fill="#991B1B" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">하지만 이 경로에서는 poller 가 볼 값이 60s 로 남는다.</text>
+
+  <line x1="480" y1="608" x2="480" y2="636" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-async)"/>
+
+  <rect x="226" y="646" width="508" height="96" rx="16" fill="#FFF7ED" stroke="#FDBA74"/>
+  <text x="480" y="676" text-anchor="middle" fill="#9A3412" font-size="16" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">[5] NIO Poller timeout 판단</text>
+  <text x="480" y="702" text-anchor="middle" fill="#9A3412" font-size="14" font-family="SFMono-Regular, Menlo, Consolas, monospace">delta &gt; 60s → processSocket(TIMEOUT)</text>
+  <text x="480" y="724" text-anchor="middle" fill="#9A3412" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">결과: 응답 후 idle 60초 뒤 서버 FIN</text>
+
+  <rect x="748" y="206" width="176" height="236" rx="18" fill="#FEFCE8" stroke="#FDE68A"/>
+  <text x="836" y="240" text-anchor="middle" fill="#A16207" font-size="15" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">관찰 포인트</text>
+  <text x="836" y="270" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">패킷 캡처의</text>
+  <text x="836" y="290" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">FIN 시각과</text>
+  <text x="836" y="312" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">Tomcat poller 의</text>
+  <text x="836" y="332" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">timeout 시각이</text>
+  <text x="836" y="354" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">같게 보이면</text>
+  <text x="836" y="376" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">서버가 idle timeout 으로</text>
+  <text x="836" y="398" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">연결을 닫았다고</text>
+  <text x="836" y="420" text-anchor="middle" fill="#854D0E" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">판단할 수 있다</text>
+</svg>

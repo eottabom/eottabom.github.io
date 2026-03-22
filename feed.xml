@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Sun, 22 Mar 2026 02:04:01 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 22 Mar 2026 08:18:07 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Tomcat Async Request 이후 keep-alive timeout이 60초로 닫히던 이유</title>
+      <link>https://eottabom.github.io/post/tomcat-async-keepalive-timeout-bug/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/tomcat-async-keepalive-timeout-bug/</guid>
+      <description>Spring Boot Embedded Tomcat 에서 async request 이후 keepAliveTimeout 이 적용되지 않아 간헐적 502 가 발생하던 현상을 Tomcat Bug 69748 과 함께 정리한다.</description>
+      <pubDate>Sun, 22 Mar 2026 00:00:00 GMT</pubDate>
+      <category>Spring</category>
+      <category>Tomcat</category>
+    </item>
     <item>
       <title>MySQL TIMESTAMP vs DATETIME, Y2K38 문제: 언제 컬럼을 바꿔야 할까</title>
       <link>https://eottabom.github.io/post/mysql-timestamp-vs-datetime-y2k38/</link>
@@ -169,14 +178,6 @@
       <guid isPermaLink="true">https://eottabom.github.io/post/meaningful-names/</guid>
       <description>Clean Code 관점에서의 Meaningful Names(의미 있는 이름)에 대한 이야기</description>
       <pubDate>Sun, 02 Jun 2024 00:00:00 GMT</pubDate>
-      <category>Clean Code</category>
-    </item>
-    <item>
-      <title>Clean Code - Comment(주석) 에 대한 가이드</title>
-      <link>https://eottabom.github.io/post/comments/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/comments/</guid>
-      <description>Clean Code 관점에서의 Comment(주석) 남기는 방법에 대한 가이드</description>
-      <pubDate>Thu, 30 May 2024 00:00:00 GMT</pubDate>
       <category>Clean Code</category>
     </item>
   </channel>

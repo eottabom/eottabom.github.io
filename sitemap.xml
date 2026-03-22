@@ -223,6 +223,12 @@
       <lastmod>2025-04-30</lastmod>
     </url>
     <url>
+      <loc>https://eottabom.github.io/post/tomcat-async-keepalive-timeout-bug/</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+      <lastmod>2026-03-22</lastmod>
+    </url>
+    <url>
       <loc>https://eottabom.github.io/post/play-with-playwright/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>

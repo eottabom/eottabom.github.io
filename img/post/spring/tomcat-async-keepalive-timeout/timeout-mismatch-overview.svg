@@ -1,0 +1,43 @@
+<svg width="960" height="456" viewBox="0 0 960 456" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow-overview" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748B"/>
+    </marker>
+    <filter id="shadow-overview" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="3" stdDeviation="8" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <rect width="960" height="456" rx="24" fill="#F8FAFC"/>
+  <rect x="28" y="24" width="904" height="408" rx="20" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#shadow-overview)"/>
+
+  <text x="56" y="68" fill="#0F172A" font-size="26" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">운영에서 보인 현상</text>
+  <text x="56" y="98" fill="#475569" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">keepAliveTimeout=100s 로 설정했지만, async 요청 이후 연결은</text>
+  <text x="56" y="118" fill="#475569" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">정확히 60초 뒤 서버 FIN 으로 종료됐다.</text>
+
+  <rect x="56" y="144" width="268" height="120" rx="16" fill="#EFF6FF" stroke="#BFDBFE"/>
+  <text x="190" y="176" text-anchor="middle" fill="#1D4ED8" font-size="15" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">시스템 경로</text>
+  <text x="190" y="206" text-anchor="middle" fill="#1E3A8A" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">Client</text>
+  <text x="190" y="226" text-anchor="middle" fill="#1E3A8A" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">↓ ALB idle timeout 90s</text>
+  <text x="190" y="246" text-anchor="middle" fill="#1E3A8A" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">↓ Spring Boot + Embedded Tomcat</text>
+
+  <line x1="324" y1="202" x2="346" y2="202" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-overview)"/>
+
+  <rect x="346" y="144" width="268" height="120" rx="16" fill="#F0FDF4" stroke="#BBF7D0"/>
+  <text x="480" y="176" text-anchor="middle" fill="#15803D" font-size="15" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">기대한 흐름</text>
+  <text x="480" y="210" text-anchor="middle" fill="#166534" font-size="13" font-family="SFMono-Regular, Menlo, Consolas, monospace">Response → idle → 100s → close</text>
+  <text x="480" y="234" text-anchor="middle" fill="#166534" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">keepAliveTimeout 기준 종료</text>
+
+  <line x1="614" y1="202" x2="636" y2="202" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow-overview)"/>
+
+  <rect x="636" y="144" width="268" height="120" rx="16" fill="#FEF2F2" stroke="#FECACA"/>
+  <text x="770" y="176" text-anchor="middle" fill="#B91C1C" font-size="15" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">실제 관측</text>
+  <text x="770" y="210" text-anchor="middle" fill="#991B1B" font-size="13" font-family="SFMono-Regular, Menlo, Consolas, monospace">Response → idle → 60s → FIN</text>
+  <text x="770" y="234" text-anchor="middle" fill="#991B1B" font-size="13" font-family="Pretendard, Noto Sans KR, sans-serif">connectionTimeout 처럼 보이는 종료</text>
+
+  <rect x="56" y="292" width="848" height="114" rx="18" fill="#FFF7ED" stroke="#FDBA74"/>
+  <text x="82" y="324" fill="#9A3412" font-size="16" font-family="Pretendard, Noto Sans KR, sans-serif" font-weight="700">초기 가설을 지운 기준</text>
+  <text x="82" y="352" fill="#9A3412" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">1. ALB 는 90초라서 60초 종료와 맞지 않았다.</text>
+  <text x="82" y="374" fill="#9A3412" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">2. 패킷을 보면 클라이언트가 아니라 서버가 먼저 FIN 을 보냈다.</text>
+  <text x="82" y="396" fill="#9A3412" font-size="14" font-family="Pretendard, Noto Sans KR, sans-serif">3. 그래서 Tomcat 내부 readTimeout 이 keepAliveTimeout 으로 갱신됐는지 추적하게 됐다.</text>
+</svg>
