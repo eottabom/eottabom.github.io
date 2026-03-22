@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Home, FileText, BookOpen, Bookmark, FlaskConical, Wrench, User, type LucideIcon } from "lucide-react";
+import { Home, FileText, BookOpen, Bookmark, FlaskConical, Wrench, User, FolderKanban, type LucideIcon } from "lucide-react";
 import ScrollProgressBar from "./ScrollProgressBar";
 import TranslateButton from "./TranslateButton";
 
@@ -25,16 +25,118 @@ export default function Header() {
         { href: "/", label: "Home", icon: Home },
         { href: "/post", label: "Posts", icon: FileText },
         { href: "/book", label: "Books", icon: BookOpen },
+        { href: "/projects", label: "Projects", icon: FolderKanban },
         { href: "/link", label: "Read/Keep", icon: Bookmark },
         { href: "/about", label: "About", icon: User },
     ];
-    const labItems: { href: string; label: string; icon: LucideIcon }[] = [
-        { href: "/toolkit", label: "Toolkit", icon: Wrench },
-        { href: "/playground/", label: "Playground", icon: FlaskConical },
+    const labItems: { href: string; label: string; icon: LucideIcon; newTab?: boolean }[] = [
+        { href: "/toolkit", label: "Toolkit", icon: Wrench, newTab: true },
+        { href: "/playground/", label: "Playground", icon: FlaskConical, newTab: true },
     ];
 
     const isActive = (href: string) =>
         href === "/" ? pathname === "/" : pathname?.startsWith(href);
+
+    const renderLabMenu = (mobile = false) => (
+        <div
+            className={mobile ? "rounded-xl bg-gray-50 px-4 py-3" : "relative py-2 -my-2"}
+            onMouseEnter={mobile ? undefined : () => setLabOpen(true)}
+            onMouseLeave={mobile ? undefined : () => setLabOpen(false)}
+        >
+            {mobile ? (
+                <>
+                    <div className="flex items-center gap-2 text-[15px] font-semibold text-gray-900">
+                        <FlaskConical className="w-4 h-4" />
+                        Lab
+                    </div>
+                    <div className="mt-2 flex flex-col gap-1">
+                        {labItems.map((it) => {
+                            const Icon = it.icon;
+                            const className = "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900";
+
+                            if (it.newTab) {
+                                return (
+                                    <a
+                                        key={it.href}
+                                        href={it.href}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={className}
+                                    >
+                                        <Icon className="w-4 h-4" />
+                                        {it.label}
+                                    </a>
+                                );
+                            }
+
+                            return (
+                                <Link
+                                    key={it.href}
+                                    href={it.href}
+                                    className={className}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    {it.label}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </>
+            ) : (
+                <>
+                    <button
+                        type="button"
+                        onClick={() => setLabOpen((value) => !value)}
+                        className={`
+                            px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
+                            ${labOpen ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}
+                        `}
+                        aria-expanded={labOpen}
+                        aria-haspopup="menu"
+                    >
+                        <FlaskConical className="w-3.5 h-3.5" />
+                        Lab
+                    </button>
+                    {labOpen && (
+                        <div className="absolute left-1/2 top-full w-44 -translate-x-1/2 pt-2">
+                            <div className="rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
+                                {labItems.map((it) => {
+                                    const Icon = it.icon;
+                                    const className = "flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900";
+
+                                    if (it.newTab) {
+                                        return (
+                                            <a
+                                                key={it.href}
+                                                href={it.href}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className={className}
+                                            >
+                                                <Icon className="w-3.5 h-3.5" />
+                                                {it.label}
+                                            </a>
+                                        );
+                                    }
+
+                                    return (
+                                        <Link
+                                            key={it.href}
+                                            href={it.href}
+                                            className={className}
+                                        >
+                                            <Icon className="w-3.5 h-3.5" />
+                                            {it.label}
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+        </div>
+    );
 
     return (
         <header className="sticky top-0 z-50 bg-white shadow-sm relative">
@@ -50,67 +152,49 @@ export default function Header() {
 
                 {/* Desktop nav */}
                 <nav className="hidden md:flex items-center gap-0.5 bg-gray-100 rounded-full p-1" aria-label="Main Navigation">
-                    {items.map((it) => {
+                    {items.slice(0, 4).map((it) => {
                         const Icon = it.icon;
                         return (
-                        <Link
-                            key={it.href}
-                            href={it.href}
-                            {...(it.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                            className={`
-                                px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
-                                ${isActive(it.href)
-                                    ? "bg-white text-gray-900 shadow-sm"
-                                    : "text-gray-500 hover:text-gray-800"
-                                }
-                            `}
-                            aria-current={isActive(it.href) ? "page" : undefined}
-                        >
-                            <Icon className="w-3.5 h-3.5" />
-                            {it.label}
-                        </Link>
+                            <Link
+                                key={it.href}
+                                href={it.href}
+                                {...(it.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                                className={`
+                                    px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
+                                    ${isActive(it.href)
+                                        ? "bg-white text-gray-900 shadow-sm"
+                                        : "text-gray-500 hover:text-gray-800"
+                                    }
+                                `}
+                                aria-current={isActive(it.href) ? "page" : undefined}
+                            >
+                                <Icon className="w-3.5 h-3.5" />
+                                {it.label}
+                            </Link>
                         );
                     })}
-                    <div
-                        className="relative py-2 -my-2"
-                        onMouseEnter={() => setLabOpen(true)}
-                        onMouseLeave={() => setLabOpen(false)}
-                    >
-                        <button
-                            type="button"
-                            onClick={() => setLabOpen((value) => !value)}
-                            className={`
-                                px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
-                                ${labOpen ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"}
-                            `}
-                            aria-expanded={labOpen}
-                            aria-haspopup="menu"
-                        >
-                            <FlaskConical className="w-3.5 h-3.5" />
-                            Lab
-                        </button>
-                        {labOpen && (
-                            <div className="absolute right-0 top-full pt-2 w-44">
-                                <div className="rounded-2xl border border-gray-200 bg-white p-2 shadow-lg">
-                                {labItems.map((it) => {
-                                    const Icon = it.icon;
-                                    return (
-                                        <a
-                                            key={it.href}
-                                            href={it.href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                                        >
-                                            <Icon className="w-3.5 h-3.5" />
-                                            {it.label}
-                                        </a>
-                                    );
-                                })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                    {renderLabMenu()}
+                    {items.slice(4).map((it) => {
+                        const Icon = it.icon;
+                        return (
+                            <Link
+                                key={it.href}
+                                href={it.href}
+                                {...(it.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                                className={`
+                                    px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all duration-200 flex items-center gap-1.5
+                                    ${isActive(it.href)
+                                        ? "bg-white text-gray-900 shadow-sm"
+                                        : "text-gray-500 hover:text-gray-800"
+                                    }
+                                `}
+                                aria-current={isActive(it.href) ? "page" : undefined}
+                            >
+                                <Icon className="w-3.5 h-3.5" />
+                                {it.label}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
                 {/* Translate button (desktop) */}
@@ -135,7 +219,7 @@ export default function Header() {
             {open && (
                 <div className="md:hidden fixed inset-0 top-14 bg-white z-40">
                     <nav className="flex flex-col p-4 gap-1" aria-label="Mobile Navigation">
-                        {items.map((it) => {
+                        {items.slice(0, 4).map((it) => {
                             const Icon = it.icon;
                             return (
                             <Link
@@ -156,29 +240,28 @@ export default function Header() {
                             </Link>
                             );
                         })}
-                        <div className="rounded-xl bg-gray-50 px-4 py-3">
-                            <div className="flex items-center gap-2 text-[15px] font-semibold text-gray-900">
-                                <FlaskConical className="w-4 h-4" />
-                                Lab
-                            </div>
-                            <div className="mt-2 flex flex-col gap-1">
-                                {labItems.map((it) => {
-                                    const Icon = it.icon;
-                                    return (
-                                        <a
-                                            key={it.href}
-                                            href={it.href}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 hover:bg-white hover:text-gray-900"
-                                        >
-                                            <Icon className="w-4 h-4" />
-                                            {it.label}
-                                        </a>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                        {renderLabMenu(true)}
+                        {items.slice(4).map((it) => {
+                            const Icon = it.icon;
+                            return (
+                            <Link
+                                key={it.href}
+                                href={it.href}
+                                {...(it.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                                className={`
+                                    px-4 py-3 rounded-xl text-[15px] font-semibold transition-all flex items-center gap-2
+                                    ${isActive(it.href)
+                                        ? "bg-gray-100 text-gray-900"
+                                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-800"
+                                    }
+                                `}
+                                aria-current={isActive(it.href) ? "page" : undefined}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {it.label}
+                            </Link>
+                            );
+                        })}
                         <div className="px-4 py-3">
                             <TranslateButton />
                         </div>
