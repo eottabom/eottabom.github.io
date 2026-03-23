@@ -18,7 +18,8 @@
       ],
       "thumbnail": "https://raw.githubusercontent.com/eottabom/agent-space/main/videos/agent-space-demo.gif",
       "techStack": ["Node.js", "Express", "ws", "node-pty", "React", "Vite", "Electron", "Tailwind CSS"],
-      "github": "https://github.com/eottabom/agent-space"
+      "github": "https://github.com/eottabom/agent-space",
+      "aiAssisted": true
     }
   ]
 }

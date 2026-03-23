@@ -19,6 +19,7 @@ export type Project = {
     demo?: string;
     role?: string;
     techStack?: string[];
+    aiAssisted?: boolean;
 };
 
 type ProjectDataFile = {

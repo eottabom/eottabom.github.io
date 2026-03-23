@@ -62,6 +62,12 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
                         <h1 className="mt-4 text-4xl font-bold tracking-tight">{project.title}</h1>
                         <p className="mt-4 max-w-3xl text-base leading-7 text-white/85">{project.description}</p>
 
+                        {project.aiAssisted && (
+                            <p className="mt-3 text-sm text-white/50">
+                                Some parts of this project were developed with the assistance of AI tools.
+                            </p>
+                        )}
+
                         <div className="mt-6 flex flex-wrap gap-2">
                             {project.tags.map((tag) => (
                                 <span
@@ -164,6 +170,7 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
                                 <p>{project.whatILearned}</p>
                             </DetailSection>
                         )}
+
                     </div>
                 </div>
             </main>
