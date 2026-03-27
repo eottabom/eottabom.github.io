@@ -15,4 +15,19 @@ public/feed.xml
 tsconfig.tsbuildinfo
 next-env.d.ts
 
+# >>> agent-sync managed (do not edit this block)
+AGENTS.md
 CLAUDE.md
+GEMINI.md
+docs/agents/
+docs/agents/styles/
+docs/agents/directory-structure.md
+docs/agents/architecture.md
+.claude/
+.claude/docs/
+.claude/docs/styles/
+.claude/docs/directory-structure.md
+.claude/docs/architecture.md
+.codex/
+.gemini/
+# <<< agent-sync managed
