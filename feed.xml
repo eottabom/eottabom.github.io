@@ -6,7 +6,7 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Mon, 23 Mar 2026 12:09:27 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 27 Mar 2026 04:51:01 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
     <item>
@@ -25,8 +25,6 @@
       <description>MySQL TIMESTAMP의 2038년 한계(Y2K38), DATETIME과의 차이, Spring Boot/JPA 테스트 방법, 운영 DB 마이그레이션 전략까지 실무 기준으로 정리한다.</description>
       <pubDate>Sat, 21 Mar 2026 00:00:00 GMT</pubDate>
       <category>Database</category>
-      <category>MySQL</category>
-      <category>JPA</category>
     </item>
     <item>
       <title>MongoDB Pagination 성능 개선 - skip + limit 에서 Range Query</title>
@@ -35,8 +33,6 @@
       <description>MongoDB에서 skip 기반 deep paging의 성능 문제를 분석하고, _id 기반 Range Query로 개선하는 방법을 벤치마크와 함께 정리한다.</description>
       <pubDate>Sun, 08 Mar 2026 00:00:00 GMT</pubDate>
       <category>Database</category>
-      <category>MongoDB</category>
-      <category>Performance</category>
     </item>
     <item>
       <title>Quick Start - k6 (with InfluxDB + Grafana)</title>
