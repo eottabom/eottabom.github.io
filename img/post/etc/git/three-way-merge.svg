@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" font-size="13">
+  <defs>
+    <marker id="ta" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker>
+  </defs>
+  <text x="360" y="28" text-anchor="middle" font-weight="700" fill="#1e293b" font-size="15">3-Way Merge</text>
+
+  <!-- Common ancestor -->
+  <circle cx="80" cy="145" r="22" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+  <text x="80" y="150" text-anchor="middle" fill="#334155" font-weight="600" font-size="12">Base</text>
+  <text x="80" y="185" text-anchor="middle" fill="#64748b" font-size="10">공통 조상</text>
+
+  <!-- main branch -->
+  <line x1="102" y1="132" x2="148" y2="88" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ta)"/>
+  <circle cx="168" cy="78" r="20" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="168" y="83" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C3</text>
+  <line x1="188" y1="78" x2="228" y2="78" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ta)"/>
+  <circle cx="248" cy="78" r="20" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="248" y="83" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C4</text>
+  <!-- main label: C4 bottom=98, label top=112, gap=14px -->
+  <rect x="213" y="112" width="70" height="22" rx="4" fill="#3b82f6"/>
+  <text x="248" y="127" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">main</text>
+
+  <!-- feature branch -->
+  <line x1="102" y1="158" x2="148" y2="204" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ta)"/>
+  <circle cx="168" cy="214" r="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="168" y="219" text-anchor="middle" fill="#92400e" font-weight="600" font-size="12">C5</text>
+  <line x1="188" y1="214" x2="228" y2="214" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ta)"/>
+  <circle cx="248" cy="214" r="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="248" y="219" text-anchor="middle" fill="#92400e" font-weight="600" font-size="12">C6</text>
+  <!-- feature label: C6 bottom=234, label top=248, gap=14px -->
+  <rect x="213" y="248" width="70" height="22" rx="4" fill="#f59e0b"/>
+  <text x="248" y="263" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">feature</text>
+
+  <!-- Merge commit -->
+  <line x1="268" y1="78" x2="358" y2="138" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ta)"/>
+  <line x1="268" y1="214" x2="358" y2="152" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ta)"/>
+  <circle cx="378" cy="145" r="24" fill="#d1fae5" stroke="#10b981" stroke-width="2.5"/>
+  <text x="378" y="141" text-anchor="middle" fill="#065f46" font-weight="700" font-size="11">Merge</text>
+  <text x="378" y="155" text-anchor="middle" fill="#065f46" font-weight="700" font-size="11">Commit</text>
+
+  <!-- 3-way labels -->
+  <rect x="460" y="70" width="240" height="100" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="480" y="95" fill="#64748b" font-size="12">1. 공통 조상 (Base)</text>
+  <text x="480" y="118" fill="#64748b" font-size="12">2. main 최신 커밋</text>
+  <text x="480" y="141" fill="#64748b" font-size="12">3. feature 최신 커밋</text>
+  <text x="480" y="164" fill="#10b981" font-size="12" font-weight="600">→ 세 지점을 비교하여 병합</text>
+</svg>

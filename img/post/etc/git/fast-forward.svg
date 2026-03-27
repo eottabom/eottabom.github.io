@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 270" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" font-size="13">
+  <defs>
+    <marker id="a1" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker>
+    <marker id="a2" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,6 2.5,0 5" fill="#3b82f6"/></marker>
+  </defs>
+  <!-- Title -->
+  <text x="350" y="24" text-anchor="middle" font-weight="700" fill="#1e293b" font-size="15">Fast-Forward Merge</text>
+
+  <!-- ===== BEFORE ===== -->
+  <text x="30" y="72" fill="#64748b" font-weight="600" font-size="12">BEFORE</text>
+  <circle cx="130" cy="70" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="130" y="75" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C1</text>
+  <line x1="148" y1="70" x2="182" y2="70" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+  <circle cx="200" cy="70" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="200" y="75" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C2</text>
+  <line x1="218" y1="70" x2="252" y2="70" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+  <circle cx="270" cy="70" r="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="270" y="75" text-anchor="middle" fill="#92400e" font-weight="600" font-size="12">C3</text>
+  <line x1="288" y1="70" x2="322" y2="70" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+  <circle cx="340" cy="70" r="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="340" y="75" text-anchor="middle" fill="#92400e" font-weight="600" font-size="12">C4</text>
+  <!-- branch labels -->
+  <rect x="165" y="100" width="70" height="22" rx="4" fill="#3b82f6"/>
+  <text x="200" y="115" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">main</text>
+  <rect x="305" y="100" width="70" height="22" rx="4" fill="#f59e0b"/>
+  <text x="340" y="115" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">feature</text>
+
+  <!-- pointer move arrow: from BEFORE main label to AFTER main label -->
+  <path d="M200,122 C200,158 340,158 340,186" stroke="#3b82f6" stroke-width="1.5" fill="none" stroke-dasharray="5,3" marker-end="url(#a2)"/>
+  <text x="270" y="148" text-anchor="middle" fill="#3b82f6" font-size="11" font-weight="500">포인터 이동</text>
+
+  <!-- ===== AFTER ===== -->
+  <text x="30" y="206" fill="#64748b" font-weight="600" font-size="12">AFTER</text>
+  <circle cx="130" cy="204" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="130" y="209" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C1</text>
+  <line x1="148" y1="204" x2="182" y2="204" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+  <circle cx="200" cy="204" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="200" y="209" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C2</text>
+  <line x1="218" y1="204" x2="252" y2="204" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+  <circle cx="270" cy="204" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="270" y="209" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C3</text>
+  <line x1="288" y1="204" x2="322" y2="204" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a1)"/>
+  <circle cx="340" cy="204" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="340" y="209" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="12">C4</text>
+  <!-- main label -->
+  <rect x="305" y="236" width="70" height="22" rx="4" fill="#3b82f6"/>
+  <text x="340" y="251" text-anchor="middle" fill="#fff" font-weight="600" font-size="11">main</text>
+</svg>

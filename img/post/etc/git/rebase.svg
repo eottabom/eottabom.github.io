@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" font-size="13">
+  <defs>
+    <marker id="ra" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#94a3b8"/></marker>
+  </defs>
+  <text x="380" y="28" text-anchor="middle" font-weight="700" fill="#1e293b" font-size="15">Rebase - Before &amp; After</text>
+
+  <!-- ===== BEFORE ===== -->
+  <text x="30" y="105" fill="#64748b" font-weight="600" font-size="12">BEFORE</text>
+
+  <!-- shared base -->
+  <circle cx="130" cy="118" r="18" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="130" y="123" text-anchor="middle" fill="#475569" font-weight="600" font-size="11">C1</text>
+  <line x1="148" y1="118" x2="180" y2="118" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="198" cy="118" r="18" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="198" y="123" text-anchor="middle" fill="#475569" font-weight="600" font-size="11">C2</text>
+
+  <!-- main branch (up) -->
+  <line x1="216" y1="106" x2="248" y2="76" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="268" cy="66" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="268" y="71" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="11">C3</text>
+  <line x1="286" y1="66" x2="318" y2="66" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="336" cy="66" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="336" y="71" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="11">C4</text>
+  <!-- main label: right of C4 -->
+  <rect x="364" y="56" width="55" height="20" rx="3" fill="#3b82f6"/>
+  <text x="391" y="70" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">main</text>
+
+  <!-- feature branch (down) -->
+  <line x1="216" y1="130" x2="248" y2="162" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="268" cy="172" r="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="268" y="177" text-anchor="middle" fill="#92400e" font-weight="600" font-size="11">F1</text>
+  <line x1="286" y1="172" x2="318" y2="172" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="336" cy="172" r="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+  <text x="336" y="177" text-anchor="middle" fill="#92400e" font-weight="600" font-size="11">F2</text>
+  <!-- feature label: right of F2 -->
+  <rect x="364" y="162" width="55" height="20" rx="3" fill="#f59e0b"/>
+  <text x="391" y="176" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">feature</text>
+
+  <!-- Arrow between before/after -->
+  <text x="300" y="240" text-anchor="middle" fill="#64748b" font-size="24">↓</text>
+  <text x="300" y="258" text-anchor="middle" fill="#475569" font-size="12" font-weight="500">git rebase main</text>
+
+  <!-- ===== AFTER ===== -->
+  <text x="30" y="310" fill="#64748b" font-weight="600" font-size="12">AFTER</text>
+
+  <circle cx="130" cy="307" r="18" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="130" y="312" text-anchor="middle" fill="#475569" font-weight="600" font-size="11">C1</text>
+  <line x1="148" y1="307" x2="180" y2="307" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="198" cy="307" r="18" fill="#e2e8f0" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="198" y="312" text-anchor="middle" fill="#475569" font-weight="600" font-size="11">C2</text>
+  <line x1="216" y1="307" x2="248" y2="307" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="268" cy="307" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="268" y="312" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="11">C3</text>
+  <line x1="286" y1="307" x2="318" y2="307" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="336" cy="307" r="18" fill="#dbeafe" stroke="#3b82f6" stroke-width="2"/>
+  <text x="336" y="312" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="11">C4</text>
+
+  <!-- rebased feature commits -->
+  <line x1="354" y1="307" x2="386" y2="307" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="404" cy="307" r="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="404" y="312" text-anchor="middle" fill="#92400e" font-weight="600" font-size="11">F1'</text>
+  <line x1="422" y1="307" x2="454" y2="307" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#ra)"/>
+  <circle cx="472" cy="307" r="18" fill="#fef3c7" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5,3"/>
+  <text x="472" y="312" text-anchor="middle" fill="#92400e" font-weight="600" font-size="11">F2'</text>
+
+  <!-- AFTER labels: below the line with gap -->
+  <rect x="238" y="340" width="55" height="20" rx="3" fill="#3b82f6"/>
+  <text x="265" y="354" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">main</text>
+  <line x1="265" y1="340" x2="265" y2="327" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <rect x="444" y="340" width="55" height="20" rx="3" fill="#f59e0b"/>
+  <text x="471" y="354" text-anchor="middle" fill="#fff" font-weight="600" font-size="10">feature</text>
+  <line x1="471" y1="340" x2="471" y2="327" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2"/>
+
+  <!-- note -->
+  <rect x="555" y="289" width="185" height="46" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="570" y="309" fill="#64748b" font-size="11">F1', F2' 은 새 해시를 가진</text>
+  <text x="570" y="325" fill="#64748b" font-size="11">재생성된 커밋</text>
+</svg>

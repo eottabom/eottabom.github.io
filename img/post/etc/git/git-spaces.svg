@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 160" font-family="'Pretendard','Apple SD Gothic Neo',sans-serif" font-size="14">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#475569"/></marker>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#dbeafe"/><stop offset="100%" stop-color="#bfdbfe"/></linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fef3c7"/><stop offset="100%" stop-color="#fde68a"/></linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d1fae5"/><stop offset="100%" stop-color="#a7f3d0"/></linearGradient>
+    <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ede9fe"/><stop offset="100%" stop-color="#ddd6fe"/></linearGradient>
+  </defs>
+  <!-- Working Directory -->
+  <rect x="20" y="30" width="160" height="100" rx="12" fill="url(#g1)" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="100" y="62" text-anchor="middle" font-weight="600" fill="#1e40af" font-size="13">Working</text>
+  <text x="100" y="82" text-anchor="middle" font-weight="600" fill="#1e40af" font-size="13">Directory</text>
+  <text x="100" y="108" text-anchor="middle" fill="#3b82f6" font-size="11">파일 편집</text>
+  <!-- Arrow 1 -->
+  <line x1="180" y1="80" x2="240" y2="80" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="210" y="68" text-anchor="middle" fill="#475569" font-size="11" font-weight="500">git add</text>
+  <!-- Staging Area -->
+  <rect x="244" y="30" width="160" height="100" rx="12" fill="url(#g2)" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="324" y="62" text-anchor="middle" font-weight="600" fill="#92400e" font-size="13">Staging</text>
+  <text x="324" y="82" text-anchor="middle" font-weight="600" fill="#92400e" font-size="13">Area</text>
+  <text x="324" y="108" text-anchor="middle" fill="#b45309" font-size="11">커밋 대기</text>
+  <!-- Arrow 2 -->
+  <line x1="404" y1="80" x2="470" y2="80" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="437" y="68" text-anchor="middle" fill="#475569" font-size="11" font-weight="500">git commit</text>
+  <!-- Local Repository -->
+  <rect x="474" y="30" width="160" height="100" rx="12" fill="url(#g3)" stroke="#10b981" stroke-width="1.5"/>
+  <text x="554" y="62" text-anchor="middle" font-weight="600" fill="#065f46" font-size="13">Local</text>
+  <text x="554" y="82" text-anchor="middle" font-weight="600" fill="#065f46" font-size="13">Repository</text>
+  <text x="554" y="108" text-anchor="middle" fill="#059669" font-size="11">커밋 저장</text>
+  <!-- Arrow 3 -->
+  <line x1="634" y1="80" x2="700" y2="80" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="667" y="68" text-anchor="middle" fill="#475569" font-size="11" font-weight="500">git push</text>
+  <!-- Remote Repository -->
+  <rect x="704" y="30" width="160" height="100" rx="12" fill="url(#g4)" stroke="#8b5cf6" stroke-width="1.5"/>
+  <text x="784" y="62" text-anchor="middle" font-weight="600" fill="#5b21b6" font-size="13">Remote</text>
+  <text x="784" y="82" text-anchor="middle" font-weight="600" fill="#5b21b6" font-size="13">Repository</text>
+  <text x="784" y="108" text-anchor="middle" fill="#7c3aed" font-size="11">원격 저장소</text>
+</svg>
