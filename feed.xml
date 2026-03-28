@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Fri, 27 Mar 2026 08:06:55 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 28 Mar 2026 05:04:09 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Claude Code Cheat Sheet 정리 - 자주 쓰는 단축키, Slash Command, MCP 빠르게 익히기</title>
+      <link>https://eottabom.github.io/post/claude-code-cheat-sheet-guide/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/claude-code-cheat-sheet-guide/</guid>
+      <description>Claude Code v2.1.83 기준으로 꼭 먼저 익힐 단축키, Slash Command, MCP, Agent, CLI 사용 흐름을 한국어로 정리한다.</description>
+      <pubDate>Sat, 28 Mar 2026 00:00:00 GMT</pubDate>
+      <category>Etc</category>
+      <category>AI</category>
+    </item>
     <item>
       <title>Git 정리 - 기본 개념부터 Merge, Rebase, Cherry-pick, 충돌 해결까지</title>
       <link>https://eottabom.github.io/post/git-complete-guide/</link>
@@ -166,14 +175,6 @@
       <guid isPermaLink="true">https://eottabom.github.io/post/why-new-line/</guid>
       <description>파일 끝에 개행이 필요한 이유와 POSIX 표준에 대해서 간략히 알아보자.</description>
       <pubDate>Mon, 10 Jun 2024 00:00:00 GMT</pubDate>
-      <category>Clean Code</category>
-    </item>
-    <item>
-      <title>Local Variable Type Inference Style Guidelines</title>
-      <link>https://eottabom.github.io/post/local-variable-type-inference-style-guidelines/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/local-variable-type-inference-style-guidelines/</guid>
-      <description>지역 변수 유형 추론 타입인 &apos;var&apos; 를 사용하는 방법</description>
-      <pubDate>Fri, 07 Jun 2024 00:00:00 GMT</pubDate>
       <category>Clean Code</category>
     </item>
   </channel>
