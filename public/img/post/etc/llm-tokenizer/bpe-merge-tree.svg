@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 420" font-family="'Pretendard', 'Apple SD Gothic Neo', sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="nodeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#475569"/>
+    </linearGradient>
+    <linearGradient id="rootGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="640" height="420" rx="12" fill="url(#bgGrad)" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Title -->
+  <text x="320" y="36" text-anchor="middle" font-size="15" font-weight="700" fill="#1e293b">BPE 병합 과정: "lower"</text>
+
+  <!-- Edges -->
+  <g stroke="#cbd5e1" stroke-width="2" fill="none">
+    <!-- root to low, er -->
+    <path d="M320,80 Q320,100 220,130"/>
+    <path d="M320,80 Q320,100 420,130"/>
+    <!-- low to lo, w -->
+    <path d="M220,170 Q220,190 150,220"/>
+    <path d="M220,170 Q220,190 290,220"/>
+    <!-- lo to l, o -->
+    <path d="M150,260 Q150,280 100,310"/>
+    <path d="M150,260 Q150,280 200,310"/>
+    <!-- er to e, r -->
+    <path d="M420,170 Q420,190 370,220"/>
+    <path d="M420,170 Q420,190 470,220"/>
+  </g>
+
+  <!-- Merge order labels -->
+  <g font-size="11" fill="#94a3b8" font-weight="600">
+    <text x="256" y="100">4</text>
+    <text x="375" y="100">4</text>
+    <text x="172" y="192">3</text>
+    <text x="262" y="192">3</text>
+    <text x="112" y="282">1</text>
+    <text x="182" y="282">1</text>
+    <text x="382" y="192">2</text>
+    <text x="452" y="192">2</text>
+  </g>
+
+  <!-- Root node: lower -->
+  <g filter="url(#shadow)">
+    <rect x="264" y="52" width="112" height="36" rx="18" fill="url(#rootGrad)"/>
+    <text x="320" y="76" text-anchor="middle" font-size="16" font-weight="700" fill="white">"lower"</text>
+  </g>
+
+  <!-- Level 2: low, er -->
+  <g filter="url(#shadow)">
+    <rect x="170" y="126" width="100" height="36" rx="18" fill="url(#nodeGrad)"/>
+    <text x="220" y="150" text-anchor="middle" font-size="15" font-weight="600" fill="white">"low"</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="370" y="126" width="100" height="36" rx="18" fill="url(#nodeGrad)"/>
+    <text x="420" y="150" text-anchor="middle" font-size="15" font-weight="600" fill="white">"er"</text>
+  </g>
+
+  <!-- Level 3: lo, w, e, r -->
+  <g filter="url(#shadow)">
+    <rect x="104" y="218" width="92" height="36" rx="18" fill="url(#nodeGrad)"/>
+    <text x="150" y="242" text-anchor="middle" font-size="15" font-weight="600" fill="white">"lo"</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="250" y="218" width="80" height="36" rx="18" fill="url(#leafGrad)"/>
+    <text x="290" y="242" text-anchor="middle" font-size="15" font-weight="600" fill="white">"w"</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="336" y="218" width="68" height="36" rx="18" fill="url(#leafGrad)"/>
+    <text x="370" y="242" text-anchor="middle" font-size="15" font-weight="600" fill="white">"e"</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="436" y="218" width="68" height="36" rx="18" fill="url(#leafGrad)"/>
+    <text x="470" y="242" text-anchor="middle" font-size="15" font-weight="600" fill="white">"r"</text>
+  </g>
+
+  <!-- Leaf nodes: l, o -->
+  <g filter="url(#shadow)">
+    <rect x="66" y="308" width="68" height="36" rx="18" fill="url(#leafGrad)"/>
+    <text x="100" y="332" text-anchor="middle" font-size="15" font-weight="600" fill="white">"l"</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="166" y="308" width="68" height="36" rx="18" fill="url(#leafGrad)"/>
+    <text x="200" y="332" text-anchor="middle" font-size="15" font-weight="600" fill="white">"o"</text>
+  </g>
+
+  <!-- Legend -->
+  <g transform="translate(40, 370)">
+    <text font-size="12" font-weight="600" fill="#64748b">병합 순서:</text>
+    <rect x="90" y="-12" width="14" height="14" rx="3" fill="#94a3b8" opacity="0.3"/>
+    <text x="92" y="0" font-size="10" font-weight="700" fill="#64748b">1</text>
+    <text x="110" y="0" font-size="11" fill="#64748b">l + o → lo</text>
+    <rect x="200" y="-12" width="14" height="14" rx="3" fill="#94a3b8" opacity="0.3"/>
+    <text x="202" y="0" font-size="10" font-weight="700" fill="#64748b">2</text>
+    <text x="220" y="0" font-size="11" fill="#64748b">e + r → er</text>
+    <rect x="310" y="-12" width="14" height="14" rx="3" fill="#94a3b8" opacity="0.3"/>
+    <text x="312" y="0" font-size="10" font-weight="700" fill="#64748b">3</text>
+    <text x="330" y="0" font-size="11" fill="#64748b">lo + w → low</text>
+    <rect x="430" y="-12" width="14" height="14" rx="3" fill="#94a3b8" opacity="0.3"/>
+    <text x="432" y="0" font-size="10" font-weight="700" fill="#64748b">4</text>
+    <text x="450" y="0" font-size="11" fill="#64748b">low + er → lower</text>
+  </g>
+
+  <!-- Color legend -->
+  <g transform="translate(40, 395)">
+    <rect x="0" y="-10" width="12" height="12" rx="6" fill="url(#leafGrad)"/>
+    <text x="18" y="0" font-size="11" fill="#64748b">초기 바이트</text>
+    <rect x="100" y="-10" width="12" height="12" rx="6" fill="url(#nodeGrad)"/>
+    <text x="118" y="0" font-size="11" fill="#64748b">병합된 심볼</text>
+    <rect x="210" y="-10" width="12" height="12" rx="6" fill="url(#rootGrad)"/>
+    <text x="228" y="0" font-size="11" fill="#64748b">최종 토큰</text>
+  </g>
+</svg>

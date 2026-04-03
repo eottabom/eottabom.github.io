@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 520" font-family="'Pretendard', 'Apple SD Gothic Neo', sans-serif">
+  <defs>
+    <linearGradient id="bgG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="openaiG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="claudeG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+    <linearGradient id="gemmaG" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+    <linearGradient id="stepG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <filter id="sh" x="-2%" y="-4%" width="104%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="880" height="520" rx="12" fill="url(#bgG)" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Title -->
+  <text x="440" y="36" text-anchor="middle" font-size="16" font-weight="700" fill="#1e293b">LLM 3사 토크나이저 파이프라인 비교</text>
+
+  <!-- Column Headers -->
+  <g filter="url(#sh)">
+    <rect x="30" y="55" width="260" height="32" rx="8" fill="url(#openaiG)"/>
+    <text x="160" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="white">OpenAI (tiktoken)</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="310" y="55" width="260" height="32" rx="8" fill="url(#claudeG)"/>
+    <text x="440" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="white">Anthropic - Claude (ByteLevel)</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="590" y="55" width="260" height="32" rx="8" fill="url(#gemmaG)"/>
+    <text x="720" y="76" text-anchor="middle" font-size="13" font-weight="700" fill="white">Google - Gemma3 (SentencePiece)</text>
+  </g>
+
+  <!-- Step labels on the left -->
+  <g font-size="11" fill="#94a3b8" font-weight="600" text-anchor="end">
+    <text x="22" y="128">1</text>
+    <text x="22" y="198">2</text>
+    <text x="22" y="268">3</text>
+    <text x="22" y="338">4</text>
+    <text x="22" y="408">5</text>
+  </g>
+
+  <!-- Row 1: Normalize -->
+  <g filter="url(#sh)">
+    <rect x="30" y="100" width="260" height="48" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="160" y="120" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">Normalize</text>
+    <text x="160" y="138" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">(없음)</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="310" y="100" width="260" height="48" rx="8" fill="white" stroke="#f97316" stroke-width="1.5"/>
+    <text x="440" y="120" text-anchor="middle" font-size="11" font-weight="600" fill="#f97316">Normalize</text>
+    <text x="440" y="138" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">NFKC 유니코드 정규화</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="590" y="100" width="260" height="48" rx="8" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="720" y="120" text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">Normalize</text>
+    <text x="720" y="138" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">공백 " " → "▁" 치환</text>
+  </g>
+
+  <!-- Row 2: PreTokenize -->
+  <g filter="url(#sh)">
+    <rect x="30" y="170" width="260" height="48" rx="8" fill="white" stroke="#10b981" stroke-width="1.5"/>
+    <text x="160" y="190" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">PreTokenize</text>
+    <text x="160" y="208" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">pat_str 정규식으로 분리</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="310" y="170" width="260" height="48" rx="8" fill="white" stroke="#f97316" stroke-width="1.5"/>
+    <text x="440" y="190" text-anchor="middle" font-size="11" font-weight="600" fill="#f97316">PreTokenize</text>
+    <text x="440" y="208" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">GPT-2 ByteLevel 정규식</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="590" y="170" width="260" height="48" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="720" y="190" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">PreTokenize</text>
+    <text x="720" y="208" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">(없음 — 전체를 하나로)</text>
+  </g>
+
+  <!-- Row 3: Encode -->
+  <g filter="url(#sh)">
+    <rect x="30" y="240" width="260" height="48" rx="8" fill="white" stroke="#10b981" stroke-width="1.5"/>
+    <text x="160" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">Encode</text>
+    <text x="160" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">UTF-8 바이트 변환</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="310" y="240" width="260" height="48" rx="8" fill="white" stroke="#f97316" stroke-width="1.5"/>
+    <text x="440" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#f97316">Encode</text>
+    <text x="440" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">byte → GPT-2 유니코드 매핑</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="590" y="240" width="260" height="48" rx="8" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="720" y="260" text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">Encode</text>
+    <text x="720" y="278" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">문자 단위 분리</text>
+  </g>
+
+  <!-- Row 4: BPE -->
+  <g filter="url(#sh)">
+    <rect x="30" y="310" width="260" height="48" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-width="1.5"/>
+    <text x="160" y="330" text-anchor="middle" font-size="11" font-weight="600" fill="#10b981">BPE</text>
+    <text x="160" y="348" text-anchor="middle" font-size="13" font-weight="700" fill="#059669">Rank 기반 병합</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="310" y="310" width="260" height="48" rx="8" fill="#fff7ed" stroke="#f97316" stroke-width="1.5"/>
+    <text x="440" y="330" text-anchor="middle" font-size="11" font-weight="600" fill="#f97316">BPE</text>
+    <text x="440" y="348" text-anchor="middle" font-size="13" font-weight="700" fill="#ea580c">Merge 목록 기반 병합</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="590" y="310" width="260" height="48" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="720" y="330" text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">BPE</text>
+    <text x="720" y="348" text-anchor="middle" font-size="13" font-weight="700" fill="#2563eb">Merge 목록 기반 병합</text>
+  </g>
+
+  <!-- Row 5: PostProcess -->
+  <g filter="url(#sh)">
+    <rect x="30" y="380" width="260" height="48" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="160" y="400" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">PostProcess</text>
+    <text x="160" y="418" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">(없음)</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="310" y="380" width="260" height="48" rx="8" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="440" y="400" text-anchor="middle" font-size="11" font-weight="600" fill="#94a3b8">PostProcess</text>
+    <text x="440" y="418" text-anchor="middle" font-size="13" font-weight="600" fill="#64748b">(없음)</text>
+  </g>
+  <g filter="url(#sh)">
+    <rect x="590" y="380" width="260" height="48" rx="8" fill="white" stroke="#3b82f6" stroke-width="1.5"/>
+    <text x="720" y="400" text-anchor="middle" font-size="11" font-weight="600" fill="#3b82f6">PostProcess</text>
+    <text x="720" y="418" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">&lt;bos&gt; 토큰 추가 (id=2)</text>
+  </g>
+
+  <!-- Arrows between rows -->
+  <g stroke="#cbd5e1" stroke-width="1.5" fill="#cbd5e1" marker-end="url(#arrowhead)">
+    <defs>
+      <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#cbd5e1"/>
+      </marker>
+    </defs>
+    <!-- OpenAI arrows -->
+    <line x1="160" y1="148" x2="160" y2="170"/>
+    <line x1="160" y1="218" x2="160" y2="240"/>
+    <line x1="160" y1="288" x2="160" y2="310"/>
+    <line x1="160" y1="358" x2="160" y2="380"/>
+    <!-- Claude arrows -->
+    <line x1="440" y1="148" x2="440" y2="170"/>
+    <line x1="440" y1="218" x2="440" y2="240"/>
+    <line x1="440" y1="288" x2="440" y2="310"/>
+    <line x1="440" y1="358" x2="440" y2="380"/>
+    <!-- Gemma arrows -->
+    <line x1="720" y1="148" x2="720" y2="170"/>
+    <line x1="720" y1="218" x2="720" y2="240"/>
+    <line x1="720" y1="288" x2="720" y2="310"/>
+    <line x1="720" y1="358" x2="720" y2="380"/>
+  </g>
+
+  <!-- Footer: Vocab sizes -->
+  <g font-size="11" fill="#94a3b8">
+    <text x="160" y="456" text-anchor="middle">Vocab: 50K ~ 200K</text>
+    <text x="440" y="456" text-anchor="middle">Vocab: 65K</text>
+    <text x="720" y="456" text-anchor="middle">Vocab: 262K</text>
+  </g>
+
+  <!-- Highlighted shared area -->
+  <rect x="306" y="306" width="548" height="56" rx="10" fill="none" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4" opacity="0.5"/>
+  <text x="580" y="376" text-anchor="middle" font-size="10" fill="#94a3b8" opacity="0.7">동일한 mergeBPE 알고리즘</text>
+
+  <!-- Data format labels -->
+  <g font-size="10" fill="#94a3b8" font-style="italic">
+    <text x="160" y="472" text-anchor="middle">tiktoken 자체 포맷</text>
+    <text x="440" y="472" text-anchor="middle">HuggingFace tokenizer.json</text>
+    <text x="720" y="472" text-anchor="middle">HuggingFace tokenizer.json</text>
+  </g>
+
+  <!-- Input label -->
+  <text x="440" y="502" text-anchor="middle" font-size="11" fill="#64748b">
+    입력: "Hello, world! 안녕하세요." → 각 파이프라인을 통과하여 토큰 ID 배열로 변환
+  </text>
+</svg>

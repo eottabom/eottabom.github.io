@@ -19,8 +19,10 @@ body {
 
 .prose pre code {
   line-height: 1.6;
-  overflow-x: auto;
-  white-space: pre;
+  overflow-x: visible;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .prose pre {
