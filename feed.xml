@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Sun, 29 Mar 2026 04:03:29 GMT</lastBuildDate>
+    <lastBuildDate>Fri, 03 Apr 2026 10:52:11 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>LLM 토크나이저 Deep Dive - BPE 알고리즘부터 코드 뜯어보기까지</title>
+      <link>https://eottabom.github.io/post/llm-tokenizer-bpe-deep-dive/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/llm-tokenizer-bpe-deep-dive/</guid>
+      <description>LLM 3사(OpenAI, Anthropic, Google)의 토크나이저를 분석하고, AI Agent의 도움을 받아 순수 JavaScript BPE 토크나이저 코드를 뜯어본 과정을 정리</description>
+      <pubDate>Fri, 03 Apr 2026 00:00:00 GMT</pubDate>
+      <category>Etc</category>
+      <category>AI</category>
+    </item>
     <item>
       <title>CLAUDE.md 가이드 - 파일 위치, Rules, 메모리 구조 한 번에 보기</title>
       <link>https://eottabom.github.io/post/claude-md-complete-guide/</link>
@@ -169,14 +178,6 @@
       <pubDate>Tue, 03 Sep 2024 00:00:00 GMT</pubDate>
       <category>Java</category>
       <category>Lombok</category>
-    </item>
-    <item>
-      <title>불변임을 나타내는 keyword - Final</title>
-      <link>https://eottabom.github.io/post/about-final/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/about-final/</guid>
-      <description>불변임을 나타내는 Final keyword 에 대해서, 그리고 언제 사용하는 것이 좋을까? 에 대한 내용</description>
-      <pubDate>Sun, 01 Sep 2024 00:00:00 GMT</pubDate>
-      <category>Java</category>
     </item>
   </channel>
 </rss>
