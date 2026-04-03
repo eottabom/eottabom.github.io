@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths-ignore:
-      - ".github/**"
       - "README.md"
       - ".gitignore"
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

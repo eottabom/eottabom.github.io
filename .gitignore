@@ -6,7 +6,6 @@ _site/
 .idea/**
 
 node_modules
-package-lock.json
 .next
 
 out
