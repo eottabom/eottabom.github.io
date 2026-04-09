@@ -1,0 +1,117 @@
+<svg viewBox="0 0 1200 810" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-size: 30px; font-weight: bold; fill: #000; }
+      .label { font-size: 20px; fill: #000; font-weight: bold; }
+      .axis { font-size: 18px; fill: #000; }
+      .goal-line { stroke: #4CAF50; stroke-width: 3; stroke-dasharray: 7,5; }
+      .grid { stroke: #e0e0e0; stroke-width: 1; }
+      .annotation { font-size: 17px; fill: #000; }
+      .metric-label { font-size: 16px; fill: #000; }
+      .note { font-size: 13px; fill: #666; font-style: italic; }
+    </style>
+  </defs>
+
+  <text x="600" y="50" class="title" text-anchor="middle">MaxGCPauseMillis 목표값과 실제 Pause Time 분포</text>
+
+  <!-- Chart background -->
+  <rect x="70" y="80" width="970" height="430" fill="#fafafa" stroke="#999" stroke-width="2" rx="4"/>
+
+  <!-- Y-axis -->
+  <line x1="70" y1="80" x2="70" y2="510" stroke="#000" stroke-width="2"/>
+  <!-- X-axis -->
+  <line x1="70" y1="510" x2="1040" y2="510" stroke="#000" stroke-width="2"/>
+
+  <!-- Y-axis labels and gridlines -->
+  <text x="55" y="520" class="axis" text-anchor="end">0ms</text>
+  <line x1="70" y1="510" x2="1040" y2="510" class="grid"/>
+
+  <text x="55" y="425" class="axis" text-anchor="end">100ms</text>
+  <line x1="70" y1="420" x2="1040" y2="420" class="grid"/>
+
+  <text x="55" y="345" class="axis" text-anchor="end">200ms</text>
+  <line x1="70" y1="340" x2="1040" y2="340" class="grid"/>
+
+  <text x="55" y="265" class="axis" text-anchor="end">300ms</text>
+  <line x1="70" y1="260" x2="1040" y2="260" class="grid"/>
+
+  <text x="55" y="185" class="axis" text-anchor="end">400ms</text>
+  <line x1="70" y1="180" x2="1040" y2="180" class="grid"/>
+
+  <text x="55" y="105" class="axis" text-anchor="end">500ms+</text>
+
+  <!-- Goal line at 200ms -->
+  <line x1="70" y1="340" x2="1040" y2="340" class="goal-line"/>
+  <text x="1050" y="348" class="label" fill="#2f7d32">목표 200ms</text>
+
+  <!-- Data points -->
+  <!-- Young GC -->
+  <g id="young-gc" fill="#4CAF50" opacity="0.8">
+    <circle cx="130" cy="480" r="4.5"/>
+    <circle cx="170" cy="495" r="4.5"/>
+    <circle cx="210" cy="470" r="4.5"/>
+    <circle cx="250" cy="488" r="4.5"/>
+    <circle cx="290" cy="478" r="4.5"/>
+  </g>
+
+  <!-- Boundary GC -->
+  <g id="boundary-gc" fill="#FFA500" opacity="0.8">
+    <circle cx="330" cy="350" r="4.5"/>
+    <circle cx="370" cy="365" r="4.5"/>
+  </g>
+
+  <!-- Mixed GC -->
+  <g id="mixed-gc" fill="#FF6B6B" opacity="0.8">
+    <circle cx="410" cy="320" r="4.5"/>
+    <circle cx="450" cy="300" r="4.5"/>
+    <circle cx="490" cy="335" r="4.5"/>
+    <circle cx="530" cy="290" r="4.5"/>
+    <circle cx="570" cy="315" r="4.5"/>
+    <circle cx="610" cy="280" r="4.5"/>
+    <circle cx="650" cy="325" r="4.5"/>
+    <circle cx="690" cy="305" r="4.5"/>
+    <circle cx="730" cy="340" r="4.5"/>
+  </g>
+
+  <!-- Young GC resume -->
+  <g id="young-gc-2" fill="#4CAF50" opacity="0.8">
+    <circle cx="770" cy="485" r="4.5"/>
+    <circle cx="810" cy="475" r="4.5"/>
+    <circle cx="850" cy="490" r="4.5"/>
+    <circle cx="890" cy="480" r="4.5"/>
+    <circle cx="930" cy="492" r="4.5"/>
+  </g>
+
+  <!-- Full GC spike -->
+  <circle cx="970" cy="140" r="5.5" fill="#FF0000" opacity="0.9"/>
+  <line x1="970" y1="145" x2="970" y2="510" stroke="#FF0000" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.6"/>
+
+  <!-- X-axis labels -->
+  <text x="600" y="545" class="axis" text-anchor="middle">GC 이벤트 순서</text>
+
+  <!-- Legend -->
+  <g id="legend">
+    <rect x="60" y="580" width="1080" height="200" fill="white" stroke="#ddd" stroke-width="2" rx="4"/>
+
+    <circle cx="95" cy="608" r="4.5" fill="#4CAF50" opacity="0.8"/>
+    <text x="115" y="618" class="annotation">Young GC</text>
+    <text x="115" y="640" class="metric-label">가장 짧은 pause (수십 ms)</text>
+    <text x="115" y="660" class="metric-label">자주 발생하지만 영향은 상대적으로 작다</text>
+
+    <circle cx="95" cy="690" r="4.5" fill="#FFA500" opacity="0.8"/>
+    <text x="115" y="700" class="annotation">경계 구간</text>
+    <text x="115" y="722" class="metric-label">목표값(200ms) 근처에서 변동한다</text>
+    <text x="115" y="746" class="metric-label">회수 효율에 따라 길이가 달라질 수 있다</text>
+
+    <circle cx="570" cy="608" r="4.5" fill="#FF6B6B" opacity="0.8"/>
+    <text x="590" y="618" class="annotation">Mixed GC</text>
+    <text x="590" y="640" class="metric-label">더 긴 pause (수백 ms 가능)</text>
+    <text x="590" y="660" class="metric-label">회수 대상 크기와 효율에 따라 크게 변동한다</text>
+
+    <circle cx="570" cy="690" r="5.5" fill="#FF0000" opacity="0.9"/>
+    <text x="590" y="700" class="annotation">Full GC (회피 대상)</text>
+    <text x="590" y="722" class="metric-label">매우 긴 pause (500ms+)</text>
+    <text x="590" y="746" class="metric-label">응답 시간에 직접적인 악영향을 준다</text>
+  </g>
+
+</svg>

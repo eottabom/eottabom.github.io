@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Fri, 03 Apr 2026 11:06:39 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 09 Apr 2026 12:44:09 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>G1GC 에 대해서 알아보자 - 동작 원리와 선택 기준</title>
+      <link>https://eottabom.github.io/post/g1gc-overview-and-tuning/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/g1gc-overview-and-tuning/</guid>
+      <description>G1GC의 동작 원리부터 선택 기준까지 정리한다. Region 기반 회수 구조, pause time 특성, 큰 Heap에서의 장점, 그리고 옵션보다 먼저 봐야 할 판단 기준을 함께 살펴본다.</description>
+      <pubDate>Thu, 09 Apr 2026 00:00:00 GMT</pubDate>
+      <category>Java</category>
+      <category>JVM</category>
+    </item>
     <item>
       <title>LLM 토크나이저 Deep Dive - BPE 알고리즘부터 코드 뜯어보기까지</title>
       <link>https://eottabom.github.io/post/llm-tokenizer-bpe-deep-dive/</link>
@@ -167,15 +176,6 @@
       <guid isPermaLink="true">https://eottabom.github.io/post/lombok-using-points/</guid>
       <description>Java 에서 Lombok 사용 시 유의해야 할 사항과 단점에 대해서 알아보자.</description>
       <pubDate>Sun, 22 Sep 2024 00:00:00 GMT</pubDate>
-      <category>Java</category>
-      <category>Lombok</category>
-    </item>
-    <item>
-      <title>컴파일 과정과 Lombok 의 동작 원리</title>
-      <link>https://eottabom.github.io/post/lombok-precess/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/lombok-precess/</guid>
-      <description>컴파일 과정과 Lombok 의 동작 원리에 대해서 알아보자</description>
-      <pubDate>Tue, 03 Sep 2024 00:00:00 GMT</pubDate>
       <category>Java</category>
       <category>Lombok</category>
     </item>
