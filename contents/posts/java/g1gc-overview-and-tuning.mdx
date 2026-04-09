@@ -1,0 +1,325 @@
+---
+title: "G1GC 에 대해서 알아보자 - 동작 원리와 선택 기준"
+date: "2026-04-09"
+tags: ["Java", "JVM"]
+summary: "How G1GC works, why heap size matters, and what to check before tuning pause-time options. A practical guide to G1GC behavior and selection criteria."
+description: "G1GC의 동작 원리부터 선택 기준까지 정리한다. Region 기반 회수 구조, pause time 특성, 큰 Heap에서의 장점, 그리고 옵션보다 먼저 봐야 할 판단 기준을 함께 살펴본다."
+---
+
+:::info
+G1GC는 많이 쓰이는 이름이지만, 실제로 중요한 건 "지금 우리 서비스에 정말 맞는가"라는 질문이다. <br />
+Heap이 충분히 큰지, pause time이 실제 문제인지, Full GC를 피할 여지가 있는지부터 봐야 한다. <br />
+G1GC의 기본 동작을 먼저 정리하고, 어떤 조건에서 의미가 커지는지 실무 판단 기준 중심으로 살펴본다.
+:::
+
+
+---
+
+## G1GC란?
+
+G1GC는 Garbage-First Garbage Collector의 줄임말이다.
+<BlueText>가비지가 많이 쌓인 영역을 우선적으로 회수</BlueText>하는 전략을 가진 GC다.
+
+기존 GC는 Young, Old 영역을 큰 덩어리로 나눴지만, ([JVM Tuning](/post/jvm-tuning)에서 기본 개념 참고) <br />
+G1GC는 Heap 전체를 고정 크기의 Region 여러 개로 나누고, Region 단위로 회수 대상을 선택한다.
+
+핵심은 처리량만 높이는 것이 아니라 <GreenText>예측 가능한 pause time</GreenText>을 만드는 것이다.
+
+:::tip
+즉, "절대 빠른 GC"가 아니라 "큰 Heap에서도 멈춤 시간을 통제하기 쉬운 GC"로 봐야 한다.
+:::
+
+
+---
+
+## 왜 G1GC 를 많이 사용할까?
+
+**일정한 pause time을 예측할 수 있기 때문이다.**
+
+운영 환경에서 보는 지표는 평균 응답 시간이 아니고, 95 percentile, 99 percentile 같은 <BlueText>tail latency</BlueText>다. <br />
+평균이 100ms여도 한 번의 500ms pause가 섞이면 그 요청은 거기서 깨지고, 사용자 경험은 평균으로 결정되지 않는다.
+
+G1GC는 Old 영역을 한 번에 다 정리하지 않고, Mixed GC로 조금씩 나눠서 정리한다. <br />
+그렇기 때문에, "최악의 경우"가 Full GC 같은 극단으로 가지 않고, 어느 정도 제어 범위 안에 있을 수 있다.
+
+이게 G1GC의 핵심인데, **"가장 빠른 GC"가 아니라 "pause time을 일정 수준으로 관리할 수 있는 GC"** 이다.
+
+추가적으로 아래와 같은 이유 때문에 사용한다.
+- JDK 9부터 기본값
+- Region 기반이라 큰 Heap에서 유연함
+- evacuation/compaction으로 단편화 적음
+
+---
+
+## Heap을 Region으로 나눈다는 것은?
+
+기존의 GC는 Eden, Survivor, Old를 고정된 큰 영역으로 봤었다면, <br />
+G1GC는 Heap 전체를 동일 크기의 Region으로 나누고, 각 Region이 시점에 따라 Eden, Survivor, Old, Humongous 역할을 한다.
+
+**"이 메모리는 영원히 Eden"이 아니라 "지금 이 Region이 Eden 역할을 하고 있다"는 뜻이다.**
+
+이러한 구조때문에, G1GC는 Heap 의 특정 부분만 선택해서 수집할 수 있고,
+garbage가 많이 쌓인 Region을 추적해서, 회수 효율이 높은 영역부터 우선 처리한다.
+
+<div style={{ textAlign: 'center' }}>
+  <img src="/g1gc/heap-structure-comparison.svg" alt="Heap 구조 비교: 기존 GC vs G1GC" style={{ display: 'inline-block', width: '100%', maxWidth: '960px' }} />
+</div>
+
+<br />
+
+### Region 종류
+
+**Eden Region**
+* 새 객체가 할당되는 영역이다.
+* 애플리케이션이 객체를 빠르게 생성하면 Eden부터 차오른다.
+
+**Survivor Region**
+* Young GC를 견딘 객체가 임시로 옮겨지는 영역이다.
+* 일정 조건을 만족하면 Old로 승격된다.
+
+**Old Region**
+* 오래 살아남은 객체가 있는 영역이다.
+* G1GC는 Old 전체를 한 번에 정리하지 않고, 회수 가치가 높은 Region을 Mixed GC에 포함시킨다.
+
+**Humongous Region**
+* Region 크기의 절반 이상을 차지하는 매우 큰 객체용 영역이다.
+* 큰 배열, 버퍼가 자주 생기면 이 영역이 늘어나고 GC 효율이 떨어진다.
+
+:::warning
+Heap 사용률이 낮은데도 pause time 이 길거나 Full GC가 반복되는 상황이라면, <br />
+Heap 크기만 볼 것이 아니라 <b>Humongous allocation 패턴</b>도 확인해야 한다. <br />
+ex) Region이 2MB인데 5MB 배열을 계속 할당하면 Humongous Region만 늘어난다.
+:::
+
+<div style={{ textAlign: 'center' }}>
+  <img src="/g1gc/region-lifecycle.svg" alt="Region 생명주기: Eden → Survivor → Old" style={{ display: 'inline-block', width: '100%', maxWidth: '960px' }} />
+</div>
+
+<br />
+
+
+---
+
+## G1GC 동작 흐름
+
+G1GC의 큰 흐름은 Young GC, Mixed GC로 이해하면 된다.
+
+### 1. Young GC
+
+Eden이 차면 Young GC가 발생하고, 살아있는 객체는 Survivor 또는 Old로 복사(evacuation)된다.
+
+중요한 점은 G1GC가 단순히 마킹만 하지 않고, 살아있는 객체를 다른 Region으로 옮기면서 공간을 정리한다.
+
+그래서 단편화를 줄이는 데 유리하다.
+
+### 2. Concurrent Mark
+
+Old Region 중 어디를 회수하면 효율이 좋을지 계산해야 Mixed GC를 할 수 있다.
+이를 위해 애플리케이션 스레드와 병행해서 살아있는 객체를 추적하는 Concurrent Mark 단계가 진행된다.
+
+목적은 단순한데, "Old 중 어디를 회수하면 이득이 클까?"를 파악하는 것이다.
+
+### 3. Mixed GC
+
+Concurrent Mark 이후에는 Young 만 수집하는게 아니라, 회수 가치가 높은 Old 영역도 함께 수집한다. 이것이 <b>Mixed GC</b>다.
+
+Old가 꽉 찰 때까지 기다렸다가 큰 정지를 하는 대신, 조금씩 나눠서 회수해 긴 pause를 피한다.
+
+### 4. Full GC
+
+이상적으로는 Full GC를 피하는 게 좋지만, 완전히 없진 않다. <br />
+evacuation 여유 공간 부족, Heap 압박 심화, Humongous allocation 과다 시 Full GC가 발생할 수 있다.
+
+:::danger
+운영 환경에서 Full GC가 자주 보이면, "G1GC는 원래 느리다"가 아니라
+Heap headroom 부족, allocation rate 급증, 큰 객체 패턴, pause 목표값 과도 설정을 먼저 확인해야 한다.
+:::
+
+<div style={{ textAlign: 'center' }}>
+  <img src="/g1gc/gc-cycle-timeline.svg" alt="G1GC 동작 사이클: Young GC → Concurrent Mark → Mixed GC" style={{ display: 'inline-block', width: '100%', maxWidth: '980px' }} />
+</div>
+
+<br />
+
+
+---
+
+## G1GC의 비용
+
+G1GC는 좋은 기본 선택지지만,
+Region 단위 Heap 관리와 우선순위 판단에는 더 많은 메타 정보와 추적 비용이 필요하다.
+
+대표적으로 **write barrier**가 있다.
+객체 참조가 바뀔 때마다 G1GC는 이후 마킹과 Region 추적용 정보를 기록해야 한다. <br />
+이것이 pause time을 줄이는 데 도움을 주지만, 애플리케이션은 런타임 오버헤드를 감수한다.
+
+즉, G1GC는 **"비용 없이 pause만 줄여주는 수집기"** 가 아니라
+<BlueText>평균 실행 오버헤드 일부를 감수하고 큰 정지를 피하려는 수집기</BlueText>라고 할 수 있다.
+
+
+---
+
+## pause time 목표 이해하기
+
+G1GC의 가장 유명한 옵션은 `-XX:MaxGCPauseMillis`다.
+이것은 **"GC pause를 반드시 이 이하로 끝낸다"는 보장이 아니라,** JVM이 참고하는 <BlueText>목표값</BlueText>이다.
+
+```shell
+-XX:+UseG1GC
+-XX:MaxGCPauseMillis=200
+```
+
+하지만 pause time은 객체 생성 속도, live object 비율, CPU 여유, Heap 크기, 큰 객체 패턴에 영향을 받는다. 옵션 하나만 줄여서 해결되는 경우는 거의 없다.
+
+먼저 순서대로 확인해야 할 것들은 아래와 같다.
+1. 현재 pause time이 정말 문제인가? 지표로 확인
+2. Heap이 작아서 GC가 너무 자주 나오는 건 아닌가?
+3. allocation rate와 승격 압박이 과한가?
+4. 큰 객체 할당이나 과도한 캐시가 없는가?
+5. 위 것들이 정상이면 그제야 `MaxGCPauseMillis` 조정 고려
+
+<div style={{ textAlign: 'center' }}>
+  <img src="/g1gc/pause-time-reality.svg" alt="MaxGCPauseMillis 목표값 vs 실제 pause 분포" style={{ display: 'inline-block', width: '100%', maxWidth: '980px' }} />
+</div>
+
+<br />
+
+:::note
+위 분포는 일반적인 G1GC 패턴을 단순화해 표현한 것이다. <br />
+<a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/g1_gc_tuning.html">Oracle - G1GC Tuning Guide</a>의 pause time 설명을 함께 참고하면 좋다.
+:::
+
+---
+
+## GC 로그에서 먼저 봐야 할 것
+
+GC 로그는 많은 정보를 담아 처음엔 어렵지만, 몇 가지 포인트만 봐도 대부분의 문제를 진단할 수 있다.
+
+**Young GC 주기와 pause time**
+* Young GC가 너무 자주 나타나면 Heap이 작거나, 짧게 살아야 할 객체가 오래 남아 승격 압박을 주는 신호다.
+
+**Mixed GC 연속성과 효율**
+* Concurrent Mark 후 Mixed GC가 여러 번 이어지는데, 너무 길거나 회수 효율이 낮으면 Old의 live object 비율이 높다는 뜻이다.
+
+**Evacuation 실패 (To-space exhausted)**
+* evacuation 공간이 부족하면 G1GC가 의도한 방식으로 동작하지 못한다.
+* Full GC 위험이 커지므로 메모리 headroom 확보가 우선이다.
+
+**Humongous Region 비율**
+* 대형 객체가 많으면 Region 회수 효율이 떨어지고 pause time 예측이 어려워진다.
+* JSON 파싱, 배열/이미지 버퍼, 큰 캐시를 함께 점검해야 한다.
+
+
+---
+
+## Tips
+
+G1GC 옵션이 많지만 처음부터 튜닝을 할 필요는 없고, 기본값에서 지표를 먼저 봐야 한다.
+
+**`-XX:+UseG1GC`**
+* 명시적으로 G1GC를 사용한다.
+* 최신 JDK에서는 기본값이지만, 옵션을 명확히 남기는 게 운영에는 좋다.
+
+**`-XX:MaxGCPauseMillis`**
+* pause 목표값이다.
+* 너무 낮춰서 도움될 건 없다.
+* JVM이 더 자주 수집하고 오버헤드만 커진다.
+
+**`-Xms`, `-Xmx`**
+* GC 튜닝 전에 이게 먼저다.
+* Heap이 작으면 메모리 압박이 문제지, GC 옵션은 상관없다.
+
+**`-XX:InitiatingHeapOccupancyPercent`**
+* Concurrent Mark를 언제 시작할지 정한다.
+* Old 영역 압박이 빠르면 검토할 수 있지만, 무작정 조정하면 GC가 더 자주 나온다.
+
+**`-XX:ParallelGCThreads`, `-XX:ConcGCThreads`**
+* GC 스레드 수다.
+* 컨테이너 환경에서는 JVM이 인식하는 코어 수와 실제 가용 CPU가 다르다는 걸 꼭 기억해야 한다.
+
+:::tip
+GC 문제로 보여도 실제 원인은 컨테이너 메모리 제한, CPU throttling, 과도한 캐시, 객체 생명주기 문제인 경우가 대부분이다. <br />
+튜닝부터 하지말고, 먼저 애플리케이션의 allocation 패턴을 봐야 한다.
+:::
+
+
+---
+
+## G1GC가 정말 필요한지 생각해보기
+
+G1GC는 **"큰 Heap"** 기준이고,
+Heap이 충분히 크면(보통 4GB 이상) Old 영역이 유의미한 크기가 되고, Mixed GC로 선택적으로 정리할 여지가 생긴다.
+
+반대로, Heap이 작으면? Region도 적고, Old도 작고, 결국 Young + Full GC처럼 동작한다. <br />
+런타임 중에 Region을 동적으로 관리하고 메타 정보를 추적하지만, 그 비용만 남고 이득은 없다.
+
+**꼭 맞는 경우**
+- Heap이 4GB 이상으로 충분하다
+- tail latency 안정성이 critical하다
+- Old 영역이 유의미한 크기다
+- CMS 같은 레거시에서 벗어나야 한다
+
+**안 맞는 경우**
+- 초저지연(마이크로초 단위)이 필요하다 → ZGC 보자
+- Heap이 1GB 미만이다 → 그냥 Parallel GC나 Serial GC 써야 한다
+- 큰 객체를 많이 할당한다 → Humongous Region 문제
+- evacuation 공간을 확보하기 어렵다 → 메모리가 진짜 부족한 것
+
+Heap이 작으면 G1GC를 설정해도 Region 기반으로 선택적으로 회수할 여지가 크지 않다.
+결국 추적 비용만 늘고 얻는 이점은 제한적일 수 있으므로, 이런 경우에는 더 단순한 GC가 오히려 낫다.
+
+
+---
+
+## GC 선택 기준 = 목표에 따라 다르다.
+
+GC는 목표가 명확해야 선택된다. 처리량인가? Pause time인가? 아니면 둘 다? 그게 먼저고, 그 다음이 옵션이다.
+
+| GC | 목표 | 특징 | 추천 |
+|--|--|--|--|
+| Parallel GC | 처리량 | STW가 길어도 총량이 좋음. 구조 단순함 | 배치 작업, 오프라인 처리 |
+| G1GC | 균형 | Pause를 예측 가능하게. Heap 4GB+ 필요 | 웹 서비스, API 서버 |
+| ZGC | 초저지연 | Pause 거의 없음. 메모리 많이 소비 | 금융, 실시간 시스템 |
+| CMS | (레거시) | 옛날 방식. 현재는 교육용 | 없음 |
+
+- Heap이 작고(1GB 미만) 처리량만 중요 → Parallel GC
+- Heap이 충분(4GB+)하고 응답 안정성 중요 → G1GC
+- 응답 시간이 마이크로초 단위 → ZGC 검토
+
+---
+
+## 정리
+
+:::success
+<b>요약</b>
+✔ G1GC는 Heap을 Region으로 나누고, 회수 가치가 높은 영역을 우선적으로 정리하는 GC다<br />
+✔ 핵심 목표는 처리량만이 아니라 <b>pause time을 더 예측 가능하게 관리</b>하는 것이다<br />
+✔ Young GC, Concurrent Mark, Mixed GC 흐름을 이해하면 로그와 장애 상황을 해석하기 쉬워진다<br />
+✔ 트래픽이 큰 서비스에서는 tail latency를 안정적으로 관리하는 관점에서 장점이 있다<br />
+✔ 대신 write barrier와 Region 관리 비용이 있으므로, 작은 Heap에서는 기대보다 효과가 작을 수 있다<br />
+✔ 튜닝은 옵션부터 만지기보다 Heap sizing, allocation pattern, large object, 컨테이너 리소스 상황을 먼저 보는 편이 낫다
+:::
+
+---
+
+## 📚 Reference
+
+**가이드**
+
+* G1 튜닝 가이드 (JDK 8) - <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/g1_gc_tuning.html">Oracle - Garbage First Garbage Collector Tuning</a>
+* G1 튜닝 가이드 (JDK 25) - <a href="https://docs.oracle.com/en/java/javase/25/gctuning/garbage-first-garbage-collector-tuning.html">Oracle - Garbage-First Garbage Collector Tuning (JDK 25)</a>
+* G1 튜닝 가이드 (JDK 26) - <a href="https://docs.oracle.com/en/java/javase/26/gctuning/garbage-first-garbage-collector-tuning.html">Oracle - Garbage-First Garbage Collector Tuning (JDK 26)</a>
+* Java GC 전체 가이드 - <a href="https://docs.oracle.com/en/java/">Oracle - Java HotSpot VM Garbage Collection Tuning Guide</a>
+
+**동작 구조**
+
+* G1 동작 구조 (JDK 21) - <a href="https://docs.oracle.com/en/java/javase/21/gctuning/garbage-first-g1-garbage-collector1.html">Oracle - Garbage-First (G1) Garbage Collector</a>
+* G1 동작 구조 (JDK 17) - <a href="https://docs.oracle.com/en/java/javase/17/gctuning/garbage-first-g1-garbage-collector1.html">Oracle - Garbage-First (G1) Garbage Collector</a>
+* G1 동작 구조 (JDK 11) - <a href="https://docs.oracle.com/en/java/javase/11/gctuning/garbage-first-g1-garbage-collector1.html">Oracle - Garbage-First Garbage Collector</a>
+* 초기 G1 소개 문서 - <a href="https://docs.oracle.com/javase/7/docs/technotes/guides/vm/G1.html">Oracle - Garbage-First Collector</a>
+* Oracle 기술 페이지 - <a href="https://www.oracle.com/java/technologies/g1gc.html">Oracle - Garbage First Garbage Collector Tuning</a>
+
+**배경과 변경**
+
+* G1 기본값 전환 배경 - <a href="https://openjdk.org/jeps/248">OpenJDK - JEP 248: Make G1 the Default Garbage Collector</a>
+* G1 Full GC 개선 - <a href="https://openjdk.org/jeps/307">OpenJDK - JEP 307: Parallel Full GC for G1</a>

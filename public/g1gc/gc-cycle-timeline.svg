@@ -1,0 +1,113 @@
+<svg viewBox="0 0 1200 950" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .title { font-size: 28px; font-weight: bold; fill: #000; }
+      .label { font-size: 16px; fill: #000; font-weight: bold; }
+      .phase { font-size: 18px; fill: #000; font-weight: bold; text-anchor: middle; dominant-baseline: middle; }
+      .phase-small { font-size: 16px; }
+      .desc { font-size: 15px; fill: #000; }
+      .metric { font-size: 14px; fill: #000; }
+      .box-title { font-size: 19px; fill: #000; font-weight: bold; }
+      .box-text { font-size: 17px; fill: #000; }
+    </style>
+  </defs>
+
+  <text x="600" y="50" class="title" text-anchor="middle">G1GC 동작 사이클 (시간 순서)</text>
+
+  <!-- Timeline base -->
+  <line x1="40" y1="140" x2="1160" y2="140" stroke="#333" stroke-width="2"/>
+
+  <!-- Phase boxes -->
+  <rect x="35" y="90" width="100" height="92" fill="#FFB3B3" stroke="#FF6B6B" stroke-width="2" rx="6"/>
+  <text x="85" y="123" class="phase">Young</text>
+  <text x="85" y="150" class="phase">GC 1</text>
+
+  <rect x="150" y="90" width="100" height="92" fill="#FFB3B3" stroke="#FF6B6B" stroke-width="2" rx="6"/>
+  <text x="200" y="123" class="phase">Young</text>
+  <text x="200" y="150" class="phase">GC 2</text>
+
+  <rect x="265" y="90" width="100" height="92" fill="#FFB3B3" stroke="#FF6B6B" stroke-width="2" rx="6"/>
+  <text x="315" y="123" class="phase">Young</text>
+  <text x="315" y="150" class="phase">GC 3</text>
+
+  <!-- Concurrent Mark -->
+  <circle cx="395" cy="160" r="15" fill="#4CAF50" stroke="#000" stroke-width="2"/>
+
+  <!-- Young GC 4 -->
+  <rect x="430" y="90" width="100" height="92" fill="#FFB3B3" stroke="#FF6B6B" stroke-width="2" rx="6" opacity="0.7"/>
+  <text x="480" y="123" class="phase">Young</text>
+  <text x="480" y="150" class="phase">GC 4*</text>
+
+  <!-- Mixed GC -->
+  <rect x="545" y="90" width="100" height="92" fill="#B3D9FF" stroke="#4C99FF" stroke-width="2" rx="6"/>
+  <text x="595" y="123" class="phase">Mixed</text>
+  <text x="595" y="150" class="phase">GC 1</text>
+
+  <rect x="660" y="90" width="100" height="92" fill="#B3D9FF" stroke="#4C99FF" stroke-width="2" rx="6"/>
+  <text x="710" y="123" class="phase">Mixed</text>
+  <text x="710" y="150" class="phase">GC 2</text>
+
+  <rect x="775" y="90" width="100" height="92" fill="#B3D9FF" stroke="#4C99FF" stroke-width="2" rx="6"/>
+  <text x="825" y="123" class="phase">Mixed</text>
+  <text x="825" y="150" class="phase">GC 3</text>
+
+  <!-- Full GC -->
+  <rect x="890" y="90" width="105" height="92" fill="#FF7777" stroke="#FF0000" stroke-width="2" rx="6"/>
+  <text x="942" y="121" class="phase phase-small">Full GC</text>
+  <text x="942" y="148" class="phase phase-small">(회피)</text>
+
+  <!-- Young GC 5 -->
+  <rect x="1010" y="90" width="100" height="92" fill="#FFB3B3" stroke="#FF6B6B" stroke-width="2" rx="6"/>
+  <text x="1060" y="123" class="phase">Young</text>
+  <text x="1060" y="150" class="phase">GC 5</text>
+
+  <!-- Annotations -->
+  <text x="395" y="210" class="desc" text-anchor="middle" font-weight="bold">Concurrent Mark</text>
+
+  <!-- Detail boxes -->
+  <!-- Young GC detail -->
+  <rect x="35" y="235" width="350" height="240" fill="#FFE5E5" stroke="#FF6B6B" stroke-width="2" rx="8"/>
+  <text x="58" y="270" class="box-title">Young GC (Evacuation)</text>
+  <text x="58" y="304" class="box-text">• Eden이 차면 자동 발생</text>
+  <text x="58" y="336" class="box-text">• 살아있는 객체를 Survivor/Old로 복사</text>
+  <text x="58" y="368" class="box-text">• compaction으로 단편화 완화</text>
+  <text x="58" y="400" class="box-text">• Pause: 약 30-100ms</text>
+  <text x="58" y="432" class="metric">빈도: 1-5초마다</text>
+  <text x="58" y="454" class="metric">* GC 4는 Concurrent Mark 중에도 발생 가능</text>
+
+  <!-- Concurrent Mark detail -->
+  <rect x="425" y="235" width="350" height="240" fill="#D4EDDA" stroke="#4CAF50" stroke-width="2" rx="8"/>
+  <text x="448" y="270" class="box-title">병행 추적 (Concurrent Mark)</text>
+  <text x="448" y="304" class="box-text">• Old 영역의 garbage 비율 파악</text>
+  <text x="448" y="336" class="box-text">• 애플리케이션 스레드와 병행 실행</text>
+  <text x="448" y="368" class="box-text">• Mixed GC 대상 Region 결정</text>
+  <text x="448" y="400" class="box-text">• STW 없이 진행</text>
+  <text x="448" y="432" class="metric">기간: 수 초 ~ 수십 초</text>
+  <text x="448" y="454" class="metric">Young GC와 중복 실행 가능</text>
+
+  <!-- Mixed GC detail -->
+  <rect x="815" y="235" width="350" height="240" fill="#E3F2FD" stroke="#4C99FF" stroke-width="2" rx="8"/>
+  <text x="838" y="270" class="box-title">Mixed GC</text>
+  <text x="838" y="304" class="box-text">• Young와 회수 가치가 높은 Old를 함께 정리</text>
+  <text x="838" y="336" class="box-text">• Concurrent Mark 이후 여러 번 반복</text>
+  <text x="838" y="368" class="box-text">• Old 전체가 아니라 일부 Region만 선택</text>
+  <text x="838" y="400" class="metric">반복 횟수: 5-20회</text>
+  <text x="838" y="432" class="metric">회수 효율과 Old 상태에 따라 달라진다</text>
+
+  <!-- Key insight box -->
+  <rect x="35" y="505" width="1130" height="150" fill="#FFFACD" stroke="#FFD700" stroke-width="2" rx="8"/>
+  <text x="58" y="540" class="box-title" fill="#B8860B">이상적인 사이클</text>
+  <text x="58" y="575" class="box-text">Young GC (짧은 pause) → Concurrent Mark (STW 없음)</text>
+  <text x="58" y="607" class="box-text">→ Mixed GC (여러 번 반복) → Young GC 재개</text>
+  <text x="58" y="635" class="box-text" font-weight="bold">목표는 Full GC를 피하면서 pause time을 제어 범위 안에 두는 것이다.</text>
+
+  <!-- Full GC warning box -->
+  <rect x="35" y="690" width="1130" height="240" fill="#FFE5E5" stroke="#FF6B6B" stroke-width="2" rx="8"/>
+  <text x="58" y="725" class="box-title" fill="#C41E3A">Full GC가 발생하는 경우</text>
+  <text x="58" y="760" class="box-text">1. Evacuation 여유 공간 부족 (to-space exhausted)</text>
+  <text x="82" y="790" class="box-text">→ Heap 확대 또는 여유 공간 확보</text>
+  <text x="58" y="820" class="box-text">2. Concurrent Mark 실패로 Old 추적이 늦어짐</text>
+  <text x="82" y="850" class="box-text">→ InitiatingHeapOccupancyPercent 검토</text>
+  <text x="58" y="880" class="box-text">3. Humongous allocation 과다</text>
+  <text x="82" y="910" class="box-text">→ 대용량 객체 패턴과 캐시 구조 점검</text>
+</svg>
