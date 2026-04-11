@@ -15,6 +15,7 @@ import { List } from 'lucide-react';
 import { ArrowDownCircle } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
 import dynamic from 'next/dynamic';
+import G1GCSimulator from '../../components/G1GCSimulator';
 
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
@@ -110,6 +111,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     GreenText,
     Tabs,
     Tab,
+    G1GCSimulator,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
 
