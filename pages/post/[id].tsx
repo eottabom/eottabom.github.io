@@ -14,6 +14,8 @@ import Link from 'next/link';
 import { List } from 'lucide-react';
 import { ArrowDownCircle } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
+import { Kbd, KeyCombo, TopShortcut } from "../../components/Keyboard";
+import KeyboardVisual from "../../components/KeyboardVisual";
 import dynamic from 'next/dynamic';
 import G1GCSimulator from '../../components/G1GCSimulator';
 
@@ -111,6 +113,10 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     GreenText,
     Tabs,
     Tab,
+    Kbd,
+    KeyCombo,
+    TopShortcut,
+    KeyboardVisual,
     G1GCSimulator,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
