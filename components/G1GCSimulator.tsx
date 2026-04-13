@@ -150,96 +150,102 @@ export default function G1GCSimulator() {
   regions.forEach(r => { counts[r.type]++; });
 
   return (
-    <div style={{ padding: '24px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', fontFamily: 'sans-serif' }}>
+    <div className="p-4 sm:p-6 bg-slate-50 rounded-xl border border-slate-200 font-sans">
 
-      {/* 헤더 & 통계 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 'bold', color: '#1f2937' }}>G1GC Region Simulator</h2>
-        <div style={{ display: 'flex', gap: '24px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', color: '#4b5563' }}>
-          <div><div style={{ marginBottom: '4px' }}>EDEN</div><div style={{ fontSize: '1.1rem', color: '#111827' }}>{counts.E}</div></div>
-          <div><div style={{ marginBottom: '4px' }}>SURVIVOR</div><div style={{ fontSize: '1.1rem', color: '#111827' }}>{counts.S}</div></div>
-          <div><div style={{ marginBottom: '4px' }}>OLD</div><div style={{ fontSize: '1.1rem', color: '#111827' }}>{counts.O}</div></div>
-          <div><div style={{ marginBottom: '4px' }}>HUMONGOUS</div><div style={{ fontSize: '1.1rem', color: '#111827' }}>{counts.H}</div></div>
-          <div><div style={{ marginBottom: '4px' }}>YOUNG GC</div><div style={{ fontSize: '1.1rem', color: '#111827' }}>{stats.youngGC}</div></div>
-        </div>
+      {/* 헤더 */}
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">G1GC Region Simulator</h2>
+
+      {/* 통계 */}
+      <div className="grid grid-cols-5 gap-2 mb-5 text-center">
+        {[
+          { label: 'EDEN', value: counts.E, color: COLORS.E.fill },
+          { label: 'SURV', value: counts.S, color: COLORS.S.fill },
+          { label: 'OLD', value: counts.O, color: COLORS.O.fill },
+          { label: 'HUGE', value: counts.H, color: COLORS.H.fill },
+          { label: 'GC', value: stats.youngGC, color: '#6b7280' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="bg-white rounded-lg py-2 px-1 border border-slate-200">
+            <div className="text-xs font-semibold text-gray-500 mb-1 truncate">{label}</div>
+            <div className="text-base sm:text-lg font-bold" style={{ color }}>{value}</div>
+          </div>
+        ))}
       </div>
 
       {/* 리전 그리드 */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '6px', marginBottom: '16px' }}>
+      <div className="grid gap-1 mb-4" style={{ gridTemplateColumns: 'repeat(8, 1fr)' }}>
         {regions.map((region) => {
           const colorConfig = COLORS[region.type];
-          // 부분 채움 효과 (css linear-gradient)
           const background = region.type === 'F'
             ? colorConfig.base
             : `linear-gradient(to top, ${colorConfig.fill} ${region.fill}%, ${colorConfig.base} ${region.fill}%)`;
 
           return (
             <div key={region.id} style={{
-              height: '48px',
-              background: background,
-              color: region.type === 'F' ? colorConfig.text : (region.fill > 50 ? '#fff' : '#000'), // 대비 조절
+              background,
+              color: region.type === 'F' ? colorConfig.text : (region.fill > 50 ? '#fff' : '#000'),
               border: `1px solid ${region.type === 'F' ? '#d1d5db' : colorConfig.fill}`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              borderRadius: '4px',
               transition: 'background 0.2s ease',
-              position: 'relative'
-            }}>
-              <span style={{ zIndex: 10 }}>{region.type}</span>
+            }} className="h-8 sm:h-12 flex items-center justify-center font-bold text-xs rounded">
+              {region.type}
             </div>
           );
         })}
       </div>
 
-      {/* 범례 (Legend) */}
-      <div style={{ display: 'flex', gap: '16px', fontSize: '12px', color: '#4b5563', marginBottom: '32px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORS.E.fill }}></span> Eden</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORS.S.fill }}></span> Survivor</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORS.O.fill }}></span> Old</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: COLORS.H.fill }}></span> Humongous</div>
+      {/* 범례 */}
+      <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600 mb-6">
+        {[
+          { label: 'Eden', color: COLORS.E.fill },
+          { label: 'Survivor', color: COLORS.S.fill },
+          { label: 'Old', color: COLORS.O.fill },
+          { label: 'Humongous', color: COLORS.H.fill },
+        ].map(({ label, color }) => (
+          <div key={label} className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
+            {label}
+          </div>
+        ))}
       </div>
 
-      {/* 하단 컨트롤 패널 */}
-      <div style={{ backgroundColor: '#f1f5f9', padding: '20px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* 컨트롤 패널 */}
+      <div className="bg-slate-100 p-4 rounded-lg flex flex-col gap-4">
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
-          {/* Object Size Slider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '300px' }}>
-            <label style={{ fontSize: '14px', color: '#333', whiteSpace: 'nowrap' }}>Object Size (MB)</label>
-            <input
-              type="range" min="0.1" max="4.0" step="0.1"
-              value={objectSize}
-              onChange={(e) => setObjectSize(parseFloat(e.target.value))}
-              style={{ flex: 1 }}
-            />
-            <div style={{ padding: '4px 12px', backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '16px', fontWeight: 'bold', minWidth: '50px', textAlign: 'center' }}>
+        {/* Object Size Slider */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-700">Object Size (MB)</label>
+            <span className="text-sm font-bold text-gray-900 bg-white border border-slate-300 rounded-full px-3 py-0.5 min-w-[52px] text-center">
               {objectSize.toFixed(1)}
-            </div>
+            </span>
           </div>
+          <input
+            type="range" min="0.1" max="4.0" step="0.1"
+            value={objectSize}
+            onChange={(e) => setObjectSize(parseFloat(e.target.value))}
+            className="w-full"
+          />
+        </div>
 
-          {/* Allocation Speed Slider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: '300px' }}>
-            <label style={{ fontSize: '14px', color: '#333', whiteSpace: 'nowrap' }}>Allocation Speed</label>
-            <input
-              type="range" min="0" max="10" step="1"
-              value={allocationSpeed}
-              onChange={(e) => setAllocationSpeed(parseInt(e.target.value))}
-              style={{ flex: 1 }}
-            />
-            <div style={{ padding: '4px 16px', backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '16px', fontWeight: 'bold', minWidth: '50px', textAlign: 'center' }}>
+        {/* Allocation Speed Slider */}
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between items-center">
+            <label className="text-sm font-medium text-gray-700">Allocation Speed</label>
+            <span className="text-sm font-bold text-gray-900 bg-white border border-slate-300 rounded-full px-3 py-0.5 min-w-[52px] text-center">
               {allocationSpeed}
-            </div>
+            </span>
           </div>
+          <input
+            type="range" min="0" max="10" step="1"
+            value={allocationSpeed}
+            onChange={(e) => setAllocationSpeed(parseInt(e.target.value))}
+            className="w-full"
+          />
         </div>
 
         {/* Force GC Button */}
         <button
           onClick={() => triggerGC(regions)}
-          style={{ width: '100%', padding: '12px', backgroundColor: '#e2e8f0', color: '#334155', border: 'none', borderRadius: '24px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'background 0.2s' }}
-          onMouseOver={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#cbd5e1'}
-          onMouseOut={(e) => (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#e2e8f0'}
+          className="w-full py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-full text-sm transition-colors"
         >
           Force GC
         </button>
