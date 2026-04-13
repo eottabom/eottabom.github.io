@@ -1,0 +1,276 @@
+---
+title: "IntelliJ IDEA 단축키 모음 - Mac & Windows 완벽 정리 (키보드 UI 포함)"
+date: "2026-04-13"
+tags: ["Etc"]
+summary: "IntelliJ IDEA keyboard shortcuts cheat sheet for Mac and Windows with visual keyboard UI."
+description: "IntelliJ IDEA에서 자주 쓰는 단축키를 카테고리별로 Mac과 Windows 버전으로 정리하고, 키보드 UI로 시각적으로 보여준다."
+---
+
+:::info
+IntelliJ IDEA를 쓰면서 마우스 없이 키보드만으로 작업하는 순간이 늘어날수록 생산성이 확실히 올라간다.
+하지만 단축키가 워낙 많다 보니 매번 검색하게 되는 경우가 많다.
+이 글에서는 실무에서 자주 쓰는 IntelliJ 단축키를 카테고리별로 정리하고, Mac과 Windows 버전을 함께 제공한다.
+키보드 UI를 통해 어떤 키 조합인지 시각적으로 확인할 수 있도록 구성했다.
+:::
+
+---
+
+## 키 표기 규칙
+
+시작하기 전에, Mac과 Windows의 키 대응 관계를 알아두면 단축키를 외우기 훨씬 쉽다.
+
+| Mac | Windows | 역할 |
+|-----|---------|------|
+| <Kbd>⌘</Kbd> Command | <Kbd>Ctrl</Kbd> | 주요 수정자 키 |
+| <Kbd>⌥</Kbd> Option | <Kbd>Alt</Kbd> | 보조 수정자 키 |
+| <Kbd>⌃</Kbd> Control | (없음) | Mac 고유 수정자 |
+| <Kbd>⇧</Kbd> Shift | <Kbd>Shift</Kbd> | 확장/반전 |
+
+:::tip
+Mac에서 ⌘ 에 해당하는 키가 Windows에서는 대부분 Ctrl 이다.
+이 패턴만 기억해도 절반 이상의 단축키를 유추할 수 있다.
+:::
+
+---
+
+## 1. 검색 (Search)
+
+가장 먼저 손에 익혀야 할 단축키다. 코드베이스가 커질수록 검색 없이는 작업이 불가능하다.
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 전체 검색 (Search Everywhere) | <KeyCombo keys="Shift Shift" /> | <KeyCombo keys="Shift Shift" /> |
+| 클래스 검색 | <KeyCombo keys="⌘ O" /> | <KeyCombo keys="Ctrl N" /> |
+| 파일 검색 | <KeyCombo keys="⌘ ⇧ O" /> | <KeyCombo keys="Ctrl ⇧ N" /> |
+| 심볼 검색 | <KeyCombo keys="⌘ ⌥ O" /> | <KeyCombo keys="Ctrl ⇧ Alt N" /> |
+| Action 검색 | <KeyCombo keys="⌘ ⇧ A" /> | <KeyCombo keys="Ctrl ⇧ A" /> |
+| 파일 내 텍스트 검색 | <KeyCombo keys="⌘ F" /> | <KeyCombo keys="Ctrl F" /> |
+| 파일 내 텍스트 변경 | <KeyCombo keys="⌘ R" /> | <KeyCombo keys="Ctrl R" /> |
+| 프로젝트 전체 텍스트 검색 | <KeyCombo keys="⌘ ⇧ F" /> | <KeyCombo keys="Ctrl ⇧ F" /> |
+| 프로젝트 전체 텍스트 변경 | <KeyCombo keys="⌘ ⇧ R" /> | <KeyCombo keys="Ctrl ⇧ R" /> |
+
+:::note
+Shift 를 두 번 빠르게 누르는 Search Everywhere 는 IntelliJ에서 가장 강력한 검색이다.
+클래스, 파일, 심볼, 액션 어디든 빠르게 이동할 수 있다.
+:::
+
+---
+
+## 2. 네비게이션 (Navigation)
+
+코드를 읽을 때 가장 많이 쓰는 단축키다. 선언부와 구현부를 빠르게 오가는 것이 핵심이다.
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 선언/사용처로 이동 | <KeyCombo keys="⌘ B" /> | <KeyCombo keys="Ctrl B" /> |
+| 타입 선언으로 이동 | <KeyCombo keys="⌘ ⇧ B" /> | <KeyCombo keys="Ctrl ⇧ B" /> |
+| 구현부로 이동 | <KeyCombo keys="⌘ ⌥ B" /> | <KeyCombo keys="Ctrl Alt B" /> |
+| 슈퍼 메소드/클래스로 이동 | <KeyCombo keys="⌘ U" /> | <KeyCombo keys="Ctrl U" /> |
+| 이전 위치로 돌아가기 | <KeyCombo keys="⌘ ⌥ ←" /> | <KeyCombo keys="Ctrl Alt ←" /> |
+| 다음 위치로 이동 | <KeyCombo keys="⌘ ⌥ →" /> | <KeyCombo keys="Ctrl Alt →" /> |
+| 다음 에러 지점으로 이동 | <Kbd>F2</Kbd> | <Kbd>F2</Kbd> |
+| 이전 에러 지점으로 이동 | <KeyCombo keys="⇧ F2" /> | <KeyCombo keys="⇧ F2" /> |
+| 라인 번호로 이동 | <KeyCombo keys="⌘ L" /> | <KeyCombo keys="Ctrl G" /> |
+| 최근 파일 목록 | <KeyCombo keys="⌘ E" /> | <KeyCombo keys="Ctrl E" /> |
+| 최근 수정 파일 목록 | <KeyCombo keys="⌘ ⇧ E" /> | <KeyCombo keys="Ctrl ⇧ E" /> |
+| 클래스 구조 보기 (파일 내) | <KeyCombo keys="⌘ F12" /> | <KeyCombo keys="Ctrl F12" /> |
+| 타입 계층 구조 | <KeyCombo keys="⌃ H" /> | <KeyCombo keys="Ctrl H" /> |
+| 메소드 호출 계층 | <KeyCombo keys="⌃ ⌥ H" /> | <KeyCombo keys="Ctrl Alt H" /> |
+
+---
+
+## 3. 코드 편집 (Editing)
+
+코드를 빠르게 수정하는 단축키다. 줄 단위 조작과 정렬은 매일 쓰게 된다.
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 줄 복사 | <KeyCombo keys="⌘ D" /> | <KeyCombo keys="Ctrl D" /> |
+| 줄 삭제 | <KeyCombo keys="⌘ X" /> | <KeyCombo keys="Ctrl Y" /> |
+| 줄 위로 이동 | <KeyCombo keys="⌘ ⇧ ↑" /> | <KeyCombo keys="Alt ⇧ ↑" /> |
+| 줄 아래로 이동 | <KeyCombo keys="⌘ ⇧ ↓" /> | <KeyCombo keys="Alt ⇧ ↓" /> |
+| 구문 단위 위로 이동 | <KeyCombo keys="⌥ ⇧ ↑" /> | <KeyCombo keys="Ctrl ⇧ ↑" /> |
+| 구문 단위 아래로 이동 | <KeyCombo keys="⌥ ⇧ ↓" /> | <KeyCombo keys="Ctrl ⇧ ↓" /> |
+| 코드 자동 정렬 | <KeyCombo keys="⌘ ⌥ L" /> | <KeyCombo keys="Ctrl Alt L" /> |
+| Import 정리 | <KeyCombo keys="⌃ ⌥ O" /> | <KeyCombo keys="Ctrl Alt O" /> |
+| 대소문자 전환 | <KeyCombo keys="⌘ ⇧ U" /> | <KeyCombo keys="Ctrl ⇧ U" /> |
+| 선택 영역 확장 | <KeyCombo keys="⌥ ↑" /> | <KeyCombo keys="Ctrl W" /> |
+| 선택 영역 축소 | <KeyCombo keys="⌥ ↓" /> | <KeyCombo keys="Ctrl ⇧ W" /> |
+| 주석 토글 (한줄) | <KeyCombo keys="⌘ /" /> | <KeyCombo keys="Ctrl /" /> |
+| 주석 토글 (블록) | <KeyCombo keys="⌘ ⌥ /" /> | <KeyCombo keys="Ctrl ⇧ /" /> |
+| 코드 접기 | <KeyCombo keys="⌘ -" /> | <KeyCombo keys="Ctrl -" /> |
+| 코드 펼치기 | <KeyCombo keys="⌘ +" /> | <KeyCombo keys="Ctrl +" /> |
+| 전체 코드 접기 | <KeyCombo keys="⌘ ⇧ -" /> | <KeyCombo keys="Ctrl ⇧ -" /> |
+| 전체 코드 펼치기 | <KeyCombo keys="⌘ ⇧ +" /> | <KeyCombo keys="Ctrl ⇧ +" /> |
+
+---
+
+## 4. 멀티 커서 & 선택 (Multi Cursor & Selection)
+
+반복되는 수정 작업을 한 번에 처리할 수 있다.
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 멀티 커서 (위/아래) | <Kbd>⌥</Kbd> 두 번 + <Kbd>↑</Kbd><Kbd>↓</Kbd> | <Kbd>Ctrl</Kbd> 두 번 + <Kbd>↑</Kbd><Kbd>↓</Kbd> |
+| 다음 동일 단어에 커서 추가 | <KeyCombo keys="⌃ G" /> | <KeyCombo keys="Alt J" /> |
+| 모든 동일 단어에 커서 추가 | <KeyCombo keys="⌃ ⌘ G" /> | <KeyCombo keys="Ctrl ⇧ Alt J" /> |
+| 열 선택 모드 토글 | <KeyCombo keys="⌘ ⇧ 8" /> | <KeyCombo keys="Alt ⇧ Insert" /> |
+
+:::tip
+멀티 커서는 ⌥(Option)을 두 번 누른 후 손을 떼지 않고 ↑↓로 커서를 추가하는 방식이다.
+변수명을 일괄 변경할 때 ⌃+G (Mac) 또는 Alt+J (Win)를 반복해서 누르면 하나씩 선택된다.
+:::
+
+---
+
+## 5. 코드 자동완성 & 생성 (Code Completion & Generation)
+
+코드를 빠르게 작성하는 핵심 단축키다.
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 기본 자동완성 | <KeyCombo keys="⌃ Space" /> | <KeyCombo keys="Ctrl Space" /> |
+| 스마트 자동완성 | <KeyCombo keys="⌃ ⇧ Space" /> | <KeyCombo keys="Ctrl ⇧ Space" /> |
+| 구문 완성 (세미콜론 등) | <KeyCombo keys="⌘ ⇧ Enter" /> | <KeyCombo keys="Ctrl ⇧ Enter" /> |
+| 코드 생성 (Getter/Setter 등) | <KeyCombo keys="⌘ N" /> | <KeyCombo keys="Alt Insert" /> |
+| 메소드 오버라이드 | <KeyCombo keys="⌃ O" /> | <KeyCombo keys="Ctrl O" /> |
+| 인터페이스 메소드 구현 | <KeyCombo keys="⌃ I" /> | <KeyCombo keys="Ctrl I" /> |
+| 코드 감싸기 (if, try 등) | <KeyCombo keys="⌘ ⌥ T" /> | <KeyCombo keys="Ctrl Alt T" /> |
+| 라이브 템플릿 삽입 | <KeyCombo keys="⌘ J" /> | <KeyCombo keys="Ctrl J" /> |
+| 테스트 클래스 생성/이동 | <KeyCombo keys="⌘ ⇧ T" /> | <KeyCombo keys="Ctrl ⇧ T" /> |
+
+---
+
+## 6. 리팩터링 (Refactoring)
+
+IntelliJ의 가장 강력한 기능 중 하나다. 안전한 코드 변경을 보장한다.
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 리팩터링 메뉴 | <KeyCombo keys="⌃ T" /> | <KeyCombo keys="Ctrl Alt ⇧ T" /> |
+| 이름 변경 (Rename) | <KeyCombo keys="⇧ F6" /> | <KeyCombo keys="⇧ F6" /> |
+| 변수 추출 (Extract Variable) | <KeyCombo keys="⌘ ⌥ V" /> | <KeyCombo keys="Ctrl Alt V" /> |
+| 상수 추출 (Extract Constant) | <KeyCombo keys="⌘ ⌥ C" /> | <KeyCombo keys="Ctrl Alt C" /> |
+| 필드 추출 (Extract Field) | <KeyCombo keys="⌘ ⌥ F" /> | <KeyCombo keys="Ctrl Alt F" /> |
+| 메소드 추출 (Extract Method) | <KeyCombo keys="⌘ ⌥ M" /> | <KeyCombo keys="Ctrl Alt M" /> |
+| 파라미터 추출 (Extract Parameter) | <KeyCombo keys="⌘ ⌥ P" /> | <KeyCombo keys="Ctrl Alt P" /> |
+| 인라인 (Inline) | <KeyCombo keys="⌘ ⌥ N" /> | <KeyCombo keys="Ctrl Alt N" /> |
+| 시그니처 변경 | <KeyCombo keys="⌘ F6" /> | <KeyCombo keys="Ctrl F6" /> |
+
+:::note
+리팩터링 단축키는 패턴이 있다. Mac에서 ⌘ + ⌥ + 알파벳 조합이다.
+V=Variable, C=Constant, M=Method, P=Parameter, F=Field, N=iNline 처럼 앞 글자만 기억하면 된다.
+:::
+
+---
+
+## 7. 실행 & 디버깅 (Run & Debug)
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 실행 (Run) | <KeyCombo keys="⌃ R" /> | <KeyCombo keys="⇧ F10" /> |
+| 디버그 (Debug) | <KeyCombo keys="⌃ D" /> | <KeyCombo keys="⇧ F9" /> |
+| 현재 컨텍스트 실행 | <KeyCombo keys="⌃ ⇧ R" /> | <KeyCombo keys="Ctrl ⇧ F10" /> |
+| 현재 컨텍스트 디버그 | <KeyCombo keys="⌃ ⇧ D" /> | <KeyCombo keys="Ctrl ⇧ F9" /> |
+| 실행 구성 선택 후 실행 | <KeyCombo keys="⌃ ⌥ R" /> | <KeyCombo keys="Alt ⇧ F10" /> |
+| 실행 구성 선택 후 디버그 | <KeyCombo keys="⌃ ⌥ D" /> | <KeyCombo keys="Alt ⇧ F9" /> |
+| 중단점 설정/해제 | <KeyCombo keys="⌘ F8" /> | <KeyCombo keys="Ctrl F8" /> |
+| Step Over | <Kbd>F8</Kbd> | <Kbd>F8</Kbd> |
+| Step Into | <Kbd>F7</Kbd> | <Kbd>F7</Kbd> |
+| Smart Step Into | <KeyCombo keys="⇧ F7" /> | <KeyCombo keys="⇧ F7" /> |
+| Step Out | <KeyCombo keys="⇧ F8" /> | <KeyCombo keys="⇧ F8" /> |
+| Resume (다음 중단점까지) | <KeyCombo keys="⌘ ⌥ R" /> | <Kbd>F9</Kbd> |
+| 표현식 평가 (Evaluate) | <KeyCombo keys="⌥ F8" /> | <KeyCombo keys="Alt F8" /> |
+| Run to Cursor | <KeyCombo keys="⌥ F9" /> | <KeyCombo keys="Alt F9" /> |
+
+---
+
+## 8. 탭 & 윈도우 관리 (Window & Tab)
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 좌측 탭으로 이동 | <KeyCombo keys="⌘ ⇧ [" /> | <KeyCombo keys="Alt ←" /> |
+| 우측 탭으로 이동 | <KeyCombo keys="⌘ ⇧ ]" /> | <KeyCombo keys="Alt →" /> |
+| 현재 탭 닫기 | <KeyCombo keys="⌘ W" /> | <KeyCombo keys="Ctrl F4" /> |
+| 모든 도구 창 닫기 | <KeyCombo keys="⌘ ⇧ F12" /> | <KeyCombo keys="Ctrl ⇧ F12" /> |
+| 프로젝트 창 | <KeyCombo keys="⌘ 1" /> | <KeyCombo keys="Alt 1" /> |
+| Run 창 | <KeyCombo keys="⌘ 4" /> | <KeyCombo keys="Alt 4" /> |
+| Debug 창 | <KeyCombo keys="⌘ 5" /> | <KeyCombo keys="Alt 5" /> |
+| Service 창 | <KeyCombo keys="⌘ 8" /> | <KeyCombo keys="Alt 8" /> |
+| Git 창 | <KeyCombo keys="⌘ 9" /> | <KeyCombo keys="Alt 9" /> |
+| Terminal 창 | <KeyCombo keys="⌥ F12" /> | <KeyCombo keys="Alt F12" /> |
+| 에디터로 복귀 | <Kbd>Esc</Kbd> | <Kbd>Esc</Kbd> |
+| 도구 창 닫기 | <KeyCombo keys="⇧ Esc" /> | <KeyCombo keys="⇧ Esc" /> |
+| 프로젝트 창에서 파일 위치 표시 | <KeyCombo keys="⌥ F1" /> | <KeyCombo keys="Alt F1" /> |
+
+---
+
+## 9. Git & VCS
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| VCS 액션 팝업 | <KeyCombo keys="⌃ V" /> | <KeyCombo keys="Alt `" /> |
+| 커밋 (Commit) | <KeyCombo keys="⌘ K" /> | <KeyCombo keys="Ctrl K" /> |
+| 커밋 & 푸시 | <KeyCombo keys="⌘ ⇧ K" /> | <KeyCombo keys="Ctrl ⇧ K" /> |
+| 업데이트 (Pull) | <KeyCombo keys="⌘ T" /> | <KeyCombo keys="Ctrl T" /> |
+| 변경사항 Diff 보기 | <KeyCombo keys="⌘ D" /> | <KeyCombo keys="Ctrl D" /> |
+
+---
+
+## 10. 코드 분석 & 정보 (Code Intelligence)
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| Quick Fix / 의도 액션 | <KeyCombo keys="⌥ Enter" /> | <KeyCombo keys="Alt Enter" /> |
+| 파라미터 정보 미리보기 | <KeyCombo keys="⌘ P" /> | <KeyCombo keys="Ctrl P" /> |
+| Quick Documentation | <Kbd>F1</Kbd> | <KeyCombo keys="Ctrl Q" /> |
+| 사용처 찾기 (Find Usages) | <KeyCombo keys="⌥ F7" /> | <KeyCombo keys="Alt F7" /> |
+| 사용처 하이라이트 | <KeyCombo keys="⌘ ⇧ F7" /> | <KeyCombo keys="Ctrl ⇧ F7" /> |
+| 코드 검사 (Inspect) | <KeyCombo keys="⌥ ⇧ I" /> | <KeyCombo keys="Alt ⇧ I" /> |
+
+:::tip
+⌥+Enter (Mac) 또는 Alt+Enter (Win)는 IntelliJ에서 가장 만능인 단축키다.
+빨간 줄이든 노란 줄이든, 커서를 놓고 이 키를 누르면 IntelliJ가 가능한 해결책을 제안해준다.
+:::
+
+---
+
+## 11. 설정 & 기타 (Settings & Misc)
+
+| 기능 | Mac | Windows / Linux |
+|------|-----|-----------------|
+| 환경설정 (Settings) | <KeyCombo keys="⌘ ," /> | <KeyCombo keys="Ctrl Alt S" /> |
+| 프로젝트 설정 | <KeyCombo keys="⌘ ;" /> | <KeyCombo keys="Ctrl Alt ⇧ S" /> |
+| Run Anything | <Kbd>⌃</Kbd> 두 번 | <Kbd>Ctrl</Kbd> 두 번 |
+| 터미널 열기 | <KeyCombo keys="⌥ F12" /> | <KeyCombo keys="Alt F12" /> |
+| 최근 변경 목록 | <KeyCombo keys="⌥ ⇧ C" /> | <KeyCombo keys="Alt ⇧ C" /> |
+| 클립보드 히스토리 | <KeyCombo keys="⌘ ⇧ V" /> | <KeyCombo keys="Ctrl ⇧ V" /> |
+
+---
+
+## 키보드에서 직접 확인하기
+
+단축키는 글로만 보기보다 키 위치를 눈으로 익히는 편이 훨씬 빠르게 손에 붙는다.
+아래에서 카테고리와 단축키를 선택하면 키보드 위에 해당 키가 하이라이트된다.
+macOS / Windows 버튼으로 OS도 전환할 수 있으니, 자신이 쓰는 환경에 맞춰 확인해보자.
+
+<KeyboardVisual />
+
+---
+
+:::success
+<b>정리</b>
+✔ IntelliJ 단축키는 한꺼번에 외우기보다 패턴을 먼저 이해하는 편이 훨씬 수월하다. <br/>
+✔ 리팩터링은 ⌘+⌥+알파벳, 검색은 ⌘+⇧+알파벳 형태로 규칙이 있어 앞 글자만 기억하면 된다. <br/>
+✔ Mac의 ⌘ 은 Windows의 Ctrl 에 대응되는 경우가 많아, 이 한 가지 패턴만 알아도 절반 이상은 유추할 수 있다. <br/>
+✔ 단축키를 빠르게 익히고 싶다면 Key Promoter X 플러그인을 함께 사용하는 편이 좋다. <br/>
+✔ 전체 단축키를 한 번에 보고 싶을 때는 Help > Keymap Reference 를 열어 공식 PDF로 확인할 수 있다.
+:::
+
+---
+
+## 📚 Reference
+
+* [IntelliJ IDEA Keymap Reference](https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf)
+* [Key Promoter X Plugin](https://plugins.jetbrains.com/plugin/9792-key-promoter-x)
+* [IntelliJ IDEA 공식 문서 - Keyboard Shortcuts](https://www.jetbrains.com/help/idea/mastering-keyboard-shortcuts.html)
