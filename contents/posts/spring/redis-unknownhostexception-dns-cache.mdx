@@ -1,0 +1,320 @@
+---
+title: "Redis UnknownHostException 이 매번이 아니라 간헐적으로 발생한 이유"
+date: "2026-05-06"
+tags: ["Spring", "Redis", "Java"]
+summary: "Spring Boot + Redis(Lettuce) 환경에서 Redis 서버는 정상인데 UnknownHostException 이 매번이 아니라 특정 시점에만 발생한 이유를 정리한다."
+description: "Spring Boot Redis Lettuce 환경에서 간헐적으로 발생한 UnknownHostException 을 기존 연결 재사용, 재연결 시 hostname lookup, JVM DNS cache 관점에서 정리한다."
+---
+
+:::info
+Spring Boot + Redis(Lettuce) 환경에서 `java.net.UnknownHostException` 이 발생했다. <br />
+그런데 이상했던 건 매번 터지지 않았다는 점이었다. Redis 서버는 정상이고, 같은 Redis host 로 대부분의 요청은 잘 처리됐다. <br />
+그래서 이 문제는 "Redis 가 죽었나?" 보다 "왜 특정 순간에만 hostname 을 못 찾았나?" 로 봐야 했다.
+:::
+
+:::note
+이 글에서 다루는 핵심은 <b>왜 UnknownHostException 이 항상 발생하지 않고 간헐적으로만 보였는가</b> 이다.
+:::
+
+---
+
+## 문제 상황
+
+운영 중인 Spring Boot 애플리케이션에서 Redis 접근 시 간헐적으로 아래 예외가 발생했다.
+
+```text
+java.net.UnknownHostException: redis-host
+```
+
+처음에는 Redis 연결 문제처럼 보였다. 그런데 로그와 상황을 같이 보면 조금 이상했다.
+
+* Redis 서버는 정상 동작하고 있었다.
+* 같은 Redis host 로 대부분의 요청은 정상 처리됐다.
+* 예외는 매번 발생하지 않고 특정 시점에만 보였다.
+* 애플리케이션을 재시작하면 다시 정상처럼 보였다.
+
+만약 host 설정이 틀렸다면 매번 실패해야 한다. 하지만 실제로는 그렇지 않았다. 그래서 Redis 프로세스가 내려간 문제라기보다, 애플리케이션이 `redis-host` 라는 이름을 다시 IP 로 바꾸는 특정 순간에 실패한 것으로 보는 편이 자연스러웠다.
+
+---
+
+## UnknownHostException 이 의미하는 것
+
+`UnknownHostException` 은 이름 그대로 host 이름을 해석하지 못했을 때 발생한다.
+
+Redis 서버가 살아 있어도, 애플리케이션이 `redis-host` 를 IP 주소로 바꾸지 못하면 TCP 연결은 시작조차 할 수 없다. 이 경우 로그에는 Redis command timeout 이 아니라 host lookup 실패가 먼저 보인다.
+
+```text
+redis-host
+  -> DNS lookup
+  -> IP address
+  -> TCP connect
+  -> Redis protocol
+```
+
+이번 문제는 이 흐름 중 Redis protocol 단계가 아니라, 그 앞의 DNS lookup 단계에서 실패한 케이스로 봐야 했다.
+
+---
+
+## 핵심은 왜 매번이 아니었냐는 것
+
+이번 문제에서 제일 헷갈렸던 부분은 "왜 계속 실패하지 않지?" 였다.
+
+hostname 이 정말 잘못됐거나 DNS 가 계속 죽어 있다면 모든 요청이 실패해야 한다. 하지만 대부분의 요청은 성공했고, 특정 시점에만 실패했다.
+
+이 패턴은 Redis connection 재사용과 잘 맞는다.
+
+* 이미 열려 있는 Redis 연결은 계속 사용할 수 있다.
+* 이때는 매 요청마다 hostname lookup 을 다시 하지 않는다.
+* 연결이 끊기거나 새 연결이 필요해지는 순간 hostname 을 다시 해석한다.
+* 그 순간 DNS 응답이 일시적으로 실패하면 `UnknownHostException` 이 발생한다.
+* 실패 결과가 JVM 또는 OS 계층에 잠시 cache 되면 짧은 시간 동안 같은 문제가 반복될 수 있다.
+
+Lettuce 는 기본적으로 연결이 끊기면 자동 재연결을 시도한다. 평소에는 이 동작이 복구에 도움이 된다. 하지만 재연결 시점에 hostname lookup 이 실패하면 Redis 서버가 정상이어도 연결 복구가 실패할 수 있다.
+
+결국 이번 이슈는 "Redis 요청이 매번 DNS 를 타는가?" 가 아니라, "언제 DNS 를 다시 타는가?" 를 봐야 했다.
+
+:::warning
+`UnknownHostException` 이 보인다고 해서 Redis 서버 장애로 바로 결론내리면 안 된다. <br />
+먼저 DNS, JVM DNS cache, 컨테이너 또는 노드의 resolver 상태를 함께 확인해야 한다.
+:::
+
+---
+
+## JVM DNS cache 관점
+
+Java 의 `InetAddress` 는 hostname 해석 결과를 cache 한다.
+
+중요한 점은 성공한 lookup 만 cache 하는 것이 아니라, 실패한 lookup 도 cache 할 수 있다는 것이다. Java 문서에서는 성공 결과 TTL 을 `networkaddress.cache.ttl`, 실패 결과 TTL 을 `networkaddress.cache.negative.ttl` 로 설명한다.
+
+대표적으로 봐야 할 값은 아래와 같다.
+
+| 설정 | 의미 |
+|--|--|
+| `networkaddress.cache.ttl` | 성공한 hostname lookup 결과를 cache 하는 시간 |
+| `networkaddress.cache.negative.ttl` | 실패한 hostname lookup 결과를 cache 하는 시간 |
+
+특히 `networkaddress.cache.negative.ttl` 은 실패한 lookup 결과를 얼마나 오래 기억할지에 영향을 준다. 일시적인 DNS 실패가 있었는데 그 실패가 cache 되면, 실제 DNS 가 바로 회복되더라도 애플리케이션에서는 잠시 같은 host 를 계속 찾지 못하는 것처럼 보일 수 있다.
+
+:::note
+`networkaddress.cache.ttl`, `networkaddress.cache.negative.ttl` 은 Java security property 이다. <br />
+JDK 와 실행 환경에 따라 적용 방식이 다를 수 있으므로, 단순히 `-Dnetworkaddress.cache.ttl=...` 로 넣었다고 실제 적용됐다고 가정하면 안 된다.
+:::
+
+---
+
+## Lettuce 재연결과 DNS 재해석
+
+Spring Data Redis 에서 Lettuce 를 사용하면 일반적으로 `LettuceConnectionFactory` 를 통해 connection 을 얻는다.
+
+Spring Data Redis 문서 기준으로 `LettuceConnectionFactory` 는 기본적으로 여러 `LettuceConnection` 이 하나의 thread-safe native connection 을 공유할 수 있다. 이 native connection 은 평소에는 재사용되기 때문에 매 요청마다 DNS lookup 이 발생하는 구조는 아니다.
+
+하지만 아래 상황에서는 새 연결 또는 재연결이 필요해질 수 있다.
+
+* Redis 연결이 reset 되거나 끊긴 경우
+* Redis failover 또는 네트워크 일시 장애 이후 복구되는 경우
+* 애플리케이션이 새 native connection 을 만들어야 하는 경우
+* connection pool 또는 설정에 의해 새 socket 을 여는 경우
+
+이때 hostname 기반 Redis URI 를 사용하고 있다면 다시 DNS lookup 이 필요하다.
+
+```text
+기존 Redis 연결 사용 중
+  -> 연결 끊김
+  -> Lettuce auto reconnect
+  -> redis-host 재해석
+  -> DNS lookup 실패
+  -> UnknownHostException
+```
+
+그래서 "같은 Redis host 로 대부분의 요청은 정상인데 가끔만 실패한다" 는 현상이 가능해진다. 이미 살아 있는 연결은 문제가 없지만, 재연결이 필요한 순간에는 hostname 해석에 다시 의존하기 때문이다.
+
+이게 이번 문제의 핵심이었다. `UnknownHostException` 자체는 DNS lookup 실패지만, 그 lookup 이 매 요청마다 발생하지 않기 때문에 장애도 매번 보이지 않았다.
+
+---
+
+## 작은 예제로 확인해보기
+
+이 내용을 작게 확인해보려고 `let-me-code` 에 예제를 하나 추가했다.
+
+:::tip
+<a href="https://github.com/eottabom/let-me-code/tree/main/redis-dns-cache" target="_blank" rel="noopener noreferrer">redis-dns-cache 예제 보러가기</a>
+:::
+
+예제에서 먼저 확인하는 건 JVM 이 보고 있는 DNS cache 설정이다.
+
+```java
+Security.getProperty("networkaddress.cache.ttl");
+Security.getProperty("networkaddress.cache.negative.ttl");
+InetAddress.getAllByName(host);
+```
+
+실행은 이렇게 할 수 있다.
+
+```bash
+./gradlew :redis-dns-cache:bootRun --args="inspect redis-host"
+```
+
+Redis 연결 실패 쪽은 Lettuce 로 연결을 시도한 뒤 cause chain 을 출력하게 했다.
+
+```java
+Throwable current = exception;
+while (current != null) {
+    System.out.printf("cause=%s message=%s%n", current.getClass().getName(), current.getMessage());
+
+    if (current instanceof UnknownHostException) {
+        System.out.println("unknown-host=true");
+    }
+
+    current = current.getCause();
+}
+```
+
+실패한 hostname 을 넣으면 아래처럼 확인할 수 있다.
+
+```bash
+./gradlew :redis-dns-cache:bootRun --args="connect redis-host.invalid 6379"
+```
+
+물론 이 예제가 운영에서 보였던 간헐성을 그대로 재현하는 건 아니다. `redis-host.invalid` 는 매번 실패하는 host 이기 때문이다. 여기서 보고 싶은 건 "실패한 순간에 Lettuce 예외 안쪽에 `UnknownHostException` 이 어떻게 들어오는가" 이다.
+
+간헐성은 별도의 현상이다. 기존 연결을 쓰는 동안에는 DNS lookup 이 다시 필요하지 않다가, 재연결이나 새 연결이 필요한 순간에만 lookup 이 다시 발생하기 때문에 운영에서는 매번이 아니라 특정 시점에만 보일 수 있었다.
+
+---
+
+## 확인해야 할 것
+
+이 문제를 볼 때는 Redis 상태만 보는 것으로는 부족하다.
+
+### 1. 예외가 connect 단계에서 발생했는지 확인
+
+먼저 stack trace 에서 실패 위치를 확인한다.
+
+```text
+java.net.UnknownHostException
+io.netty.resolver
+io.lettuce.core
+org.springframework.data.redis
+```
+
+이런 흐름이 보이면 Redis command 처리 중 실패라기보다, Netty 또는 JVM resolver 를 통한 hostname lookup 실패로 볼 수 있다.
+
+### 2. 애플리케이션 실행 환경에서 직접 DNS 확인
+
+같은 노트북이나 bastion 에서 확인하는 것보다, 애플리케이션이 실제로 떠 있는 환경에서 확인해야 한다.
+
+```bash
+nslookup redis-host
+dig redis-host
+getent hosts redis-host
+```
+
+Kubernetes 라면 문제가 발생한 Pod 또는 같은 node 의 임시 Pod 에서 확인하는 편이 좋다.
+
+```bash
+kubectl exec -it <pod-name> -- nslookup redis-host
+```
+
+여기서도 간헐적으로 실패한다면 JVM 보다 아래 계층, 예를 들면 CoreDNS, node resolver, VPC DNS, `/etc/resolv.conf` 설정을 봐야 한다.
+
+### 3. JVM DNS cache 설정 확인
+
+실행 중인 JVM 에 어떤 DNS cache 정책이 적용되는지도 확인해야 한다.
+
+```java
+Security.getProperty("networkaddress.cache.ttl");
+Security.getProperty("networkaddress.cache.negative.ttl");
+```
+
+값이 비어 있거나 기대와 다르다면, 실제 런타임에 적용된 Java security property 와 JDK 버전의 기본 정책을 다시 확인해야 한다.
+
+### 4. 재연결 시점과 DNS 실패 시점 맞춰보기
+
+로그에서 아래 이벤트의 시간이 맞는지 확인한다.
+
+* Redis connection reset 또는 reconnect 로그
+* `UnknownHostException` 발생 시각
+* DNS resolver 또는 CoreDNS 오류 로그
+* node 또는 Pod 재시작, network 변경 이벤트
+
+시간이 맞아떨어지면 "Redis 서버 장애" 보다 "재연결 시점의 DNS lookup 실패" 쪽으로 원인을 좁힐 수 있다.
+
+---
+
+## 대응 방향
+
+대응은 "DNS cache 값을 무조건 늘린다" 로 끝나면 위험하다. 환경에 따라 장애 양상이 달라질 수 있기 때문이다.
+
+### 1. DNS 안정성부터 확인
+
+먼저 DNS 자체가 안정적인지 확인해야 한다.
+
+* CoreDNS 에 오류나 timeout 이 있는가
+* node 의 DNS resolver 가 순간적으로 실패하는가
+* `/etc/resolv.conf` 의 `ndots`, `search`, `timeout`, `attempts` 설정이 과도하지 않은가
+* Redis endpoint 의 DNS record TTL 이 너무 짧거나 자주 바뀌는가
+
+애플리케이션 설정을 바꾸기 전에, 실제 lookup 실패가 어디서 시작되는지 확인하는 것이 먼저다.
+
+### 2. JVM DNS cache TTL 을 명시적으로 관리
+
+운영 환경에서는 JVM DNS cache 정책을 명시적으로 관리하는 편이 좋다.
+
+예를 들어 DNS record 변경이 잦은 환경에서 성공 cache 를 너무 오래 가져가면 오래된 IP 를 붙잡을 수 있다. 반대로 cache 를 너무 짧게 잡으면 DNS 부하와 일시 실패 노출이 커질 수 있다.
+
+실패 cache 도 마찬가지다. `networkaddress.cache.negative.ttl` 이 너무 길면 일시적인 lookup 실패가 애플리케이션 장애 시간으로 확대될 수 있다.
+
+:::tip
+권장값은 환경마다 다르다. <br />
+중요한 건 기본값에 맡겨두는 것이 아니라, Redis endpoint 의 TTL, DNS 안정성, failover 방식, JDK 버전을 같이 보고 의도한 정책을 정하는 것이다.
+:::
+
+### 3. hostname 변경 가능성을 줄이기
+
+운영 구조상 가능하다면 Redis endpoint 를 안정적으로 유지하는 것도 중요하다.
+
+* Redis managed service 의 권장 endpoint 를 사용한다.
+* Pod IP 같은 휘발성 주소를 직접 쓰지 않는다.
+* Kubernetes Service, managed Redis primary endpoint 처럼 재해석 의미가 분명한 이름을 사용한다.
+* failover 시 DNS 전파와 client 재연결 정책이 맞는지 확인한다.
+
+IP 를 직접 박아 넣으면 DNS 문제는 피할 수 있지만, failover 나 endpoint 변경에 취약해진다. 그래서 IP 고정은 보통 근본 해결책이 아니라 임시 우회책에 가깝다.
+
+### 4. Lettuce 연결 로그를 관찰 가능하게 만들기
+
+Lettuce 재연결과 DNS lookup 실패가 같이 발생하는지 보려면 관련 로그를 남길 수 있어야 한다.
+
+```properties
+logging.level.io.lettuce.core=INFO
+logging.level.io.netty.resolver.dns=DEBUG
+```
+
+운영에서 `DEBUG` 를 상시 켜기는 부담이 있으므로, 재현 환경이나 짧은 관찰 구간에서만 사용하는 편이 좋다.
+
+---
+
+## 정리
+
+:::success
+Redis `UnknownHostException` 은 Redis 서버가 죽었다는 뜻이 아니다. <br />
+hostname 을 IP 로 바꾸는 과정이 실패했다는 뜻이고, Spring Boot + Lettuce 환경에서는 연결 재사용과 자동 재연결 때문에 간헐적인 형태로 나타날 수 있다.
+:::
+
+이번 현상은 아래 흐름으로 이해할 수 있었다.
+
+* Redis 서버는 정상이다.
+* 기존 연결은 대부분 정상 동작한다.
+* 특정 시점에 재연결 또는 새 연결이 필요해진다.
+* 그 순간 Redis hostname 재해석이 실패한다.
+* JVM 또는 resolver 계층의 cache 정책 때문에 실패가 잠시 반복될 수 있다.
+* 애플리케이션 재시작 후에는 cache 와 connection 상태가 초기화되면서 정상처럼 보일 수 있다.
+
+결국 이런 문제는 Redis, Lettuce, JVM, DNS 를 따로 보면 잘 잡히지 않는다. `UnknownHostException` 이 발생한 시점에 어떤 연결이 새로 만들어졌고, 그때 DNS lookup 이 실제로 성공했는지부터 맞춰보는 것이 핵심이다.
+
+---
+
+## Reference
+
+* [Oracle Java SE 21 - InetAddress Caching](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/InetAddress.html)
+* [Oracle Java SE 12 - Networking Properties, Address Cache](https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/net/doc-files/net-properties.html)
+* [Lettuce Reference Guide - Client Options](https://redis.github.io/lettuce/advanced-usage/client-options/)
+* [Spring Data Redis - LettuceConnectionFactory API](https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/connection/lettuce/LettuceConnectionFactory.html)
