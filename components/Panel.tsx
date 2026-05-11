@@ -155,6 +155,7 @@ function renderText(type: InfoPanelType, children: ReactNode) {
   const style = typeStyles[type];
 
   const commonTextStyle = 'text-base leading-[1.6] break-words whitespace-pre-line';
+  const titleNodes = React.Children.toArray(title);
 
   return (
       <>
@@ -165,7 +166,7 @@ function renderText(type: InfoPanelType, children: ReactNode) {
             })}
           </div>
           <div className={commonTextStyle}>
-            {title}
+            {titleNodes}
           </div>
         </div>
 
@@ -173,7 +174,7 @@ function renderText(type: InfoPanelType, children: ReactNode) {
             <div className={`mt-2 pl-[1.8rem] space-y-[0.4rem] ${style.titleColor}`}>
               {rest.map((line, i) => (
                   <div key={i} className={commonTextStyle}>
-                    {line}
+                    {React.Children.toArray(line)}
                   </div>
               ))}
             </div>
