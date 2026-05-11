@@ -12,7 +12,7 @@ self.__BUILD_MANIFEST = {
     "static/chunks/0.55452qm2mlk.js"
   ],
   "/book/[slug]": [
-    "static/chunks/04yaqm.-ybupk.js"
+    "static/chunks/0n87_jvl0hmdn.js"
   ],
   "/link": [
     "static/chunks/0o0u7-g6b9~bs.js"
@@ -21,7 +21,7 @@ self.__BUILD_MANIFEST = {
     "static/chunks/0ha-23m9j6rsc.js"
   ],
   "/post/[id]": [
-    "static/chunks/0tdi4~d_cp2xb.js"
+    "static/chunks/0-znrz3x4m2ia.js"
   ],
   "/projects": [
     "static/chunks/0lnlcd3jdotsc.js"
