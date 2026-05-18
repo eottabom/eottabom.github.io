@@ -31,7 +31,9 @@ export default function Seo({
 }: SeoProps) {
   const router = useRouter();
   const pageTitle = title ? `${title} | ${DEFAULT_TITLE}` : `${DEFAULT_TITLE} - 백엔드 개발자 기술 블로그`;
-  const canonical = `${SITE_URL}${router.asPath.split('?')[0]}`;
+  const rawPath = router.asPath.split('?')[0];
+  const normalizedPath = rawPath === '/index' ? '/' : rawPath;
+  const canonical = `${SITE_URL}${normalizedPath}`;
 
   return (
     <Head>
