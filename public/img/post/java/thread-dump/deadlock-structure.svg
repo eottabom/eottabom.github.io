@@ -1,0 +1,137 @@
+<svg viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="dl-hold" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0,7 3.5,0 7" fill="#2E7D32"/>
+    </marker>
+    <marker id="dl-wait" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0,7 3.5,0 7" fill="#D32F2F"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="520" fill="#fafbfc"/>
+
+  <text x="450" y="44"
+        style="font-size:24px;font-weight:700;fill:#1a1a1a;text-anchor:middle;">
+    데드락 (Deadlock) 구조
+  </text>
+
+  <!-- =========================================
+       2x2 Grid Layout
+       Thread-A (top-left)  : (100, 100) - (280, 170)
+       Lock A   (top-right) : (620, 100) - (800, 170)
+       Lock B   (bot-left)  : (100, 330) - (280, 400)
+       Thread-B (bot-right) : (620, 330) - (800, 400)
+       ========================================= -->
+
+  <!-- Thread-A -->
+  <rect x="100" y="100" width="180" height="70" rx="12"
+        fill="#1565C0" stroke="#0D47A1" stroke-width="2"/>
+  <text x="190" y="138"
+        style="font-size:17px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    Thread-A
+  </text>
+
+  <!-- Lock A -->
+  <rect x="620" y="100" width="180" height="70" rx="10"
+        fill="#FFF59D" stroke="#F9A825" stroke-width="2"/>
+  <text x="660" y="138"
+        style="font-size:18px;text-anchor:middle;dominant-baseline:middle;">🔒</text>
+  <text x="720" y="138"
+        style="font-size:16px;font-weight:700;fill:#5D4037;text-anchor:start;dominant-baseline:middle;">
+    Lock A
+  </text>
+
+  <!-- Lock B -->
+  <rect x="100" y="330" width="180" height="70" rx="10"
+        fill="#FFF59D" stroke="#F9A825" stroke-width="2"/>
+  <text x="140" y="368"
+        style="font-size:18px;text-anchor:middle;dominant-baseline:middle;">🔒</text>
+  <text x="200" y="368"
+        style="font-size:16px;font-weight:700;fill:#5D4037;text-anchor:start;dominant-baseline:middle;">
+    Lock B
+  </text>
+
+  <!-- Thread-B -->
+  <rect x="620" y="330" width="180" height="70" rx="12"
+        fill="#1565C0" stroke="#0D47A1" stroke-width="2"/>
+  <text x="710" y="368"
+        style="font-size:17px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    Thread-B
+  </text>
+
+  <!-- =========================================
+       Edges
+       ========================================= -->
+
+  <!-- Thread-A → Lock A : 보유 (실선 초록, 수평 상단) -->
+  <line x1="282" y1="135" x2="620" y2="135"
+        stroke="#2E7D32" stroke-width="2" marker-end="url(#dl-hold)"/>
+  <text x="450" y="122"
+        style="font-size:14px;font-weight:700;fill:#2E7D32;text-anchor:middle;">
+    보유 (locked)
+  </text>
+
+  <!-- Thread-B → Lock B : 보유 (실선 초록, 수평 하단) -->
+  <line x1="618" y1="365" x2="282" y2="365"
+        stroke="#2E7D32" stroke-width="2" marker-end="url(#dl-hold)"/>
+  <text x="450" y="385"
+        style="font-size:14px;font-weight:700;fill:#2E7D32;text-anchor:middle;">
+    보유 (locked)
+  </text>
+
+  <!-- Thread-A → Lock B : 대기 (점선 빨강, 수직 좌측) -->
+  <line x1="190" y1="172" x2="190" y2="328"
+        stroke="#D32F2F" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#dl-wait)"/>
+  <text x="206" y="252"
+        style="font-size:14px;font-weight:700;fill:#D32F2F;text-anchor:start;">
+    대기
+  </text>
+  <text x="206" y="270"
+        style="font-size:11px;fill:#D32F2F;text-anchor:start;">
+    (waiting to lock)
+  </text>
+
+  <!-- Thread-B → Lock A : 대기 (점선 빨강, 수직 우측) -->
+  <line x1="710" y1="328" x2="710" y2="172"
+        stroke="#D32F2F" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#dl-wait)"/>
+  <text x="694" y="252"
+        style="font-size:14px;font-weight:700;fill:#D32F2F;text-anchor:end;">
+    대기
+  </text>
+  <text x="694" y="270"
+        style="font-size:11px;fill:#D32F2F;text-anchor:end;">
+    (waiting to lock)
+  </text>
+
+  <!-- 중앙 DEADLOCK 인디케이터 -->
+  <ellipse cx="450" cy="250" rx="120" ry="44"
+           fill="#FFFFFF" stroke="#D32F2F" stroke-width="2" stroke-dasharray="6,4"/>
+  <text x="450" y="244"
+        style="font-size:17px;font-weight:700;fill:#D32F2F;text-anchor:middle;dominant-baseline:middle;">
+    DEADLOCK
+  </text>
+  <text x="450" y="266"
+        style="font-size:12px;fill:#D32F2F;text-anchor:middle;dominant-baseline:middle;">
+    서로 상대방의 락을 기다림
+  </text>
+
+  <!-- =========================================
+       Legend
+       ========================================= -->
+  <rect x="220" y="448" width="460" height="48" rx="6"
+        fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+
+  <line x1="238" y1="472" x2="278" y2="472"
+        stroke="#2E7D32" stroke-width="2" marker-end="url(#dl-hold)"/>
+  <text x="290" y="472"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    락 보유 (locked)
+  </text>
+
+  <line x1="448" y1="472" x2="488" y2="472"
+        stroke="#D32F2F" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#dl-wait)"/>
+  <text x="500" y="472"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    락 대기 (BLOCKED)
+  </text>
+</svg>
