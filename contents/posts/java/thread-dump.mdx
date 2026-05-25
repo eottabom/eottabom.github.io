@@ -1,0 +1,311 @@
+---
+title: "Thread Dump 분석과 활용"
+date: "2026-05-25"
+tags: ["Java", "JVM"]
+summary: "When to capture a Thread Dump, how to read one, and how to diagnose deadlocks, BLOCKED threads, and CPU spikes with real examples."
+description: "Thread Dump 수집 방법(jstack, kill -3, Spring Actuator)부터 스레드 상태 해석, 데드락/BLOCKED/CPU 스파이크 실제 예시까지 단계별로 살펴본다."
+---
+
+:::info
+CPU가 갑자기 치솟거나 애플리케이션이 응답을 멈췄을 때, 가장 먼저 꺼내야 할 도구가 Thread Dump다. <br />
+어떤 스레드가 무엇을 기다리고 있는지, 어디서 락이 꼬였는지, 스택 트레이스만 읽어도 원인의 절반은 보인다. <br />
+수집 방법과 읽는 법을 정리하고, 실제 코드로 재현한 세 가지 사례를 함께 살펴본다.
+:::
+
+
+---
+
+## Thread Dump란?
+
+특정 시점에 JVM 내 **모든 스레드의 상태를 텍스트로 스냅샷**한 출력이다.
+
+Heap Dump와 자주 혼동하는데, 둘은 목적이 다르다.
+
+| | Thread Dump | Heap Dump |
+|---|---|---|
+| 담는 것 | 스레드 상태, 스택 트레이스, 락 관계 | 힙 메모리 전체 객체 |
+| 크기 | 수 KB ~ 수십 KB | 수백 MB ~ GB |
+| 목적 | 응답 지연, 데드락, CPU 스파이크 분석 | OutOfMemoryError, 메모리 누수 분석 |
+| 수집 부담 | 거의 없음 | 애플리케이션 일시 중단 |
+
+운영 중 부담 없이 여러 번 찍을 수 있다는 점이 Thread Dump의 큰 장점이다.
+
+
+---
+
+## 언제 Thread Dump를 찍어야 하는가?
+
+Thread Dump는 **"스레드 문제"** 라는 확신이 없어도 일단 찍어보는 게 맞다. 수집 비용이 낮고, 원인이 보이면 빠르게 다음 행동으로 넘어갈 수 있다.
+
+아래 상황에서 사용한다.
+
+#### 1) CPU 사용률이 갑자기 치솟을 때
+
+어떤 스레드가 CPU를 잡고 있는지 확인할 수 있다. `top -H`로 OS 스레드를 찾고, nid로 Thread Dump와 매핑하면 범인이 나온다.
+
+#### 2) 애플리케이션이 응답하지 않거나 처리가 갑자기 느려질 때
+
+BLOCKED / WAITING 스레드가 무엇을 기다리고 있는지 스택 트레이스로 바로 파악된다.
+
+#### 3) 데드락이 의심될 때
+
+jstack은 데드락을 자동으로 감지해 덤프 하단에 `Found one Java-level deadlock:` 블록으로 출력한다.
+
+#### 4) 특정 요청이 처리되지 않고 대기 중일 때
+
+어떤 코드에서 멈췄는지 스택 트레이스를 통해 확인 가능하다.
+
+#### 5) 스레드 풀이 고갈(Thread Pool Exhaustion)됐을 때
+
+`http-nio-*`, `executor-*` 계열 스레드가 모두 요청을 처리 중인데 큐가 쌓인다면 스레드 풀 고갈을 의심한다. 단순히 `WAITING` 스레드가 많다는 이유만으로는 부족하다. idle worker도 정상적으로 `WAITING` 상태일 수 있다.
+
+:::tip
+단 한 번보다 **30초 간격으로 3~5번** 연속으로 찍는 것이 좋다. 일시적 현상과 고착된 상태를 구분할 수 있다.
+:::
+
+
+---
+
+## Thread 상태 종류
+
+| 상태 | 설명 |
+|---|---|
+| `RUNNABLE` | 현재 실행 중이거나 실행 가능 상태. CPU를 점유하거나 OS 스케줄링을 기다리는 중 |
+| `BLOCKED` | 다른 스레드가 보유한 모니터 락을 기다리는 중 (`synchronized` 블록 진입 대기) |
+| `WAITING` | 조건 없이 대기 중. `Object.wait()`, `LockSupport.park()` 등으로 진입 |
+| `TIMED_WAITING` | 타임아웃 있는 대기. `Thread.sleep(n)`, `wait(timeout)`, `parkNanos()` 등 |
+| `NEW` | 아직 `start()`가 호출되지 않은 스레드 |
+| `TERMINATED` | 실행이 끝난 스레드 |
+
+실무에서 가장 자주 보는 것은 `BLOCKED`와 `WAITING`이다. `RUNNABLE`이 지나치게 많다면 CPU 스파이크를 의심한다.
+
+<div style={{ textAlign: 'center' }}>
+  <img src="/img/post/java/thread-dump/thread-state-transition.svg" alt="Thread 상태 전이도" style={{ display: 'inline-block', width: '100%', maxWidth: '960px' }} />
+</div>
+
+
+---
+
+## Thread Dump 수집 방법
+
+### jstack
+
+```bash
+jstack <pid>
+```
+
+가장 기본적인 방법이다. JDK에 기본 포함돼 있다.
+
+```bash
+# 현재 실행 중인 Java 프로세스 PID 확인
+jps -l
+
+# Thread Dump 수집 후 파일로 저장
+jstack <pid> > thread-dump-$(date +%Y%m%d%H%M%S).txt
+```
+
+### kill -3
+
+```bash
+kill -3 <pid>
+```
+
+`jstack`을 설치하기 어렵거나 컨테이너 환경에서 유용하다. 프로세스의 표준 출력(stdout)으로 덤프가 출력된다. 프로세스가 종료되지 않는다.
+systemd로 실행 중이면 journal에서, 컨테이너라면 `docker logs`나 Pod 로그에서 확인하는 경우가 많다.
+
+### Spring Actuator
+
+Spring Boot 애플리케이션이라면 `spring-boot-starter-actuator` 의존성을 추가하고, HTTP 노출 대상에 `threaddump`를 포함하면 된다.
+
+```bash
+curl -H 'Accept: application/json' http://localhost:8080/actuator/threaddump > threaddump.json
+```
+
+기본적으로 JSON 형태로 응답을 받을 수 있다. `jstack`처럼 텍스트 형태로 보고 싶다면 `Accept: text/plain`을 지정한다.
+
+```bash
+curl -H 'Accept: text/plain' http://localhost:8080/actuator/threaddump > threaddump.txt
+```
+
+운영 환경에서 원격으로 수집할 때 유용하지만, 보안상 엔드포인트 노출 범위는 반드시 제한해야 한다. 내부망, 별도 management port, 인증 설정 없이 외부에 열어두면 안 된다.
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: threaddump
+```
+
+### VisualVM / Java Mission Control
+
+GUI가 필요할 때 사용한다. 로컬 개발 환경에서 시각적으로 분석하기 편하다.
+
+
+---
+
+## Thread Dump 읽는 방법
+
+Thread Dump의 각 스레드 블록은 아래 구조다.
+
+```
+"http-nio-8080-exec-3" #25 daemon prio=5 os_prio=0 tid=0x00007f... nid=0x1a3c waiting for monitor entry [0x...]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at com.example.OrderService.placeOrder(OrderService.java:42)
+        - waiting to lock <0x000000076b3a1d40> (a java.lang.Object)
+        at com.example.OrderController.order(OrderController.java:28)
+        ...
+```
+
+읽을 때 확인할 것들:
+
+- **스레드 이름**: `http-nio-8080-exec-3`처럼 어떤 스레드 풀인지 바로 파악 가능
+- **nid**: OS 스레드 ID (16진수). CPU 점유 스레드를 top으로 찾은 뒤 여기서 매핑
+- **Thread.State**: 현재 상태
+- **스택 트레이스**: 어느 코드에서 멈췄는지
+- `- locked <0x...>`: 이 스레드가 보유한 락
+- `- waiting to lock <0x...>`: 이 스레드가 기다리는 락
+
+
+---
+
+## 실제 예시
+
+:::tip
+아래 예시 코드는 <a href="https://github.com/eottabom/let-me-code/tree/main/thread-dump">let-me-code/thread-dump</a>에 정리해두었다. <br />
+각 예제는 일부러 종료되지 않거나 일정 시간 동안 CPU를 점유하도록 만들었고, 실행 방법은 모듈 README에서 확인할 수 있다.
+:::
+
+### 데드락 (Deadlock)
+
+<div style={{ textAlign: 'center' }}>
+  <img src="/img/post/java/thread-dump/deadlock-structure.svg" alt="데드락 구조도" style={{ display: 'inline-block', width: '100%', maxWidth: '600px' }} />
+</div>
+
+Thread-A가 lockA를 잡고 lockB를 기다리고, Thread-B가 lockB를 잡고 lockA를 기다리는 상황이다.
+
+```java
+Thread threadA = new Thread(() -> {
+    synchronized (lockA) {
+        sleep(100);
+        synchronized (lockB) { ... }  // lockB를 기다리며 멈춤
+    }
+}, "Thread-A");
+
+Thread threadB = new Thread(() -> {
+    synchronized (lockB) {
+        sleep(100);
+        synchronized (lockA) { ... }  // lockA를 기다리며 멈춤
+    }
+}, "Thread-B");
+```
+
+Thread Dump 하단에 아래 블록이 자동으로 나타난다.
+
+```
+Found one Java-level deadlock:
+=============================
+"Thread-A":
+  waiting to lock monitor 0x00007f8c2c00b9a8 (object 0x000000076b4e1d58, a java.lang.Object),
+  which is held by "Thread-B"
+"Thread-B":
+  waiting to lock monitor 0x00007f8c2c009d68 (object 0x000000076b4e1d48, a java.lang.Object),
+  which is held by "Thread-A"
+
+Java stack information for the threads listed above:
+===================================================
+"Thread-A":
+        at com.eottabom.letmecode.example.threaddump.DeadlockExample.lambda$main$0(DeadlockExample.java:28)
+        - waiting to lock <0x000000076b4e1d58> (a java.lang.Object)
+        - locked <0x000000076b4e1d48> (a java.lang.Object)
+"Thread-B":
+        at com.eottabom.letmecode.example.threaddump.DeadlockExample.lambda$main$1(DeadlockExample.java:38)
+        - waiting to lock <0x000000076b4e1d48> (a java.lang.Object)
+        - locked <0x000000076b4e1d58> (a java.lang.Object)
+
+Found 1 deadlock.
+```
+
+`Found N deadlock.` 문구가 보이면 데드락이다. 락 주소(`0x...`)를 따라가면 어떤 스레드가 무엇을 보유하고 있는지 정확히 추적할 수 있다.
+
+### BLOCKED 스레드
+
+한 스레드가 `synchronized` 블록을 오래 점유하면, 나머지 스레드는 전부 BLOCKED 상태로 쌓인다.
+
+```
+"Blocked-Thread-1" #14 prio=5 os_prio=0 tid=0x... nid=0x... waiting for monitor entry [0x...]
+   java.lang.Thread.State: BLOCKED (on object monitor)
+        at com.eottabom.letmecode.example.threaddump.BlockedThreadExample.lambda$main$1(BlockedThreadExample.java:36)
+        - waiting to lock <0x000000076b3a1d40> (a java.lang.Object)
+```
+
+같은 락 주소(`0x000000076b3a1d40`)를 기다리는 스레드가 여러 개라면, 해당 주소를 `locked`로 보유한 스레드를 찾는다. 그 스레드가 병목이다.
+
+```bash
+./gradlew :thread-dump:runBlockedThreadExample
+```
+
+### CPU 점유 스레드 찾기 (top + jstack 연계)
+
+CPU 스파이크가 발생했을 때, OS 수준의 스레드 ID와 Thread Dump의 nid를 연결하는 방법이다.
+
+```bash
+# CPU 스핀 예제 실행
+./gradlew :thread-dump:runCpuSpinExample
+
+# 1. CPU 높은 Java 프로세스의 스레드 목록 확인
+top -H -p <pid>
+
+# 2. 높은 CPU를 쓰는 TID를 16진수로 변환
+printf "%x\n" <tid>
+
+# 3. jstack에서 해당 nid 검색
+jstack <pid> | grep -A 20 "nid=0x<hex>"
+```
+
+CpuSpinExample을 실행하면 CPU-Spinner 스레드가 RUNNABLE 상태로 CPU를 점유한다. `top -H`에서 가장 높은 TID가 이 스레드다.
+
+```
+"CPU-Spinner" #13 prio=5 os_prio=0 tid=0x... nid=0x1b2f runnable [0x...]
+   java.lang.Thread.State: RUNNABLE
+        at com.eottabom.letmecode.example.threaddump.CpuSpinExample.lambda$main$0(CpuSpinExample.java:25)
+```
+
+RUNNABLE이지만 I/O나 락 대기 없이 루프를 도는 패턴이다.
+
+
+---
+
+## 분석 도구
+
+Thread Dump는 텍스트만으로도 읽을 수 있지만, 스레드 수가 많거나 여러 덤프를 비교해야 할 때는 도구를 같이 쓰면 좋다.
+
+- **[fastThread](https://fastthread.io)**: 온라인 JVM Thread Dump 분석기다. Thread Dump를 업로드하면 deadlock, `BLOCKED` 스레드, CPU spike 의심 스레드, 스레드 상태 분포를 빠르게 훑어볼 수 있다.
+- **[Samurai](https://samuraism.jp/samurai/en/index.html)**: 로컬 GUI 기반 로그/Thread Dump 분석 도구다. 온라인 붙여넣기 도구라기보다 파일을 열어 여러 덤프와 로그를 함께 보는 용도에 가깝다.
+- **[IBM TMDA](https://www.ibm.com/docs/en/support-assistant/5.0.0?topic=tools-thread-monitor-dump-analyzer-java-tmda)**: IBM Thread and Monitor Dump Analyzer다. deadlock, hung thread, resource contention 같은 패턴을 휴리스틱으로 찾는 데 초점이 있다.
+
+
+---
+
+## 정리
+
+:::success
+**요약** <br />
+✔ Thread Dump는 수집 부담이 낮고 장애 상황에서 첫 번째로 꺼내야 할 도구다 <br />
+✔ 데드락: 덤프 하단 `Found N deadlock` 확인 <br />
+✔ BLOCKED 병목: 같은 락 주소를 기다리는 스레드 수 확인, 그 락을 보유한 스레드가 원인 <br />
+✔ CPU 스파이크: `top -H`로 TID를 16진수 변환 후 nid로 매핑 <br />
+✔ 스레드 풀 고갈: 작업 중인 스레드 수, 큐 적체, 반복 덤프의 상태 변화를 함께 확인 <br />
+✔ 원인이 보이면 코드나 설정을 바꾸기 전에, 30초 간격으로 한 번 더 찍어 패턴이 반복되는지 확인한다
+:::
+
+
+---
+
+## 📚 Reference
+
+* Java 공식 문서 - <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/lang/Thread.State.html">java.lang.Thread.State (JDK 21)</a>
+* jstack man page - <a href="https://docs.oracle.com/en/java/javase/21/docs/specs/man/jstack.html">Oracle - jstack</a>
+* fastthread.io - <a href="https://fastthread.io">Thread Dump Analyzer</a>
+* Samurai - <a href="https://samuraism.jp/samurai/en/index.html">Thread Dump Analysis Tool</a>
+* IBM TMDA - <a href="https://www.ibm.com/docs/en/support-assistant/5.0.0?topic=tools-thread-monitor-dump-analyzer-java-tmda">Thread and Monitor Dump Analyzer for Java</a>

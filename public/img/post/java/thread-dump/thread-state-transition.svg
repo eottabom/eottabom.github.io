@@ -1,0 +1,203 @@
+<svg viewBox="0 0 1200 760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 작은 화살표, refX=7 = polygon 끝점에 정확히 맞춤 -->
+    <marker id="ar-g" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0,7 3.5,0 7" fill="#6b7280"/>
+    </marker>
+    <marker id="ar-r" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0,7 3.5,0 7" fill="#D32F2F"/>
+    </marker>
+    <marker id="ar-a" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0,7 3.5,0 7" fill="#F57C00"/>
+    </marker>
+    <marker id="ar-i" markerWidth="7" markerHeight="7" refX="7" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0,7 3.5,0 7" fill="#3949AB"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="760" fill="#fafbfc"/>
+
+  <text x="600" y="46"
+        style="font-size:26px;font-weight:700;fill:#1a1a1a;text-anchor:middle;">
+    Thread 상태 전이도
+  </text>
+
+  <!-- =========================================
+       Nodes
+       NEW         center (90, 380)   x:30-150
+       RUNNABLE    center (470, 380)  x:380-560, y:338-422
+       BLOCKED     center (920, 150)  x:840-1000
+       WAITING     center (920, 380)  x:840-1000
+       TIMED_WAIT  center (920, 610)  x:820-1020
+       TERMINATED  center (470, 660)  x:380-560
+       ========================================= -->
+
+  <rect x="30" y="354" width="120" height="52" rx="26"
+        fill="#78909C" stroke="#546E7A" stroke-width="2"/>
+  <text x="90" y="380"
+        style="font-size:16px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    NEW
+  </text>
+
+  <rect x="380" y="338" width="180" height="84" rx="14"
+        fill="#43A047" stroke="#1B5E20" stroke-width="2"/>
+  <text x="470" y="372"
+        style="font-size:17px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    RUNNABLE
+  </text>
+  <text x="470" y="396"
+        style="font-size:12px;fill:#dcedc8;text-anchor:middle;dominant-baseline:middle;">
+    실행 중 / 실행 가능
+  </text>
+
+  <rect x="840" y="124" width="160" height="52" rx="26"
+        fill="#D32F2F" stroke="#B71C1C" stroke-width="2"/>
+  <text x="920" y="150"
+        style="font-size:16px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    BLOCKED
+  </text>
+
+  <rect x="840" y="354" width="160" height="52" rx="26"
+        fill="#F57C00" stroke="#E65100" stroke-width="2"/>
+  <text x="920" y="380"
+        style="font-size:16px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    WAITING
+  </text>
+
+  <rect x="820" y="584" width="200" height="52" rx="26"
+        fill="#3949AB" stroke="#1A237E" stroke-width="2"/>
+  <text x="920" y="610"
+        style="font-size:16px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    TIMED_WAITING
+  </text>
+
+  <rect x="380" y="634" width="180" height="52" rx="26"
+        fill="#546E7A" stroke="#263238" stroke-width="2"/>
+  <text x="470" y="660"
+        style="font-size:16px;font-weight:700;fill:#fff;text-anchor:middle;dominant-baseline:middle;">
+    TERMINATED
+  </text>
+
+  <!-- =========================================
+       Edges  — 모든 endpoint를 박스 boundary 바깥에 위치
+       RUNNABLE 우측 boundary = x:560
+       BLOCKED 좌측 = x:840, WAITING 좌측 = x:840, TIMED_WAIT 좌측 = x:820
+       ========================================= -->
+
+  <!-- NEW → RUNNABLE -->
+  <line x1="152" y1="380" x2="380" y2="380"
+        stroke="#6b7280" stroke-width="2" marker-end="url(#ar-g)"/>
+  <text x="266" y="370"
+        style="font-size:13px;fill:#374151;text-anchor:middle;font-weight:600;">
+    start()
+  </text>
+
+  <!-- RUNNABLE → TERMINATED -->
+  <line x1="470" y1="422" x2="470" y2="634"
+        stroke="#6b7280" stroke-width="2" marker-end="url(#ar-g)"/>
+  <text x="484" y="528"
+        style="font-size:13px;fill:#374151;text-anchor:start;font-weight:600;">
+    run() 종료
+  </text>
+
+  <!-- ── RUNNABLE ↔ BLOCKED ── -->
+  <!-- 위 호 : RUNNABLE → BLOCKED (빨강, 위쪽 곡선) -->
+  <path d="M 562 348 Q 700 215 840 162"
+        stroke="#D32F2F" stroke-width="2" fill="none" marker-end="url(#ar-r)"/>
+  <text x="720" y="206"
+        style="font-size:13px;fill:#D32F2F;text-anchor:middle;font-weight:600;">
+    synchronized 진입 시도
+  </text>
+  <text x="720" y="222"
+        style="font-size:12px;fill:#D32F2F;text-anchor:middle;">
+    (락 이미 점유됨)
+  </text>
+
+  <!-- 아래 호 : BLOCKED → RUNNABLE (회색 점선, 아래쪽 곡선) -->
+  <path d="M 842 172 Q 700 295 560 358"
+        stroke="#6b7280" stroke-width="1.8" fill="none" stroke-dasharray="5,3" marker-end="url(#ar-g)"/>
+  <text x="720" y="318"
+        style="font-size:13px;fill:#374151;text-anchor:middle;">
+    락 획득
+  </text>
+
+  <!-- ── RUNNABLE ↔ WAITING (수평) ── -->
+  <line x1="562" y1="374" x2="840" y2="374"
+        stroke="#F57C00" stroke-width="2" marker-end="url(#ar-a)"/>
+  <text x="700" y="364"
+        style="font-size:13px;fill:#F57C00;text-anchor:middle;font-weight:600;">
+    Object.wait() / LockSupport.park()
+  </text>
+
+  <line x1="840" y1="392" x2="560" y2="392"
+        stroke="#6b7280" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#ar-g)"/>
+  <text x="700" y="414"
+        style="font-size:13px;fill:#374151;text-anchor:middle;">
+    notify() / notifyAll() / unpark()
+  </text>
+
+  <!-- ── RUNNABLE ↔ TIMED_WAITING ── -->
+  <!-- 아래 호 : RUNNABLE → TIMED_WAITING (인디고, 아래쪽 곡선) -->
+  <path d="M 562 412 Q 700 545 820 602"
+        stroke="#3949AB" stroke-width="2" fill="none" marker-end="url(#ar-i)"/>
+  <text x="720" y="560"
+        style="font-size:13px;fill:#3949AB;text-anchor:middle;font-weight:600;">
+    Thread.sleep(n) / wait(timeout)
+  </text>
+
+  <!-- 위 호 : TIMED_WAITING → RUNNABLE (회색 점선, 위쪽 곡선) -->
+  <path d="M 822 590 Q 700 472 560 418"
+        stroke="#6b7280" stroke-width="1.8" fill="none" stroke-dasharray="5,3" marker-end="url(#ar-g)"/>
+  <text x="720" y="468"
+        style="font-size:13px;fill:#374151;text-anchor:middle;">
+    타임아웃 / notify()
+  </text>
+
+  <!-- =========================================
+       Legend
+       ========================================= -->
+  <rect x="30" y="478" width="320" height="220" rx="8"
+        fill="#ffffff" stroke="#d1d5db" stroke-width="1"/>
+
+  <text x="48" y="506"
+        style="font-size:14px;font-weight:700;fill:#1a1a1a;text-anchor:start;">
+    범례
+  </text>
+
+  <rect x="48" y="520" width="14" height="14" rx="7" fill="#D32F2F"/>
+  <text x="70" y="527"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    <tspan style="font-weight:700;">BLOCKED</tspan> — synchronized 락 대기
+  </text>
+
+  <rect x="48" y="546" width="14" height="14" rx="7" fill="#F57C00"/>
+  <text x="70" y="553"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    <tspan style="font-weight:700;">WAITING</tspan> — 조건 없는 무한 대기
+  </text>
+
+  <rect x="48" y="572" width="14" height="14" rx="7" fill="#3949AB"/>
+  <text x="70" y="579"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    <tspan style="font-weight:700;">TIMED_WAITING</tspan> — 타임아웃 있는 대기
+  </text>
+
+  <line x1="48" y1="612" x2="86" y2="612"
+        stroke="#374151" stroke-width="2" marker-end="url(#ar-g)"/>
+  <text x="94" y="612"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    상태 진입 (트리거)
+  </text>
+
+  <line x1="48" y1="640" x2="86" y2="640"
+        stroke="#6b7280" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#ar-g)"/>
+  <text x="94" y="640"
+        style="font-size:13px;fill:#1a1a1a;text-anchor:start;dominant-baseline:middle;">
+    RUNNABLE로 복귀
+  </text>
+
+  <text x="48" y="676"
+        style="font-size:12px;fill:#6b7280;text-anchor:start;">
+    * 색상별로 어떤 호출이 해당 상태로 만드는지 표시
+  </text>
+</svg>
