@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Mon, 18 May 2026 11:08:59 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 25 May 2026 01:59:37 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Thread Dump 분석과 활용</title>
+      <link>https://eottabom.github.io/post/thread-dump/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/thread-dump/</guid>
+      <description>Thread Dump 수집 방법(jstack, kill -3, Spring Actuator)부터 스레드 상태 해석, 데드락/BLOCKED/CPU 스파이크 실제 예시까지 단계별로 살펴본다.</description>
+      <pubDate>Mon, 25 May 2026 00:00:00 GMT</pubDate>
+      <category>Java</category>
+      <category>JVM</category>
+    </item>
     <item>
       <title>Redis UnknownHostException 이 간헐적으로 발생할 때 확인할 DNS resolver 설정</title>
       <link>https://eottabom.github.io/post/redis-unknownhostexception-dns-cache/</link>
@@ -171,14 +180,6 @@
       <pubDate>Tue, 15 Oct 2024 00:00:00 GMT</pubDate>
       <category>gRPC</category>
       <category>Study</category>
-    </item>
-    <item>
-      <title>try-with-resources 를 이용한 자원해제</title>
-      <link>https://eottabom.github.io/post/try-with-resources/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/try-with-resources/</guid>
-      <description>try-with-resources 를 이용한 자원해제와 동작 방식에 대해서 알아보자.</description>
-      <pubDate>Thu, 10 Oct 2024 00:00:00 GMT</pubDate>
-      <category>Java</category>
     </item>
   </channel>
 </rss>
