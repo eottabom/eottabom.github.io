@@ -2,6 +2,9 @@ self.__BUILD_MANIFEST = {
   "/": [
     "static/chunks/0~hx062ofczb-.js"
   ],
+  "/404": [
+    "static/chunks/0af9~n4pzkk8n.js"
+  ],
   "/_error": [
     "static/chunks/0wg8q-6sbc_xd.js"
   ],
@@ -36,6 +39,7 @@ self.__BUILD_MANIFEST = {
   },
   "sortedPages": [
     "/",
+    "/404",
     "/_app",
     "/_error",
     "/about",
