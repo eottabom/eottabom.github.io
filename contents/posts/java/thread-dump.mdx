@@ -77,7 +77,9 @@ jstack은 데드락을 자동으로 감지해 덤프 하단에 `Found one Java-l
 | `NEW` | 아직 `start()`가 호출되지 않은 스레드 |
 | `TERMINATED` | 실행이 끝난 스레드 |
 
-실무에서 가장 자주 보는 것은 `BLOCKED`와 `WAITING`이다. `RUNNABLE`이 지나치게 많다면 CPU 스파이크를 의심한다.
+실무에서 가장 자주 보는 것은 `BLOCKED`와 `WAITING`이다. 
+
+`RUNNABLE`이 지나치게 많다면 스택 트레이스를 보고 실제 CPU 작업인지 I/O 대기인지 구분해야한다.
 
 <div style={{ textAlign: 'center' }}>
   <img src="/img/post/java/thread-dump/thread-state-transition.svg" alt="Thread 상태 전이도" style={{ display: 'inline-block', width: '100%', maxWidth: '960px' }} />
@@ -260,7 +262,7 @@ top -H -p <pid>
 printf "%x\n" <tid>
 
 # 3. jstack에서 해당 nid 검색
-jstack <pid> | grep -A 20 "nid=0x<hex>"
+jstack <pid> Thread.print -l | grep -A 20 "nid=0x<hex>"
 ```
 
 CpuSpinExample을 실행하면 CPU-Spinner 스레드가 RUNNABLE 상태로 CPU를 점유한다. `top -H`에서 가장 높은 TID가 이 스레드다.
