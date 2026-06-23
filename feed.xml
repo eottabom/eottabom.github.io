@@ -6,9 +6,20 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Tue, 26 May 2026 10:02:20 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 23 Jun 2026 14:09:55 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Demo로 이해하는 Istio Ambient mode (Gateway API + ext_authz)</title>
+      <link>https://eottabom.github.io/post/istio-ambient-mode-with-gateway-api/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/istio-ambient-mode-with-gateway-api/</guid>
+      <description>Istio Ambient mode의 아키텍처와 트래픽 흐름을 알아보고, 기존 역방향 프록시 구조를 Istio Gateway(HTTPRoute)와 AuthorizationPolicy(ext_authz)로 전환하는 과정을 kind 기반 로컬 데모로 직접 검증한다.</description>
+      <pubDate>Tue, 23 Jun 2026 00:00:00 GMT</pubDate>
+      <category>kubernetes</category>
+      <category>Istio</category>
+      <category>Service Mesh</category>
+      <category>Spring Cloud</category>
+    </item>
     <item>
       <title>Thread Dump 분석과 활용</title>
       <link>https://eottabom.github.io/post/thread-dump/</link>
@@ -171,15 +182,6 @@
       <description>도메인 주도 설계(DDD, Domain-Driven Design)의 사실과 오해</description>
       <pubDate>Sat, 22 Feb 2025 00:00:00 GMT</pubDate>
       <category>DDD</category>
-    </item>
-    <item>
-      <title>gRPC 를 도입하는 이유에 대해서 알아보자. (feat. Http 1.0 vs Http 1.1 vs Http 2.0)</title>
-      <link>https://eottabom.github.io/post/why-using-grpc/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/why-using-grpc/</guid>
-      <description>HTTP 1.0, HTTP 1.1 의 문제와 gRPC 가 MSA 구조에 도입되면 어떤 이점이 있는지 알아보자.</description>
-      <pubDate>Tue, 15 Oct 2024 00:00:00 GMT</pubDate>
-      <category>gRPC</category>
-      <category>Study</category>
     </item>
   </channel>
 </rss>
