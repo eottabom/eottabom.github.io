@@ -1,0 +1,364 @@
+---
+title: "Demo로 이해하는 Istio Ambient mode (Gateway API + ext_authz)"
+date: "2026-06-23"
+tags: ["kubernetes", "Istio", "Service Mesh", "Spring Cloud"]
+summary: "Explore Istio Ambient mode and verify how Gateway API and ext_authz can replace an application-layer reverse proxy through a local demo."
+description: "Istio Ambient mode의 아키텍처와 트래픽 흐름을 알아보고, 기존 역방향 프록시 구조를 Istio Gateway(HTTPRoute)와 AuthorizationPolicy(ext_authz)로 전환하는 과정을 kind 기반 로컬 데모로 직접 검증한다."
+---
+
+:::info
+쿠버네티스 환경에서 MSA 간 통신을 제어/보안/관측할 수 있게 해주는 Service Mesh 플랫폼인 Istio를, 사이드카 없이 동작하는 **Ambient mode**로 빠르게 살펴본다. <br/>
+기존에 애플리케이션 레이어(리버스 프록시)에서 처리하던 라우팅과 인가(authz) 로직을, Istio의 **Gateway API(HTTPRoute)** 와 **AuthorizationPolicy(ext_authz)** 로 옮기는 전환 과정을 로컬 데모로 직접 돌려본다.
+:::
+
+---
+
+## Istio Ambient mode란?
+
+Istio는 **쿠버네티스 환경에서 서비스 간 통신을 제어하고,
+보안과 관측 기능을 제공하는 Service Mesh 플랫폼**이다.
+
+Sidecar mode는 각 Pod에 Envoy 프록시를 주입하지만, <br />
+Ambient mode는 애플리케이션 Pod에 사이드카를 주입하지 않고, L3/L4와 L7 처리를 서로 다른 컴포넌트로 분리한다.
+
+- **ztunnel (L3/L4)**: 노드 단위로 동작하며 mTLS, 인증, L4 인가, L4 텔레메트리와 HBONE 터널을 처리한다.
+- **waypoint (L7)**: HTTP 라우팅, L7 인가, retry, timeout, tracing이 필요할 때 선택적으로 배치하는 Envoy 프록시다.
+
+waypoint와 Istio Gateway는 모두 Envoy 기반이지만 처리하는 트래픽의 범위가 다르다. <br />
+waypoint는 mesh 내부에서 목적지 워크로드의 L7 정책을 처리하고,
+Istio Gateway는 클러스터 외부에서 들어오는 트래픽의 진입점 역할을 한다.
+
+이번 데모에서는 외부 트래픽의 라우팅과 인가 흐름을 전환하기 때문에
+waypoint를 별도로 배치하지 않고 Istio Gateway를 사용한다.
+
+### 아키텍처 / 구성 요소 역할
+
+Ambient mode는 설정을 관리하는 Control Plane과 실제 트래픽을 처리하는 Data Plane으로 나뉜다.
+
+istiod는 설정을 배포하고, ztunnel과 waypoint, Istio Gateway는 각 레이어에서 트래픽을 처리한다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/kubernetes/istio-ambient-mode/ambient-architecture.png" alt="Istio Ambient mode 주요 컴포넌트 아키텍처" style={{ display: 'inline-block' }} />
+</div>
+
+### 주요 컴포넌트 정리
+
+| 컴포넌트 | 역할 |
+| --- | --- |
+| istiod | 설정과 정책을 관리하고, ztunnel과 Envoy 프록시에 xDS 설정을 배포. ztunnel이 사용할 워크로드 정보와 mTLS 인증서도 제공 |
+| ztunnel | 노드 단위로 배치되는 L3/L4 프록시. mTLS, 인증, L4 인가, L4 텔레메트리를 처리하며 HTTP 헤더는 해석하지 않음 |
+| waypoint | 애플리케이션 Pod 외부에 배치되는 Envoy 기반 L7 프록시. 목적지 워크로드의 HTTP 라우팅, L7 인가, 관측 기능을 처리 |
+| istio-cni | Ambient mesh에 포함된 Pod의 network namespace에 리다이렉션 규칙을 구성하고 node-local ztunnel로 트래픽을 전달 |
+| pilot-agent | waypoint와 Istio Gateway 안에서 Envoy bootstrap 설정과 lifecycle을 관리 |
+| Istio Gateway | 클러스터 외부의 HTTP/TCP 요청을 받는 Envoy 기반 진입점. Gateway API의 Gateway와 HTTPRoute 설정을 반영 |
+| HBONE | HTTP/2, HTTP CONNECT, mTLS를 조합해 여러 TCP stream을 하나의 암호화된 연결로 전달하는 터널 |
+
+### 트래픽 흐름
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/kubernetes/istio-ambient-mode/ambient-traffic-flow.png" alt="Istio Ambient mode 외부 및 내부 트래픽 흐름" style={{ display: 'inline-block' }} />
+</div>
+
+외부 요청은 Istio Gateway에서 HTTPRoute 규칙을 적용한 뒤 목적지 Service로 전달된다.
+
+목적지 워크로드가 Ambient mesh에 포함되어 있으면 inbound 트래픽은 destination ztunnel에서 캡처되고, <br />
+L4 AuthorizationPolicy를 통과한 요청만 애플리케이션 Pod로 전달된다.
+
+Ingress Gateway에서 시작한 트래픽은 기본적으로 destination waypoint를 사용하지 않는다. <br />
+Ingress 트래픽에도 waypoint를 적용하려면 Service 또는 Namespace에 istio.io/ingress-use-waypoint: true를 설정하고,
+istiod의 ENABLE_INGRESS_WAYPOINT_ROUTING도 활성화해야 한다.
+
+내부 서비스 간 통신은 source ztunnel이 outbound 트래픽을 캡처하면서 시작한다. <br />
+목적지에 waypoint가 없으면 source ztunnel에서 destination ztunnel로 HBONE 연결을 만들고,
+waypoint가 있으면 source ztunnel에서 waypoint로 전달해 L7 정책을 적용한 뒤 destination ztunnel로 다시 전달한다.
+
+---
+
+## Quick Start - 로컬에서 Istio Ambient 설치하기
+
+이번 데모는 **[kind(Kubernetes IN Docker)](https://kind.sigs.k8s.io/)** 로 구성했다.
+kind는 노드 자체가 Docker 컨테이너라서 별도 VM(hypervisor 권한 승인 등)이 필요 없고, <br />
+Docker Desktop의 host.docker.internal을 그대로 활용할 수 있어 호스트의 docker-compose 컨테이너와 연동하기 더 단순하다.
+
+Docker Desktop이 실행 중이어야 하며,
+Gateway와 HTTPRoute를 적용하려면 Kubernetes Gateway API CRD도 필요하다.
+예제의 전환 스크립트는 CRD가 없을 때 설치까지 처리한다.
+
+```bash
+brew install kind kubectl istioctl
+
+kind create cluster --name istio-demo
+istioctl install --context kind-istio-demo --set profile=ambient -y
+```
+
+```bash
+kubectl --context kind-istio-demo get pods -n istio-system
+NAME                     READY   STATUS    RESTARTS   AGE
+istio-cni-node-xxxxx     1/1     Running   0          1m
+istiod-xxxxxxxxxx-xxxxx  1/1     Running   0          1m
+ztunnel-xxxxx            1/1     Running   0          1m
+```
+
+내부 프로세스를 들여다보면 ztunnel은 ztunnel proxy ztunnel 단일 프로세스로 동작하고,
+istiod 안에는 실제 설정 배포를 담당하는 pilot-discovery 프로세스가 있다.
+
+---
+
+## Envoy 설정 구조 (참고)
+
+Istio Gateway 내부는 결국 Envoy이기 때문에,
+트래픽 흐름을 이해하려면 Envoy의 기본 구성 단위를 알아두면 도움이 된다.
+
+- **Listener**: 어떤 포트/프로토콜에서 트래픽을 수신할지 정의
+- **Route**: 수신한 요청을 어떤 Cluster로 보낼지 결정하는 라우팅 규칙
+- **Cluster**: 라우팅 대상이 되는 논리적 서비스 그룹(로드밸런싱 대상)
+- **Endpoint**: Cluster에 포함된 실제 인스턴스(Pod/IP/Port)
+
+---
+
+## Demo 1 - 단순 라우팅을 Istio Gateway로 전환
+
+가장 기본적인 시나리오부터 본다.
+기존에는 애플리케이션(리버스 프록시 역할)이 백엔드 서비스를 직접 호출하고 응답을 가공해서 내려주는 구조였다고 가정하자.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/kubernetes/istio-ambient-mode/simple-routing-flow.png" alt="단순 라우팅 Demo의 AS-IS와 TO-BE 흐름" style={{ display: 'inline-block' }} />
+</div>
+
+| 역할 | AS-IS | TO-BE |
+| --- | --- | --- |
+| L7 LB 진입점 | nginx(ALB 역할) | nginx(ALB 역할) |
+| 역방향 프록시 | 애플리케이션(Spring Cloud Gateway) | 제거 |
+| k8s 클러스터 진입 | X | port-forward |
+| Ingress / L7 Route | X | Istio Gateway + HTTPRoute |
+| 백엔드 서비스 | A 서버 | A 서버 (Service/Endpoints로 등록) |
+
+핵심은 **애플리케이션 코드 변경 없이 라우팅 경로를 전환할 수 있는가**다.
+AS-IS의 Gateway 애플리케이션은 A 서버 응답에 "Gateway Result -> " 접두어를 붙여서 내려준다.
+이 접두어가 사라지고 백엔드 응답이 그대로 오면 Istio Gateway가 직접 라우팅했다는 시각적 증거가 된다.
+
+### HTTPRoute로 라우팅 규칙 정의
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1 # k8s 표준 Gateway API (Istio 전용 API 아님)
+kind: Gateway
+metadata:
+  name: demo-gw
+  namespace: istio-demo
+spec:
+  gatewayClassName: istio
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: route-api
+  namespace: istio-demo
+spec:
+  parentRefs:
+    - name: demo-gw
+  hostnames:
+    - "external-a.local"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: external-a
+          port: 9000
+```
+
+`gatewayClassName: istio`로 선언하면 `istiod`가 이 리소스를 감지해서
+demo-gw-istio 라는 Deployment + Service를 자동으로 만들어준다.
+
+HTTPRoute 의 hostnames에 external-a.local을 지정했으므로,
+nginx가 Istio Gateway로 요청을 전달할 때 Host 헤더도 external-a.local로 설정해야 한다.
+Host 헤더가 일치하지 않으면 route-api가 매칭되지 않는다.
+
+클러스터 외부(Docker)에 떠 있는 백엔드는 ServiceEntry 대신 selector 없는 Service + Endpoints 조합으로 등록한다.
+이번 데모의 HTTPRoute가 backendRef로 Kubernetes Service를 참조하기 때문이다.
+
+### AS-IS에서 TO-BE로 전환하는 과정
+
+`switch-simple-to-istio.sh`는 다음 순서로 전환을 처리한다.
+
+1. Gateway API CRD가 설치되어 있는지 확인하고, 없으면 설치한다.
+2. 클러스터 외부(Docker)의 A 서버 IP를 조회해서 Service + Endpoints에 등록한다.
+3. Gateway, HTTPRoute를 적용하고 `demo-gw-istio` Deployment가 뜰 때까지 대기한다.
+4. `kubectl port-forward`로 Istio Gateway를 호스트의 18080 포트에 연결한다.
+5. nginx 설정을 port-forward 경로로 교체해서 재시작한다.
+
+전환 전후로 같은 요청을 보내보면 차이가 바로 드러난다. AS-IS에서는 Gateway 애플리케이션이 붙인 `"Gateway Result -> "` 접두어가 보이고, TO-BE에서는 그 접두어 없이 A 서버 응답이 그대로 온다.
+
+```bash
+curl http://localhost:8080/api
+# Gateway Result -> A (external server)        <- AS-IS
+
+curl http://localhost:8080/api
+# A (external server)                          <- TO-BE, prefix가 사라짐
+```
+
+:::tip
+<a className="block" href="https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo" target="_blank" rel="noopener noreferrer">istio-ambient-demo 전체 예제 보러가기</a>
+<a className="block" href="https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/k8s/simple" target="_blank" rel="noopener noreferrer">Simple 데모 Gateway / HTTPRoute 설정 보러가기</a>
+<a className="block" href="https://github.com/eottabom/let-me-code/blob/main/istio-ambient-demo/run/run-simple-demo.sh" target="_blank" rel="noopener noreferrer">Simple 데모 실행 스크립트 보러가기</a>
+:::
+
+---
+
+## Demo 2 - 인가(authz) 로직을 ext_authz로 전환
+
+두 번째 시나리오는 좀 더 현실적이다.
+기존 애플리케이션이 세션 검증 서비스를 호출해서 인가 여부를 판단하고,
+통과하면 인가 헤더를 주입해서 백엔드를 호출하는 구조라고 가정한다.
+
+<div style={{ textAlign: 'center' }}>
+    <img src="/img/post/kubernetes/istio-ambient-mode/ext-authz-flow.png" alt="인가 처리 Demo의 AS-IS와 TO-BE 흐름" style={{ display: 'inline-block' }} />
+</div>
+
+핵심은 **검증 로직을 애플리케이션 코드에서 인프라 레이어(Istio)로 옮기는 것**이다.
+Istio는 AuthorizationPolicy의 action: CUSTOM을 통해 rules에 매칭되는 `/api` 요청마다 외부 gRPC 서버(ext_authz)를 호출해서
+허용/차단을 결정할 수 있다.
+
+### AuthorizationPolicy + ext_authz
+
+```yaml
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: ext-authz
+  namespace: istio-demo-authz
+spec:
+  selector:
+    matchLabels:
+      gateway.networking.k8s.io/gateway-name: demo-gw
+  action: CUSTOM
+  provider:
+    name: demo-authz-grpc
+  rules:
+    - to:
+        - operation:
+            paths: ["/api"]
+```
+
+provider.name은 istiod ConfigMap의 extensionProviders에 등록한 이름과 일치해야 한다.
+`switch-authz-to-istio.sh`는 다음 순서로 전환을 처리한다.
+
+1. authz-server 이미지를 빌드하고 kind 클러스터에 로드한다.
+2. istiod ConfigMap에 `demo-authz-grpc` provider를 등록한 뒤 istiod를 재시작해서 설정을 반영한다.
+3. authz-server Deployment, Service + Endpoints, Gateway, HTTPRoute, AuthorizationPolicy를 순서대로 적용한다.
+4. `kubectl port-forward`로 Istio Gateway를 호스트의 18080 포트에 연결한다.
+5. nginx 설정을 port-forward 경로로 교체해서 재시작한다.
+
+```yaml
+extensionProviders:
+- name: demo-authz-grpc
+  envoyExtAuthzGrpc:
+    service: authz-server.istio-demo-authz.svc.cluster.local
+    port: "9001"
+```
+
+ext_authz gRPC 서버는 Envoy의 Authorization v3 인터페이스(AuthorizationGrpc.AuthorizationImplBase)를 구현하면 된다.
+Spring Boot + Spring gRPC + `io.envoyproxy.controlplane:api`를 쓰면 별도 proto 컴파일 없이 바로 구현할 수 있다.
+
+```java
+@Service
+public class ExtAuthzGrpcService extends AuthorizationGrpc.AuthorizationImplBase {
+
+    @Override
+    public void check(CheckRequest request, StreamObserver<CheckResponse> responseObserver) {
+        String demoUser = request.getAttributes()
+            .getRequest().getHttp()
+            .getHeadersOrDefault("x-demo-user", "");
+
+        if (isAllowed(demoUser)) {
+            responseObserver.onNext(allow(demoUser)); // OkHttpResponse + 헤더 주입
+        } else {
+            responseObserver.onNext(deny());           // DeniedHttpResponse(403)
+        }
+        responseObserver.onCompleted();
+    }
+    // ...
+}
+```
+
+허용 시에는 OkHttpResponse에 헤더를 추가해서 Envoy가 업스트림 요청에 그대로 주입하게 하고,
+차단 시에는 DeniedHttpResponse로 업스트림 호출 없이 즉시 403을 반환한다.
+AS-IS에서 애플리케이션이 직접 헤더를 주입하던 역할을 Envoy가 대신 수행하는 셈이다.
+
+:::warning
+ext_authz 서버는 요청 처리 경로의 동기 의존성이 된다.
+실제 환경에 적용할 때는 authz-server의 가용성뿐만 아니라 호출 timeout과 오류가 발생했을 때의 응답 정책도 같이 정해야 한다.
+:::
+
+### AS-IS와 TO-BE 응답 비교
+
+`x-demo-user` 헤더 없이 요청하면 AS-IS와 TO-BE 모두 403으로 차단되고, 헤더를 채워서 요청하면 둘 다 동일하게 B 서버까지 도달한다.
+
+```bash
+# AS-IS
+curl -v http://localhost:8080/api                              # 403 (session-svc 차단)
+curl -H 'x-demo-user: alice' http://localhost:8080/api          # 허용
+
+# TO-BE (switch-authz-to-istio.sh 전환 후)
+curl -v http://localhost:8080/api                              # 403 (ext_authz 차단)
+curl -H 'x-demo-user: alice' http://localhost:8080/api          # 허용, 응답 헤더 동일
+```
+
+:::tip
+<a className="block" href="https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/k8s/authz" target="_blank" rel="noopener noreferrer">Authz 데모 Gateway / HTTPRoute / AuthorizationPolicy 설정 보러가기</a>
+<a className="block" href="https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/authz-server" target="_blank" rel="noopener noreferrer">ext_authz gRPC 서버 예제 보러가기</a>
+<a className="block" href="https://github.com/eottabom/let-me-code/blob/main/istio-ambient-demo/run/run-authz-demo.sh" target="_blank" rel="noopener noreferrer">Authz 데모 실행 스크립트 보러가기</a>
+:::
+
+AS-IS와 TO-BE 모두 `x-authz-user: alice`, `x-authz-result: allow` 헤더가 동일하게 찍히는 걸 확인할 수 있다. ext_authz로 옮긴 인가 로직이 기존 애플리케이션과 같은 헤더 계약을 그대로 유지한다는 뜻이다.
+
+다만 `x-request-id` 값은 달라진다. 이건 Istio 자체의 동작이 아니라 이번 데모 코드의 구현 차이다. AS-IS의 `SessionAuthzGatewayFilter`는 `UUID.randomUUID()`로 직접 ID를 생성해서 내려보내는데, TO-BE의 ext_authz 서버(`ExtAuthzGrpcService`)는 이 헤더를 아예 건드리지 않는다. 그 결과 `x-request-id`가 비어 있는 채로 Envoy까지 도달하고, Envoy의 HTTP Connection Manager가 기본 옵션(`generate_request_id`)으로 새 값을 채워 넣는다.
+
+실제로 ext_authz 서버에서도 들어온 `x-request-id`를 그대로 보존하도록 구현했다면 이런 차이는 없었을 것이다. 다만 실무에서 인가 로직을 인프라로 옮길 때는 "애플리케이션이 암묵적으로 하던 일(헤더 생성, 보존 등)을 인프라 쪽 구현에서도 빠짐없이 챙겼는지"를 한 번씩 점검할 필요가 있다는 점에서는 참고할 만하다.
+
+---
+
+## 정리
+
+:::success
+<b>정리</b>
+✔ Ambient mode는 ztunnel(L3/L4)이 기본 트래픽을 처리하고, L7 기능이 필요할 때만 waypoint/Gateway(Envoy)가 개입한다. <br />
+✔ 사이드카 없이도 필요한 지점부터 점진적으로 L7 기능을 확장할 수 있다. <br />
+✔ 라우팅(HTTPRoute)과 인가(AuthorizationPolicy + ext_authz)는 애플리케이션 코드를 건드리지 않고 인프라 레이어로 옮길 수 있는 영역이다. <br />
+✔ ext_authz 서버를 직접 구현할 때는 Envoy의 필터 체인 동작 방식과 장애 시 처리 전략을 정확히 이해해야 한다.
+:::
+
+---
+
+## 예제 코드
+
+이 글에서 다룬 코드와 실행 스크립트는 let-me-code 저장소의 [istio-ambient-demo](https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo) 에서 확인할 수 있다.
+
+- [gateway](https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/gateway) - AS-IS 비교군(Spring Cloud Gateway, simple/authz 프로필)
+- [authz-server](https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/authz-server) - ext_authz gRPC 서버(Spring Boot + Spring gRPC)
+- [k8s](https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/k8s) - Namespace, Gateway, HTTPRoute, AuthorizationPolicy 매니페스트
+- [run](https://github.com/eottabom/let-me-code/tree/main/istio-ambient-demo/run) - 데모 실행, 전환, 정리 스크립트
+
+---
+
+## 📚 Reference
+
+- [Istio Ambient mode 공식 문서](https://istio.io/latest/docs/ambient/)
+- [Istio Ambient data plane](https://istio.io/latest/docs/ambient/architecture/data-plane/)
+- [Istio ztunnel traffic redirection](https://istio.io/latest/docs/ambient/architecture/traffic-redirection/)
+- [Istio Waypoint proxy](https://istio.io/latest/docs/ambient/usage/waypoint/)
+- [Istio HBONE](https://istio.io/latest/docs/ambient/architecture/hbone/)
+- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/)
+- [Istio AuthorizationPolicy](https://istio.io/latest/docs/reference/config/security/authorization-policy/)
+- [Envoy ext_authz filter](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_authz_filter)
+- [kind (Kubernetes IN Docker)](https://kind.sigs.k8s.io/)
+
+<br/><br/>
