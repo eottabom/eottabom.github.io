@@ -49,12 +49,13 @@ export default function Document() {
             }),
           }}
         />
-        {/* 광고 스크립트 삽입 위치 */}
+        {/* 광고 스크립트 임시 비활성화: Search Console 광고 환경 보고서 재검토 대응 
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5103032140213770"
           crossOrigin="anonymous"
         ></script>
+        */}
       </Head>
       <body>
         <Main />
