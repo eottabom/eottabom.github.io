@@ -16,6 +16,14 @@ FE 인코딩과 Tomcat relaxedQueryChars 설정이 각각 어떤 의미인지도
 
 ## 에러 메시지
 
+예를 들어 검색 조건을 query string 으로 표현하면서 아래처럼 값을 조합했다고 해보자.
+
+```text
+/products?filter=category:전자기기|brand:삼성
+```
+
+Tomcat 기본 설정에서는 이 요청을 파싱하는 과정에서 아래와 같은 예외가 발생할 수 있다.
+
 ```text
 java.lang.IllegalArgumentException:
   Invalid character found in the request target
