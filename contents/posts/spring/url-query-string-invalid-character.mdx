@@ -1,0 +1,182 @@
+---
+title: "URL 쿼리스트링에 허용되지 않는 문자를 넣으면 어떻게 될까 (RFC 7230, RFC 3986)"
+date: "2026-07-21"
+tags: ["Spring", "Tomcat", "Java"]
+summary: "What happens when a URL query string contains a character not allowed by RFC 3986, and how Tomcat handles it."
+description: "URL 쿼리스트링에 RFC 3986 에서 허용하지 않는 문자를 인코딩 없이 전송하면 Tomcat 이 400 Bad Request 를 반환한다. 두 명세에서 허용 문자를 정의하는 방식을 살펴보고, FE encodeURIComponent 인코딩과 Tomcat relaxedQueryChars 설정을 정리한다."
+---
+
+:::info
+URL 쿼리스트링에 RFC 3986 에서 허용하지 않는 문자를 인코딩 없이 그대로 보내면 Tomcat 이 **400 Bad Request** 를 반환한다.
+검색 조건이나 필터 문법처럼 query 값에 특수 문자가 섞이는 경우를 기준으로 허용 문자 규칙과 해결 방법을 정리한다.
+FE 인코딩과 Tomcat relaxedQueryChars 설정이 각각 어떤 의미인지도 함께 살펴본다.
+:::
+
+---
+
+## 에러 메시지
+
+```text
+java.lang.IllegalArgumentException:
+  Invalid character found in the request target
+  [/products?filter=category:전자기기|brand:삼성 ].
+  The valid characters are defined in RFC 7230 and RFC 3986
+```
+
+예제에서는 query 값에 들어간 `|` 때문에 요청이 거절됐다.
+에러 메시지가 RFC 7230 과 RFC 3986 두 개를 가리키고 있으니 하나씩 살펴보자.
+
+---
+
+## 왜 RFC 7230 과 RFC 3986 이 같이 나올까?
+
+Tomcat 의 에러 메시지는 "request target 에 유효하지 않은 문자가 있다" 고 말하면서 RFC 7230 과 RFC 3986 을 함께 언급한다.
+처음 보면 두 명세 중 어디를 봐야 하는지 헷갈릴 수 있다.
+
+### RFC 7230 은 request-target 을 말한다
+
+[RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230) 은 HTTP/1.1 메시지의 문법과 라우팅을 정의한다.
+여기서 HTTP 요청의 시작 줄인 request-line 은 아래처럼 정의된다.
+
+```text
+// RFC 7230 §3.1.1
+request-line = method SP request-target SP HTTP-version CRLF
+```
+
+문제가 되는 `/products?filter=...` 부분은 이 중 `request-target` 이다.
+즉, Tomcat 은 HTTP 요청을 파싱하는 단계에서 request-target 에 들어온 문자를 검사하다가 요청을 거절한 것이다.
+
+다만 request-target 안의 query 문자 규칙까지 RFC 7230 만 보고 판단하면 안 된다.
+query 는 URI 의 일부이기 때문에 RFC 3986 의 URI 문법을 함께 봐야 한다.
+
+### query 문자는 RFC 3986 을 봐야 한다
+
+[RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) 은 URI 문법을 정의한다.
+request-target 안의 query 파트는 이 명세의 URI 규칙을 따른다.
+
+먼저 §2.2 에서는 예약 문자(reserved characters)를 아래처럼 정의한다.
+
+```text
+// RFC 3986 §2.2
+reserved   = gen-delims / sub-delims
+gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@"
+sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+```
+
+그리고 §3.4 에서는 query 파트의 문법을 아래처럼 정의한다.
+
+```text
+// RFC 3986 §3.4
+query      = *( pchar / "/" / "?" )
+pchar      = unreserved / pct-encoded / sub-delims / ":" / "@"
+unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+```
+
+여기서 query 에 들어갈 수 있는 문자는 크게 `unreserved`, `pct-encoded`, `sub-delims`, `:`, `@`, `/`, `?` 로 볼 수 있다.
+반대로 `|` 같은 일부 특수 문자는 query 에 그대로 들어갈 수 있는 문자로 정의되어 있지 않다.
+
+즉, <BlueText>**query 값에 특수 문자가 필요하다면 그대로 붙이기보다 URI 규칙에 맞게 인코딩해서 보내야 한다**</BlueText>.
+
+---
+
+## Q. Tomcat 은 어디서 막는 건가요?
+
+<BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>
+Tomcat 은 HTTP 요청을 파싱할 때 request-target 의 각 문자를 비트마스크로 검사한다.
+
+:::note
+비트마스크는 여러 개의 true/false 값을 비트 단위로 저장해두고 빠르게 확인하는 방식이다. <br />
+여기서는 특정 문자가 request-target 에 들어와도 되는지 미리 표시해둔 표에 가깝다고 보면 된다.
+:::
+
+허용되지 않는 문자는 파싱 단계에서 요청 자체를 거절하고 400 을 반환한다.
+
+헤더까지 도달하기 전, **TCP 소켓에서 읽은 raw bytes 를 검사하는 단계**이기 때문에 Spring 이나 서블릿 레이어로는 아예 올라오지 않는다.
+
+---
+
+## 4가지 케이스 정리
+
+예제는 허용되지 않는 query 문자 중 `|` 를 대표로 사용해서 구성했다.
+
+| 케이스 | FE 인코딩 | Tomcat 설정 | 결과 |
+|--------|-----------|-------------|------|
+| 1 | 미인코딩 (`\|` 그대로) | 기본 | **400 Bad Request** |
+| 2 | 인코딩 (`%7C`) | 기본 | **200 OK** |
+| 3 | 미인코딩 (`\|` 그대로) | relaxed (`\|` 허용) | **200 OK** |
+| 4 | 인코딩 (`%7C`) | relaxed (`\|` 허용) | **200 OK** |
+
+:::tip
+<a href="https://github.com/eottabom/let-me-code/tree/main/url-encoding">url-encoding 예제 보러 가기</a>
+:::
+
+---
+
+## 해결 방법 A. FE 에서 인코딩
+
+가장 표준적인 방법이다. `encodeURIComponent` 는 query 값에 들어간 특수 문자를 퍼센트 인코딩한다.
+
+```js
+const filter = 'category:전자기기|brand:삼성';
+const encoded = encodeURIComponent(filter);
+// → 'category%3A%EC%A0%84%EC%9E%90%EA%B8%B0%EA%B8%B0%7Cbrand%3A%EC%82%BC%EC%84%B1'
+
+fetch('/products?filter=' + encoded);
+```
+
+Tomcat 은 인코딩된 값을 받은 뒤 정상적으로 디코딩해서 어플리케이션에 전달한다.
+
+다만 `URLSearchParams` 를 쓰면 query string 조합과 인코딩을 같이 맡길 수 있어서 실수할 여지가 더 줄어든다.
+
+```js
+const params = new URLSearchParams();
+params.set('filter', 'category:전자기기|brand:삼성');
+
+fetch('/products?' + params.toString());
+```
+
+---
+
+## 해결 방법 B. Tomcat relaxedQueryChars
+
+Tomcat 이 특정 query 문자를 허용하도록 커스터마이즈하는 방법이다.
+예제에서는 `|` 를 허용 문자로 추가한다.
+
+```java
+@Configuration
+@Profile("tomcat-relaxed")
+public class TomcatCustomConfig {
+
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> tomcatRelaxedQueryChars() {
+        return (factory) -> factory.addConnectorCustomizers((connector) -> {
+            if (connector.getProtocolHandler() instanceof Http11NioProtocol protocol) {
+                protocol.setRelaxedQueryChars("|");
+            }
+        });
+    }
+
+}
+```
+
+:::warning
+relaxedQueryChars 는 RFC 표준을 우회하는 설정이다. 보안 정책을 검토한 뒤 필요한 문자만 최소한으로 허용해야 한다.
+:::
+
+---
+
+:::success
+<b>정리</b>
+✔ URL query 에 넣을 값은 RFC 3986 에서 허용하는 문자 규칙을 따라야 한다. <br />
+✔ 허용되지 않는 문자가 인코딩 없이 들어오면 Tomcat 은 요청 파싱 단계에서 400 Bad Request 를 반환할 수 있다. <br />
+✔ 가장 표준적인 해결 방법은 클라이언트에서 query 값을 퍼센트 인코딩해서 보내는 것이다. <br />
+✔ 서버에서 특정 문자를 허용해야 한다면 relaxedQueryChars 를 쓸 수 있지만, 필요한 문자만 최소한으로 열어야 한다.
+:::
+
+---
+
+## 📚 Reference
+
+* [RFC 7230 — Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing](https://datatracker.ietf.org/doc/html/rfc7230)
+* [RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax](https://datatracker.ietf.org/doc/html/rfc3986)
+* [Apache Tomcat Configuration Reference — relaxedQueryChars](https://tomcat.apache.org/tomcat-10.1-doc/config/http.html)
