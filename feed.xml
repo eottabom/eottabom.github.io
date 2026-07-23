@@ -6,9 +6,19 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Thu, 25 Jun 2026 04:29:05 GMT</lastBuildDate>
+    <lastBuildDate>Thu, 23 Jul 2026 09:37:31 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>URL 쿼리스트링에 허용되지 않는 문자를 넣으면 어떻게 될까 (RFC 7230, RFC 3986)</title>
+      <link>https://eottabom.github.io/post/url-query-string-invalid-character/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/url-query-string-invalid-character/</guid>
+      <description>URL 쿼리스트링에 RFC 3986 에서 허용하지 않는 문자를 인코딩 없이 전송하면 Tomcat 이 400 Bad Request 를 반환한다. 두 명세에서 허용 문자를 정의하는 방식을 살펴보고, FE encodeURIComponent 인코딩과 Tomcat relaxedQueryChars 설정을 정리한다.</description>
+      <pubDate>Tue, 21 Jul 2026 00:00:00 GMT</pubDate>
+      <category>Spring</category>
+      <category>Tomcat</category>
+      <category>Java</category>
+    </item>
     <item>
       <title>Demo로 이해하는 Istio Ambient mode (Gateway API + ext_authz)</title>
       <link>https://eottabom.github.io/post/istio-ambient-mode-with-gateway-api/</link>
@@ -173,14 +183,6 @@
       <guid isPermaLink="true">https://eottabom.github.io/post/ddd-core-concept/</guid>
       <description>도메인 주도 설계(DDD, Domain-Driven Design) 의 핵심 개념에 대해서 알아보자.</description>
       <pubDate>Sat, 01 Mar 2025 00:00:00 GMT</pubDate>
-      <category>DDD</category>
-    </item>
-    <item>
-      <title>도메인 주도 설계의 사실과 오해</title>
-      <link>https://eottabom.github.io/post/ddd-fact-misunderstanding/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/ddd-fact-misunderstanding/</guid>
-      <description>도메인 주도 설계(DDD, Domain-Driven Design)의 사실과 오해</description>
-      <pubDate>Sat, 22 Feb 2025 00:00:00 GMT</pubDate>
       <category>DDD</category>
     </item>
   </channel>
