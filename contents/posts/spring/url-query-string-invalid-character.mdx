@@ -14,9 +14,9 @@ FE 인코딩과 Tomcat relaxedQueryChars 설정이 각각 어떤 의미인지도
 
 ---
 
-## 1. 에러 메시지
+## 에러 메시지
 
-예를 들어 검색 조건을 query string 으로 표현하면서 아래처럼 값을 조합했다고 해보자.
+예를 들어 검색 조건을 query string 으로 표현하면서 아래처럼 값을 조합했을 때,
 
 ```text
 /products?filter=category:electronics|brand:samsung
@@ -31,30 +31,30 @@ java.lang.IllegalArgumentException:
   The valid characters are defined in RFC 7230 and RFC 3986
 ```
 
-예제에서는 query 값에 들어간 `|` 때문에 요청이 거절됐다.
-에러 메시지가 RFC 7230 과 RFC 3986 두 개를 가리키고 있으니 하나씩 살펴보자.
+에러 메시지에서는 RFC-7230 과 RFC-3986 두 개를 가리키고 있는데 이를 살펴보자.
 
 ---
 
-## 2. 왜 RFC 7230 과 RFC 3986 이 같이 나올까?
+## Why? - 왜 RFC 7230 과 RFC 3986 이 같이 나올까?
 
-Tomcat 의 에러 메시지는 "request target 에 유효하지 않은 문자가 있다" 고 말하면서 RFC 7230 과 RFC 3986 을 함께 언급한다.
+Tomcat 의 에러 메시지는 "request target 에 유효하지 않은 문자가 있다" 고 말하면서 RFC-7230 과 RFC-3986 을 함께 언급한다.
+
 처음 보면 두 명세 중 어디를 봐야 하는지 헷갈릴 수 있는데, 두 명세가 각각 다른 역할을 한다.
 
-* **RFC 7230** — "무엇을" 검사하는지 (request-target)
-* **RFC 3986** — "어떤 문자가" 허용되는지 (URI 문자 규칙)
+* **RFC 7230** - "무엇을" 검사하는지 (request-target)
+* **RFC 3986** - "어떤 문자가" 허용되는지 (URI 문자 규칙)
 
-### 2-1) RFC 7230 — request-target 을 정의한다
+### 1) RFC 7230 - "무엇을" 검사하는지 / request-target 을 정의
 
 [RFC 7230](https://datatracker.ietf.org/doc/html/rfc7230) 은 HTTP/1.1 메시지의 문법과 라우팅을 정의한다.
 HTTP 요청 라인은 아래와 같이 생겼다.
 
 ```text
 GET /products?filter=category:electronics|brand:samsung HTTP/1.1
-    └───────────── request-target ──────────────┘
+    └────────────── request-target ────────────────┘
 ```
 
-[RFC 7230 Section 5.3 Request Target](https://datatracker.ietf.org/doc/html/rfc7230#section-5.3) 은 메서드 뒤, 버전 앞의 그 토큰을 정의하며, 4가지 form 으로 나뉜다.
+[RFC 7230 Section 5.3 Request Target](https://datatracker.ietf.org/doc/html/rfc7230#section-5.3) 에 따르면, Request Target 은 메서드 뒤, 버전 앞의 그 토큰을 정의하고, 4가지 form 으로 나뉜다.
 
 ```text
 // RFC 7230 Section 5.3
@@ -64,25 +64,25 @@ request-target = origin-form
                / asterisk-form
 
 origin-form    = absolute-path [ "?" query ]   ; GET /products?filter=...  ← 일반적인 요청
-absolute-form  = absolute-URI                   ; 프록시 대상: GET http://host/path
-authority-form = authority                      ; CONNECT host:port
-asterisk-form  = "*"                            ; OPTIONS *
+absolute-form  = absolute-URI                  ; 프록시 대상: GET http://host/path
+authority-form = authority                     ; CONNECT host:port
+asterisk-form  = "*"                           ; OPTIONS *
 ```
 
 브라우저에서 보내는 요청은 대부분 origin-form 이고, 그 구조는 `absolute-path [ "?" query ]` 다.
-Tomcat 이 파싱하는 대상이 바로 이 request-target 이고, 그래서 "Invalid character found in the **request target**" 이라고 하는 것이다.
+Tomcat 이 파싱하는 대상이 바로 이 request-target 이고, 그래서 <BlueText>"Invalid character found in the request target" </BlueText> 이라고 하는 것이다.
 
 :::note
-RFC 7230 은 2022년 6월 [RFC 9112](https://datatracker.ietf.org/doc/html/rfc9112) 로 obsolete 되었다.
-Tomcat 에러 메시지 문구는 여전히 "RFC 7230 and RFC 3986" 으로 남아 있는 경우가 많으니, 인용할 때는 대상 Tomcat 버전의 실제 메시지를 확인하는 게 정확하다.
+참고로, RFC-7230 은 2022년 6월 [RFC 9112](https://datatracker.ietf.org/doc/html/rfc9112) 로 obsolete 되었다.
+Tomcat 에러 메시지 문구는 여전히 "RFC-7230 and RFC-3986" 으로 남아 있는 경우가 많아서, Tomcat 버전의 실제 메시지를 확인하는 게 정확하다.
 :::
 
-### 2-2) RFC 3986 — query 의 허용 문자를 정의한다
+### 2) RFC 3986 - "어떤 문자가" 허용되는지 / query 의 허용 문자를 정의
 
-request-target 의 틀은 RFC 7230 이 정하지만, 그 안 query 의 **문자 규칙**은 [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) 을 그대로 참조한다.
-에러 메시지가 두 RFC 를 동시에 가리키는 이유가 바로 이것이다.
+request-target 의 틀은 RFC-7230 이 정하지만, 그 안 query 의 **문자 규칙**은 [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) 을 그대로 참조하기 때문에,
+에러 메시자가 두 RFC 를 동시에 가리킨다.
 
-[RFC 3986 Section 2.2 Reserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.2) 에서 예약 문자를 아래처럼 정의한다.
+[RFC 3986 Section 2.2 Reserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.2) 에서는 예약 문자를 아래처럼 정의한다.
 
 ```text
 // RFC 3986 Section 2.2
@@ -91,14 +91,14 @@ gen-delims = ":" / "/" / "?" / "#" / "[" / "]" / "@"
 sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
 ```
 
-[RFC 3986 Section 2.3 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3) 에서 비예약 문자를 정의한다.
+[RFC 3986 Section 2.3 Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3) 에서는 비예약 문자를 정의한다.
 
 ```text
 // RFC 3986 Section 2.3
 unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
 ```
 
-[RFC 3986 Section 3.4 Query](https://datatracker.ietf.org/doc/html/rfc3986#section-3.4) 에서 query 파트의 문법을 아래처럼 정의한다.
+[RFC 3986 Section 3.4 Query](https://datatracker.ietf.org/doc/html/rfc3986#section-3.4) 에서는 query 파트의 문법을 아래처럼 정의한다.
 
 ```text
 // RFC 3986 Section 3.4
@@ -106,7 +106,7 @@ query = *( pchar / "/" / "?" )
 pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 ```
 
-query 에 raw 로 들어갈 수 있는 문자를 정리하면 아래와 같다.
+따라서, query 에 raw 로 들어갈 수 있는 문자를 정리하면 아래와 같다.
 
 | 분류 | 문자 | query 에서 |
 |------|------|-----------|
@@ -139,7 +139,6 @@ Tomcat 은 `org.apache.tomcat.util.http.parser.HttpParser` 가 관리하는 크�
 :::
 
 
-
 기본 문자 카테고리 배열은 static 이지만, request-target 판정 배열인 `IS_NOT_REQUEST_TARGET` 은 커넥터마다 relaxed 설정이 다를 수 있어 instance 필드로 관리된다.
 
 :::note
@@ -156,7 +155,7 @@ private final boolean[] IS_NOT_REQUEST_TARGET   = new boolean[ARRAY_SIZE];
 private final boolean[] IS_QUERY_RELAXED        = new boolean[ARRAY_SIZE];
 ```
 
-생성자에서 아래 문자들을 불허로 세팅한다.
+생성자에서 아래 문자들을 허용하지 않게 세팅하고 있다.
 
 ```java
 if (IS_CONTROL[i] || i == ' ' || i == '\"' || i == '#' || i == '<' ||
@@ -166,14 +165,14 @@ if (IS_CONTROL[i] || i == ' ' || i == '\"' || i == '#' || i == '<' ||
 }
 ```
 
-`|` (0x7C) 는 이 표에 처음부터 true 로 박혀 있어, 파싱 순간 바로 걸린다.
+따라서, 허용되지 않는 문자는 파싱 단계에서 요청 자체를 거절하고 400 을 반환한다.
+이 검사는 헤더 파싱보다도 앞, `HttpServletRequest` 가 만들어지기 전 단계여서 Spring 의 어떤 필터, 인터셉터, `@ControllerAdvice` 도 이 400 을 가로챌 수 없다.
 
-허용되지 않는 문자는 파싱 단계에서 요청 자체를 거절하고 400 을 반환한다.
-이 검사는 헤더 파싱보다도 앞, `HttpServletRequest` 가 만들어지기 전 단계라 Spring 의 어떤 필터·인터셉터·`@ControllerAdvice` 도 이 400 을 가로챌 수 없다.
+예시에서 query string 에서 사용한 `|` (0x7C) 는 처음부터 true 여서, 파싱 순간 바로 걸리게 된다.
 
 ---
 
-## 3. 4가지 케이스 정리
+## 3. 예시 - 4가지 케이스 정리
 
 예제는 허용되지 않는 query 문자 중 `|` 를 대표로 사용해서 구성했다.
 
@@ -192,7 +191,7 @@ if (IS_CONTROL[i] || i == ' ' || i == '\"' || i == '#' || i == '<' ||
 
 ## 해결 방법 A. FE 에서 인코딩
 
-가장 표준적인 방법이다. `encodeURIComponent` 는 query 값에 들어간 특수 문자를 퍼센트 인코딩한다.
+가장 표준적인 방법이고, `encodeURIComponent` 는 query 값에 들어간 특수 문자를 퍼센트 인코딩한다.
 
 ```js
 const filter = 'category:electronics|brand:samsung';
@@ -243,10 +242,10 @@ public class TomcatCustomConfig {
 ```
 
 relaxedQueryChars 는 내부적으로 지정한 문자를 `IS_NOT_REQUEST_TARGET` 표에서 false 로 되돌린다.
-단, 열 수 있는 문자는 `IS_RELAXABLE` (`<>[\]^{|}`) 로 제한되며, `#` 나 SP 처럼 파싱 자체를 깨는 문자는 넣어도 허용되지 않는다.
+단, 열 수 있는 문자는 `IS_RELAXABLE` (`<>[\]^{|}`) 로 제한되며, `#` 나 파싱 자체를 깨는 문자는 넣어도 허용되지 않는다.
 
 :::warning
-relaxedQueryChars 는 RFC 표준을 우회하는 설정이다. 보안 정책을 검토한 뒤 필요한 문자만 최소한으로 허용해야 한다.
+relaxedQueryChars 는 RFC 표준을 우회하는 설정이기 때문에, 필요한 문자만 최소한으로 허용해야 한다.
 :::
 
 ---
@@ -263,12 +262,12 @@ relaxedQueryChars 는 RFC 표준을 우회하는 설정이다. 보안 정책을 
 
 ## 📚 Reference
 
-* [RFC 7230 — Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing](https://datatracker.ietf.org/doc/html/rfc7230)
-* [RFC 7230 Section 5.3 — Request Target](https://datatracker.ietf.org/doc/html/rfc7230#section-5.3)
-* [RFC 3986 — Uniform Resource Identifier (URI): Generic Syntax](https://datatracker.ietf.org/doc/html/rfc3986)
-* [RFC 3986 Section 2.2 — Reserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.2)
-* [RFC 3986 Section 2.3 — Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
-* [RFC 3986 Section 3.4 — Query](https://datatracker.ietf.org/doc/html/rfc3986#section-3.4)
-* [RFC 9112 — HTTP/1.1 (RFC 7230 대체)](https://datatracker.ietf.org/doc/html/rfc9112)
-* [Apache Tomcat Configuration Reference — relaxedQueryChars](https://tomcat.apache.org/tomcat-10.1-doc/config/http.html)
-* [Apache Tomcat — HttpParser.java (GitHub)](https://github.com/apache/tomcat/blob/10.1.x/java/org/apache/tomcat/util/http/parser/HttpParser.java)
+* [RFC 7230 - Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing](https://datatracker.ietf.org/doc/html/rfc7230)
+* [RFC 7230 Section 5.3 - Request Target](https://datatracker.ietf.org/doc/html/rfc7230#section-5.3)
+* [RFC 3986 - Uniform Resource Identifier (URI): Generic Syntax](https://datatracker.ietf.org/doc/html/rfc3986)
+* [RFC 3986 Section 2.2 - Reserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.2)
+* [RFC 3986 Section 2.3 - Unreserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.3)
+* [RFC 3986 Section 3.4 - Query](https://datatracker.ietf.org/doc/html/rfc3986#section-3.4)
+* [RFC 9112 - HTTP/1.1 (RFC 7230 대체)](https://datatracker.ietf.org/doc/html/rfc9112)
+* [Apache Tomcat Configuration Reference - relaxedQueryChars](https://tomcat.apache.org/tomcat-10.1-doc/config/http.html)
+* [Apache Tomcat - HttpParser.java (GitHub)](https://github.com/apache/tomcat/blob/10.1.x/java/org/apache/tomcat/util/http/parser/HttpParser.java)
