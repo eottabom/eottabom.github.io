@@ -1,6 +1,7 @@
 ---
 title: "Demo로 이해하는 Istio Ambient mode (Gateway API + ext_authz)"
 date: "2026-06-23"
+updated: "2026-07-30"
 tags: ["kubernetes", "Istio", "Service Mesh", "Spring Cloud"]
 summary: "Explore Istio Ambient mode and verify how Gateway API and ext_authz can replace an application-layer reverse proxy through a local demo."
 description: "Istio Ambient mode의 아키텍처와 트래픽 흐름을 알아보고, 기존 역방향 프록시 구조를 Istio Gateway(HTTPRoute)와 AuthorizationPolicy(ext_authz)로 전환하는 과정을 kind 기반 로컬 데모로 직접 검증한다."
@@ -30,6 +31,21 @@ Istio Gateway는 클러스터 외부에서 들어오는 트래픽의 진입점 �
 
 이번 데모에서는 외부 트래픽의 라우팅과 인가 흐름을 전환하기 때문에
 waypoint를 별도로 배치하지 않고 Istio Gateway를 사용한다.
+
+### Istio 전용 Gateway API vs Kubernetes Gateway API
+
+여기서 말하는 Istio Gateway는 실제로는 두 가지 서로 다른 API로 구성할 수 있어서 구분이 필요하다.
+
+| 구분 | Istio 전용 API | Kubernetes Gateway API |
+| --- | --- | --- |
+| 리소스 | `networking.istio.io` Gateway + VirtualService | `gateway.networking.k8s.io` Gateway + HTTPRoute(TCPRoute 등) |
+| 표준 여부 | Istio 전용 CRD | Kubernetes SIG 표준(여러 구현체가 공통 지원) |
+| 프록시 프로비저닝 | 별도로 ingress gateway Deployment/Service를 설치·관리해야 함 | GatewayClass 컨트롤러(istiod)가 Gateway 리소스를 감지해 Deployment/Service를 자동 생성 |
+| 라우팅 규칙 정의 | VirtualService에서 정의 | HTTPRoute에서 정의, ReferenceGrant로 네임스페이스 간 위임 가능 |
+| 이식성 | Istio에서만 동작 | Envoy Gateway, Cilium 등 다른 구현체로도 이식 가능 |
+
+Istio는 향후 방향을 Kubernetes Gateway API 쪽으로 잡고 있지만, 기존 `networking.istio.io` Gateway API가 deprecated된 것은 아니고 현재도 계속 지원한다. <br />
+이번 데모는 `gatewayClassName: istio`로 Kubernetes Gateway API를 사용하며, Gateway 리소스를 선언하면 istiod가 이를 감지해서 Envoy 기반 Deployment/Service(`demo-gw-istio`)를 자동으로 생성한다.
 
 ### 아키텍처 / 구성 요소 역할
 
@@ -64,7 +80,7 @@ istiod는 설정을 배포하고, ztunnel과 waypoint, Istio Gateway는 각 레�
 목적지 워크로드가 Ambient mesh에 포함되어 있으면 inbound 트래픽은 destination ztunnel에서 캡처되고, <br />
 L4 AuthorizationPolicy를 통과한 요청만 애플리케이션 Pod로 전달된다.
 
-Ingress Gateway에서 시작한 트래픽은 기본적으로 destination waypoint를 사용하지 않는다. <br />
+Istio Gateway에서 시작한 트래픽은 기본적으로 destination waypoint를 사용하지 않는다. <br />
 Ingress 트래픽에도 waypoint를 적용하려면 Service 또는 Namespace에 istio.io/ingress-use-waypoint: true를 설정하고,
 istiod의 ENABLE_INGRESS_WAYPOINT_ROUTING도 활성화해야 한다.
 
@@ -130,7 +146,7 @@ Istio Gateway 내부는 결국 Envoy이기 때문에,
 | L7 LB 진입점 | nginx(ALB 역할) | nginx(ALB 역할) |
 | 역방향 프록시 | 애플리케이션(Spring Cloud Gateway) | 제거 |
 | k8s 클러스터 진입 | X | port-forward |
-| Ingress / L7 Route | X | Istio Gateway + HTTPRoute |
+| 진입점 / L7 Route | X | Istio Gateway + HTTPRoute |
 | 백엔드 서비스 | A 서버 | A 서버 (Service/Endpoints로 등록) |
 
 핵심은 **애플리케이션 코드 변경 없이 라우팅 경로를 전환할 수 있는가**다.
@@ -320,9 +336,9 @@ curl -H 'x-demo-user: alice' http://localhost:8080/api          # 허용, 응답
 
 AS-IS와 TO-BE 모두 `x-authz-user: alice`, `x-authz-result: allow` 헤더가 동일하게 찍히는 걸 확인할 수 있다. ext_authz로 옮긴 인가 로직이 기존 애플리케이션과 같은 헤더 계약을 그대로 유지한다는 뜻이다.
 
-다만 `x-request-id` 값은 달라진다. 이건 Istio 자체의 동작이 아니라 이번 데모 코드의 구현 차이다. AS-IS의 `SessionAuthzGatewayFilter`는 `UUID.randomUUID()`로 직접 ID를 생성해서 내려보내는데, TO-BE의 ext_authz 서버(`ExtAuthzGrpcService`)는 이 헤더를 아예 건드리지 않는다. 그 결과 `x-request-id`가 비어 있는 채로 Envoy까지 도달하고, Envoy의 HTTP Connection Manager가 기본 옵션(`generate_request_id`)으로 새 값을 채워 넣는다.
+`x-request-id` 값은 달라진다. 이건 Istio 자체의 동작이 아니라 이번 데모 코드의 구현 차이다. AS-IS의 `SessionAuthzGatewayFilter`는 `UUID.randomUUID()`로 직접 ID를 생성해서 내려보내는데, TO-BE의 ext_authz 서버(`ExtAuthzGrpcService`)는 이 헤더를 아예 건드리지 않는다. 그 결과 `x-request-id`가 비어 있는 채로 Envoy까지 도달하고, Envoy의 HTTP Connection Manager가 기본 옵션(`generate_request_id`)으로 새 값을 채워 넣는다.
 
-실제로 ext_authz 서버에서도 들어온 `x-request-id`를 그대로 보존하도록 구현했다면 이런 차이는 없었을 것이다. 다만 실무에서 인가 로직을 인프라로 옮길 때는 "애플리케이션이 암묵적으로 하던 일(헤더 생성, 보존 등)을 인프라 쪽 구현에서도 빠짐없이 챙겼는지"를 한 번씩 점검할 필요가 있다는 점에서는 참고할 만하다.
+실제로 ext_authz 서버에서도 들어온 `x-request-id`를 그대로 보존하도록 구현했다면 이런 차이는 없었을 것이다. 실무에서 인가 로직을 인프라로 옮길 때는 "애플리케이션이 암묵적으로 하던 일(헤더 생성, 보존 등)을 인프라 쪽 구현에서도 빠짐없이 챙겼는지"를 한 번씩 점검할 필요가 있다는 점에서는 참고할 만하다.
 
 ---
 
