@@ -1,0 +1,543 @@
+---
+title: "OpenFeign 기본값의 함정 - 커넥션 풀 없는 HttpURLConnection과 Spring HTTP Interfaces 마이그레이션"
+date: "2026-08-29"
+tags: ["Spring", "Java"]
+summary: "OpenFeign's default client silently runs on connection-pool-less HttpURLConnection — how to spot it and migrate to Spring 6 HTTP Interfaces (HttpServiceProxyFactory)."
+description: "별다른 설정 없이 OpenFeign 을 쓰면 커넥션 풀이 없는 HttpURLConnection 이 기본 클라이언트로 동작한다는 함정을 데모로 검증하고, Apache HttpClient5/OkHttp 적용 및 Spring 6 HTTP Interfaces(HttpServiceProxyFactory)로의 마이그레이션 방법을 정리한다."
+---
+
+:::info
+Spring Cloud OpenFeign 을 별도 HTTP 클라이언트 의존성 없이 사용하거나, 순수 OpenFeign 에서 별도 클라이언트를 지정하지 않으면 JDK 의 HttpURLConnection 기반 기본 클라이언트가 동작한다. <br />
+이 경우 idle 커넥션 캐시 상한을 넘는 순간부터 TCP 3-way handshake 가 다시 발생하고, 동시 요청이 몰리는 환경에서 심각한 지연과 자원 낭비가 발생할 수 있다. <br />
+기본 HttpURLConnection 의 동작 방식과 한계를 살펴보고, Apache HttpClient 5 / OkHttp 커넥션 풀 적용 방법과 더불어 유지보수 모드에 들어간 Spring Cloud OpenFeign 대신 Spring 표준인 **HTTP Interfaces(HttpServiceProxyFactory)** 로 마이그레이션하는 전 과정을 데모 코드와 함께 정리한다.
+:::
+
+---
+
+## 들어가기 앞서 - Feign Client 란?
+
+Feign 은 인터페이스와 어노테이션 몇 줄만 정의하면 Spring 이 런타임에 프록시 객체를 만들어 실제 HTTP 통신을 대신 처리해주는 선언적(declarative) HTTP 클라이언트다. <br />
+마이크로서비스나 외부 API 를 호출할 때 매우 편리해서 널리 쓰인다.
+
+Feign 은 본래 Netflix 에서 개발(Netflix Feign)된 후 오픈소스 커뮤니티(`io.github.openfeign`)로 이관됐고, Spring Cloud OpenFeign 은 이 `feign-core` 를 Spring 환경에 맞게 래핑한 것이다. <br />
+실무에서는 대부분 이 Spring Cloud OpenFeign 이 제공하는 `@FeignClient` 와 Spring MVC 어노테이션 조합을 사용한다.
+
+```java
+@FeignClient(name = "backend-client", url = "${backend.url}")
+public interface BackendClient {
+
+    @GetMapping("/api/hello")
+    String hello(@RequestParam("delayMs") long delayMs);
+}
+```
+
+Spring Cloud 없이 `feign-core` 만으로 쓸 때는 Feign 고유의 `@RequestLine` 어노테이션을 사용한다. <br />
+이 글의 데모 코드는 Spring Cloud 컨텍스트 없이 클라이언트 구현체(`feign.Client`)만 바꿔가며 비교하기 위해 이 방식을 쓴다.
+
+```java
+public interface BackendClient {
+
+    @RequestLine("GET /api/hello?delayMs={delayMs}")
+    String hello(@Param("delayMs") long delayMs);
+}
+```
+
+어떤 어노테이션을 쓰든 <BlueText>실제 HTTP 통신을 처리하는 하부 HTTP 클라이언트의 동작 방식이 중요하다</BlueText> - 바로 이 지점에서 문제가 시작된다.
+
+---
+
+## Q. Feign Client 에는 무슨 문제가 있을까?
+
+<BlueText><span style={{ fontSize: '1.5rem', }}>A. </span></BlueText>
+`spring-cloud-starter-openfeign` 또는 `feign-core` 의존성만 있고 `feign-hc5`, `feign-okhttp` 같은 별도 HTTP 클라이언트 의존성이 classpath 에 전혀 없다면, Feign 의 <RedText>기본 HTTP 클라이언트 구현체가 커넥션 풀을 지원하지 않는 HttpURLConnection</RedText> 기반으로 동작한다. <br />
+트래픽이 증가하는 시점에 다음과 같은 문제를 겪게 된다.
+
+* 동시 요청 수가 idle 커넥션 캐시 상한(기본 5개)을 넘는 순간 급격한 응답 지연 발생
+* 서버의 Socket / File Descriptor 및 TIME_WAIT 상태의 소켓 급증
+* 캐시 상한을 넘는 요청마다 새로운 TCP 연결이 맺어지면서 불필요한 네트워크 오버헤드 유발
+
+---
+
+## OpenFeign 의 기본 동작 - Default Client 와 HttpURLConnection
+
+Feign 라이브러리 내부를 들여다보면 [feign.Client](https://github.com/OpenFeign/feign/blob/13.6/core/src/main/java/feign/Client.java#L44-L78) 라는 인터페이스가 존재한다.
+
+```java
+// OpenFeign core: feign.Client 인터페이스 및 Client.Default 내부 구현
+public interface Client {
+    Response execute(Request request, Request.Options options) throws IOException;
+
+    class Default implements Client {
+        // ...
+        @Override
+        public Response execute(Request request, Request.Options options) throws IOException {
+            HttpURLConnection connection = convertAndSend(request, options);
+            // ...
+        }
+    }
+}
+```
+
+별도의 HTTP 클라이언트(`feign-hc5`, `feign-okhttp` 등)를 지정하지 않으면 Feign 은 기본적으로 `feign.Client.Default` 를 사용한다.
+
+<div style={{ textAlign: 'center' }}>
+
+```text
+[ Feign Client 호출 ]
+         │
+         ▼
+[ feign.Client.Default ]
+         │
+         ▼
+[ java.net.HttpURLConnection ]
+         │
+         ▼ (커넥션 풀 없음: idle 캐시 상한 초과 시 새 TCP 소켓 생성/해제)
+[ Target Server (8090) ]
+```
+
+</div>
+
+<br />
+
+`Client.Default` 는 요청을 보낼 때마다 JDK 표준의 `java.net.HttpURLConnection` 을 생성한다. <br />
+`HttpURLConnection` 은 JVM 레벨에서 내부적으로 Keep-Alive 캐시(`sun.net.www.http.KeepAliveCache`)를 일부 활용하지만, 우리가 일반적으로 사용하는 커넥션 풀(Connection Pool)과는 근본적인 차이가 있다.
+
+* **좁은 풀 크기**: 같은 목적지 서버에 대해 idle 커넥션을 최대 5개(`http.maxConnections`)까지만 재사용한다.
+* **동시성 제어 부재**: 이 상한은 idle 커넥션 개수만 제한할 뿐, 상한을 넘는 요청을 대기시키는 큐(Backpressure)는 없다.
+* **멀티스레드 동시 요청 시 연결 폭증**: 여러 스레드가 동시에 요청을 보낼 때 유휴(Idle) 커넥션이 없으면 매번 새로운 TCP 소켓을 생성한다.
+* **캐시 상한을 넘긴 요청마다 handshake 비용 발생**: HTTPS 통신인 경우 캐시에서 밀려난 요청마다 TCP 3-way handshake 와 TLS 협상 오버헤드가 누적된다.
+
+HttpURLConnection 기본 클라이언트에는 Apache HC5 나 OkHttp 같은 커넥션 풀이 없다. <br />
+그래서 동시 요청이 들어오고 재사용 가능한 idle 커넥션이 부족하면, 요청이 풀에서 커넥션을 빌릴 때까지 기다리는 게 아니라 각자 새 TCP 연결을 연다.
+
+| | HC5 / OkHttp (풀 있음) | HttpURLConnection default (풀 없음) |
+|---|---|---|
+| 1 | 요청 증가 | 요청 증가 |
+| 2 | 풀에서 커넥션 빌림 | 재사용 가능한 idle 커넥션 확인 |
+| 3 | 풀이 꽉 차면 대기 | 없으면 새 TCP 소켓 생성 |
+| 4 | `maxTotal` 같은 상한으로 제어됨 | 명시적인 풀 상한/대기열로 제어되지 않음 |
+
+그래서 트래픽이 커지면 다음과 같은 자원 압박으로 이어질 수 있다.
+
+* 클라이언트/서버의 file descriptor 사용량 증가
+* ephemeral port 사용량 증가
+* 서버 쪽 동시 connection 증가
+* 요청 종료 후 TIME_WAIT 소켓 증가
+* TCP handshake, TLS handshake 비용 증가
+
+이게 "항상 소켓을 다 써서 장애가 난다"는 뜻은 아니다. 요청량, keep-alive 재사용률, OS 튜닝, 서버 제한, HTTPS 여부에 따라 영향은 달라진다. <br />
+정확히 말하면 <BlueText>커넥션 풀의 상한과 대기열 없이 새 소켓 생성으로 밀어붙이기 쉬워서, 부하가 커지면 소켓/포트/FD 자원 압박으로 이어질 수 있다</BlueText>는 것이다.
+
+:::warning
+OpenFeign 을 기본값 그대로 운영 환경에 배포하면 명시적인 커넥션 풀 없이 제한적인 idle 캐시에만 의존하게 된다. 트래픽이 몰릴 때 커넥션 수를 제어하거나 대기시키기 어렵다는 점을 먼저 확인해야 한다.
+:::
+
+---
+
+## 해결책 1 - Feign 에 커넥션 풀 클라이언트 적용하기
+
+기존 Feign 코드를 유지하면서 이 문제를 해결하는 가장 빠른 방법은 Apache HttpClient 5 나 OkHttp 같은 커넥션 풀 지원 클라이언트 의존성을 추가하는 것이다.
+
+### 1) Apache HttpClient 5 (feign-hc5)
+
+`spring-cloud-starter-openfeign` 을 사용 중이라면 `feign-core` 가 이미 내장되어 있으므로, 커넥션 풀을 위해 `feign-hc5` 의존성만 추가하면 된다.
+
+```groovy
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'io.github.openfeign:feign-hc5'
+}
+```
+
+순수 Feign 빌더(`Feign.builder()`)를 직접 구성하는 경우라면 `PoolingHttpClientConnectionManager` 를 통해 커넥션 풀을 구성한 `CloseableHttpClient` 를 `ApacheHttp5Client` 로 래핑하여 Feign 에 전달한다.
+
+```java
+private static BuiltClient hc5Client(String baseUrl) {
+    PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+    connectionManager.setMaxTotal(50);
+    connectionManager.setDefaultMaxPerRoute(50);
+
+    CloseableHttpClient httpClient = HttpClients.custom()
+            .setConnectionManager(connectionManager)
+            .build();
+
+    BackendClient client = Feign.builder()
+            .client(new ApacheHttp5Client(httpClient))
+            .target(BackendClient.class, baseUrl);
+
+    Runnable printStats = () -> log.info("[hc5] pool stats = {}", connectionManager.getTotalStats());
+    return new BuiltClient(client, printStats);
+}
+```
+
+Spring Cloud OpenFeign 환경에서는 `feign-hc5` 의존성 추가 후 프로퍼티로 활성화 및 풀 크기를 조정할 수 있다.
+
+:::note
+**Spring Cloud 버전별 프로퍼티 차이**
+* **Spring Boot 3.x / Spring Cloud 2022.0+ (v4.x 이상)**: HttpClient 4 지원이 제거됐고, feign-hc5 의존성만 있으면 별도 설정 없이 HC5 가 기본으로 활성화된다. 끄고 싶을 때만 spring.cloud.openfeign.httpclient.hc5.enabled=false 를 명시한다.
+* **Spring Boot 2.x / Spring Cloud 2021.x 이하 (레거시)**: 프로퍼티 프리픽스가 spring.cloud.openfeign 이 아니라 feign 이다. feign-httpclient(Apache HttpClient 4)가 classpath 에 있으면 기본으로 그게 선택되고, feign-hc5 를 추가해도 자동으로 켜지지 않는다 — feign.httpclient.hc5.enabled=true 를 명시해야 HC5 로 전환된다. OkHttp 는 feign.okhttp.enabled=true 를 사용한다.
+:::
+
+---
+
+### 2) OkHttp (feign-okhttp)
+
+OkHttp 를 사용하는 경우 `feign-okhttp` 의존성을 추가한다.
+
+```groovy
+dependencies {
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+    implementation 'io.github.openfeign:feign-okhttp'
+}
+```
+
+`okhttp3.ConnectionPool` 을 설정한 후 `feign.okhttp.OkHttpClient` 를 Feign 빌더에 주입한다.
+
+```java
+private static BuiltClient okHttpClient(String baseUrl) {
+    ConnectionPool pool = new ConnectionPool(50, 5, TimeUnit.MINUTES);
+    okhttp3.OkHttpClient okHttpClient = new okhttp3.OkHttpClient.Builder()
+            .connectionPool(pool)
+            .build();
+
+    BackendClient client = Feign.builder()
+            .client(new OkHttpClient(okHttpClient))
+            .target(BackendClient.class, baseUrl);
+
+    Runnable printStats = () -> log.info("[okhttp] connectionCount={} idleConnectionCount={}",
+            pool.connectionCount(), pool.idleConnectionCount());
+
+    return new BuiltClient(client, printStats);
+}
+```
+
+---
+
+## Feign 의 한계와 마이그레이션 배경 - 왜 Spring HTTP Interfaces 인가?
+
+커넥션 풀 클라이언트를 장착하면 당장의 성능 문제는 해결할 수 있다. 하지만 더 큰 아키텍처적 관점에서 고려해야 할 사항이 있다.
+
+### 1. Spring Cloud OpenFeign 및 Netflix OSS 생태계의 현주소
+
+과거 마이크로서비스 아키텍처의 부흥을 이끌었던 Netflix OSS 스택(Ribbon, Hystrix, Zuul 1 등)은 대부분 EOL(End-of-Life) 또는 유지보수 단계로 접어들었다. Feign 도 예외는 아니어서, 오픈소스 커뮤니티로 이관된 이후 기능의 대대적인 혁신보다는 기존 스펙 유지를 중심으로 운영되어 왔다.
+
+여기에 더해 Spring Cloud 진영에서도 OpenFeign 은 신규 기능 개발이 중단되고 보안 패치 및 최소한의 버그 수정만 이뤄지는 **Maintenance 모드(Feature-complete)** 로 공식 전환되었다. <br />
+Spring Cloud 팀은 [Spring Cloud 2022.0.0 릴리즈 공지](https://spring.io/blog/2022/12/16/spring-cloud-2022-0-0-codename-kilburn-has-been-released#spring-cloud-openfeign-feature-complete-announcement)를 통해 다음과 같이 밝히고 있다.
+
+> We're now treating the Spring Cloud OpenFeign project as feature-complete. We are only going to be adding bugfixes and possibly merging some small community feature PRs. We suggest migrating over to Spring HTTP Service Clients instead.
+
+순수 OpenFeign 자체도 최신 비동기/리액티브 스택이나 가상 스레드(Virtual Threads) 등 현대 Java/Spring 생태계와의 깊은 통합에는 한계가 있고, Spring Cloud 래퍼 역시 유지보수 단계에 접어들었기 때문에 장기적인 마이그레이션이 필요하다.
+
+### 2. Spring 6 / Spring Boot 3 의 표준 지원 - HTTP Interfaces
+
+Spring 진영은 외부 라이브러리(Netflix Feign)에 의존하던 선언적 HTTP 클라이언트 생태계를 코어 프레임워크 레벨로 통합했다.
+
+* **Spring Framework 6.0**: 선언적 클라이언트 명세인 **HTTP Interfaces (@HttpExchange, @GetExchange, @PostExchange 등)** 가 코어로 도입되었다.
+* **Spring Boot 3.2**: 동기식 선언적 호출을 위한 가볍고 직관적인 **RestClient** 가 정식 추가되었다.
+
+이를 통해 무거운 `spring-cloud-starter-openfeign` 의존성 없이도, `spring-boot-starter-web` 기본 환경 위에서 `HttpServiceProxyFactory` 를 통해 강력한 선언적 HTTP 클라이언트를 구성할 수 있게 되었다.
+
+| 비교 항목 | OpenFeign | Spring HTTP Interfaces |
+|---|---|---|
+| **소속** | Netflix OSS 기반 / Spring Cloud | Spring Framework Core 표준 |
+| **유지보수 상태** | Maintenance 모드 (Feature-complete) | 최신 버전 활발히 지원 및 발전 중 |
+| **하부 클라이언트 선택** | Feign 전용 어댑터 필요 (feign-hc5 등) | RestClient, WebClient, RestTemplate 자유롭게 결합 |
+| **의존성** | Spring Cloud OpenFeign 사용 시 `spring-cloud-starter-openfeign` 필요 | Spring Web (`spring-boot-starter-web`)에서 사용 가능 |
+| **어노테이션 표준** | `@FeignClient`, `@RequestLine`, `@GetMapping` | `@HttpExchange`, `@GetExchange`, `@PostExchange` |
+
+:::note
+Spring 6+ 환경으로 전환 중이거나 신규 프로젝트를 설계한다면, Spring Cloud OpenFeign 대신 Spring 표준인 **HTTP Interfaces** 로 마이그레이션하는 것이 장기적으로 더 안정적인 선택이다.
+:::
+
+---
+
+## 해결책 2 - Spring 6 HTTP Interfaces 로 마이그레이션하기
+
+이제 Feign 코드를 Spring 표준 HTTP Interface 로 변환하는 방법을 살펴보자.
+
+### 1) 클라이언트 인터페이스 정의
+
+기존 Feign 인터페이스를 `@GetExchange` 어노테이션으로 변경한다.
+
+```java
+package com.eottabom.letmecode.example.feignhttpclient;
+
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.service.annotation.GetExchange;
+
+public interface HttpInterfaceBackendClient {
+
+    @GetExchange("/api/hello")
+    String hello(@RequestParam("delayMs") long delayMs);
+}
+```
+
+---
+
+### 2) RestClient 와 커넥션 풀 결합 및 프록시 팩토리 생성
+
+`RestClient` 에 Apache HttpClient 5 의 커넥션 풀(`PoolingHttpClientConnectionManager`)을 `HttpComponentsClientHttpRequestFactory` 로 연결하고, `HttpServiceProxyFactory` 를 통해 인터페이스 구현체를 생성한다.
+
+```java
+package com.eottabom.letmecode.example.feignhttpclient;
+
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.support.RestClientAdapter;
+import org.springframework.web.service.invoker.HttpServiceProxyFactory;
+
+final class HttpInterfaceClientFactory {
+
+    private static final Logger log = LoggerFactory.getLogger(HttpInterfaceClientFactory.class);
+
+    private HttpInterfaceClientFactory() {
+    }
+
+    static BuiltClient create(String baseUrl) {
+        // 1. 커넥션 풀 설정
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(50);
+        connectionManager.setDefaultMaxPerRoute(50);
+        CloseableHttpClient httpClient = HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .build();
+
+        // 2. RestClient 구성
+        RestClient restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(new HttpComponentsClientHttpRequestFactory(httpClient))
+                .build();
+
+        // 3. HttpServiceProxyFactory 로 클라이언트 프록시 빈 생성
+        HttpServiceProxyFactory proxyFactory = HttpServiceProxyFactory
+                .builderFor(RestClientAdapter.create(restClient))
+                .build();
+
+        HttpInterfaceBackendClient client = proxyFactory.createClient(HttpInterfaceBackendClient.class);
+
+        Runnable printStats = () -> log.info("[http-interface] pool stats = {}", connectionManager.getTotalStats());
+        return new BuiltClient(client, printStats);
+    }
+
+    record BuiltClient(HttpInterfaceBackendClient client, Runnable printPoolStats) {
+    }
+}
+```
+
+Spring Bean 으로 등록할 때는 `@Configuration` 클래스에서 `HttpInterfaceBackendClient` 를 `@Bean` 으로 노출해두면 비즈니스 로직에서 일반 컴포넌트처럼 `@Autowired` 받아 주입할 수 있다.
+
+---
+
+## 데모를 통한 실제 검증 (Benchmark & Connection Reuse)
+
+실제로 `DEFAULT`(HttpURLConnection), `HC5`, `OKHTTP`, `HTTP_INTERFACE` 네 가지 모드에서 커넥션 풀 유무와 재사용 여부가 어떤 차이를 만드는지 데모 프로젝트로 검증해보자. 예제 코드는 Spring Boot 4 / Spring Framework 7 환경이지만, HTTP Interfaces 는 Spring Framework 6부터 도입된 기능이다.
+
+:::tip
+<a href="https://github.com/eottabom/let-me-code/tree/main/feign-http-client-migration" target="_blank" rel="noopener noreferrer">예제 코드 보러가기 (클릭)</a>
+:::
+
+### 1) 런타임 커넥션 구현체와 풀 통계 관측
+
+`LoggingHttpUrlConnectionClient` 는 `feign.Client.Default#getConnection(URL)` 을 오버라이드하여 요청 시 실제 생성되는 커넥션 구현체 클래스를 로그로 출력한다.
+
+```text
+# DEFAULT 모드 실행 시
+[default] connection impl=sun.net.www.protocol.http.HttpURLConnection http.maxConnections=5 (default)
+[default] 코드로 조회 가능한 풀 통계 없음. netstat/lsof 로 TCP 커넥션 수를 직접 세어야 한다.
+```
+
+반면 `hc5`, `okhttp`, `http-interface` 모드에서는 실제 커넥션 풀 상태를 코드로 즉시 조회할 수 있다.
+
+```text
+# HC5 모드
+[hc5] pool stats = [leased: 0; pending: 0; available: 20; max: 50]
+
+# OKHTTP 모드
+[okhttp] connectionCount=20 idleConnectionCount=20
+
+# HTTP_INTERFACE 모드
+[http-interface] pool stats = [leased: 0; pending: 0; available: 20; max: 50]
+```
+
+`default` 모드에서는 동시 요청 수를 제어하거나 대기(Backpressure)시키는 풀 추상화 자체가 없기 때문에 코드 레벨의 풀 통계가 존재하지 않는다.
+
+---
+
+### 2) 커넥션 재사용 실측: 순차 호출 vs 동시 버스트 2회 (burst2)
+
+서버 컨트롤러(`BackendController`)는 들어오는 요청마다 `request.getRemotePort()` 를 기록한다. 동일한 remote port 가 반복되면 커넥션이 재사용된 것이고, 매번 다른 port 면 새로운 TCP 소켓이 열린 것이다.
+
+```java
+@RestController
+public class BackendController {
+
+    private final Set<Integer> seenRemotePorts = ConcurrentHashMap.newKeySet();
+
+    @GetMapping("/api/hello")
+    public String hello(@RequestParam(defaultValue = "0") long delayMs, HttpServletRequest request)
+            throws InterruptedException {
+        if (delayMs > 0) {
+            Thread.sleep(delayMs);
+        }
+        this.seenRemotePorts.add(request.getRemotePort());
+        return "hello";
+    }
+
+    @GetMapping("/api/debug/ports")
+    public Set<Integer> seenPorts() {
+        return Set.copyOf(this.seenRemotePorts);
+    }
+
+    @PostMapping("/api/debug/ports/reset")
+    public void resetSeenPorts() {
+        this.seenRemotePorts.clear();
+    }
+}
+```
+
+#### 1) 순차 호출 (Sequential)
+요청 사이 간격이 짧은 순차 호출의 경우, JDK 의 `HttpURLConnection` 도 JVM 전역 `sun.net.www.http.KeepAliveCache` 를 통해 재사용된다.
+
+```bash
+./gradlew :feign-http-client-migration:bootRun --args="default 20 10 seq" 2>&1 | grep -oE "remotePort=[0-9]+" | sort -u | wc -l
+# → 1 (20번 호출 모두 1개의 동일한 remote port 로 재사용)
+```
+
+#### 2) 동시 버스트 2회 연속 호출 (burst2)
+진짜 차이는 **동시 요청(concurrency=20) 버스트를 연달아 2회 쐈을 때** 드러난다.
+
+```bash
+./gradlew :feign-http-client-migration:bootRun --args="default 20 50 burst2"
+./gradlew :feign-http-client-migration:bootRun --args="hc5 20 50 burst2"
+./gradlew :feign-http-client-migration:bootRun --args="okhttp 20 50 burst2"
+./gradlew :feign-http-client-migration:bootRun --args="http-interface 20 50 burst2"
+```
+
+| 클라이언트 모드 | round 1 고유 port | round 2 고유 port | round1 ∩ round2 (실제 재사용된 커넥션 수) |
+|---|---|---|---|
+| **DEFAULT** (HttpURLConnection) | 20 | 20 | <RedText>**5** (`http.maxConnections` 기본 상한과 일치)</RedText> |
+| **HC5** (풀 매니저 적용) | 20 | 20 | <GreenText>**20** (`maxTotal=50` 풀 안에서 20개 전부 재사용)</GreenText> |
+| **OKHTTP** (ConnectionPool 적용) | 20 | 20 | <GreenText>**20** (풀 크기 50 안에서 20개 전부 재사용)</GreenText> |
+| **HTTP_INTERFACE** (hc5 풀 재사용) | 20 | 20 | <GreenText>**20** (`maxTotal=50` 풀 안에서 20개 전부 재사용)</GreenText> |
+
+* **DEFAULT**: `HttpURLConnection` 의 idle 캐시 상한이 5개뿐이므로, round 1 에서 생성된 20개 중 5개만 살아남고, round 2 의 나머지 15개 요청은 새로운 TCP 연결을 다시 맺는다.
+* **HC5 / OKHTTP / HTTP_INTERFACE**: 설정한 풀 범위 안에서 round 1 에 사용된 20개 커넥션을 round 2 에서 전부 재사용한다.
+
+데모의 `DefaultClientConnectionReuseTests` 는 `/api/debug/ports` 엔드포인트를 통해 이 동작을 자동화된 단위 테스트로 검증한다.
+
+```java
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+class DefaultClientConnectionReuseTests {
+
+    @LocalServerPort
+    private int port;
+
+    @Test
+    void defaultClientReusesAtMostKeepAliveCacheLimit() throws InterruptedException {
+        FeignClientFactory.BuiltClient built = FeignClientFactory.create(ClientMode.DEFAULT, baseUrl());
+        Set<Integer> reused = reusedPortsAcrossTwoBursts(built.client()::hello);
+
+        int keepAliveLimit = Integer.parseInt(System.getProperty("http.maxConnections", "5"));
+        assertThat(reused).hasSizeLessThanOrEqualTo(keepAliveLimit); // 5 이하
+    }
+
+    @Test
+    void hc5ClientReusesAllConnectionsWithinPool() throws InterruptedException {
+        FeignClientFactory.BuiltClient built = FeignClientFactory.create(ClientMode.HC5, baseUrl());
+        Set<Integer> reused = reusedPortsAcrossTwoBursts(built.client()::hello);
+
+        assertThat(reused).hasSize(20); // 20개 전부 재사용
+    }
+
+    private String baseUrl() {
+        return "http://localhost:" + this.port;
+    }
+}
+```
+
+`@SpringBootTest(webEnvironment = RANDOM_PORT)` + `@LocalServerPort` 를 쓰기 때문에, 8090 포트에서 데모 앱이 따로 떠 있어도 테스트가 포트 충돌 없이 독립적으로 동작한다.
+
+---
+
+### 3) OS 레벨의 TCP 소켓 관측 및 스레드 덤프 분석
+
+#### 1) TCP 소켓 상태 관측
+애플리케이션 외부에서 `lsof` 나 `netstat` 로 실제 생성되는 TCP 소켓 수를 관측하면 차이가 극명하다.
+
+```bash
+# 8090 포트로 연결된 TCP ESTABLISHED 커넥션 수 확인
+netstat -an | grep 8090 | grep ESTABLISHED | wc -l
+```
+
+* **DEFAULT 모드**: 동시 요청이 몰릴수록 `ESTABLISHED` 및 종료 후 `TIME_WAIT` 소켓 수가 누적된다.
+* **HC5 / OKHTTP / HTTP_INTERFACE 모드**: 설정된 `maxTotal`(50) 이하로 항상 일정하게 유지/수렴한다.
+
+#### 2) 스레드 덤프로 백프레셔(Backpressure) 확인
+풀이 가득 찼을 때 클라이언트 스레드가 소켓을 무한정 여는 대신 안전하게 대기하는지는 스레드 덤프로 확인할 수 있다.
+
+```bash
+jstack <pid> | grep -A5 "pool-2-thread"
+```
+
+커넥션 풀 환경에서는 `leaseConnection` 프레임에서 대기하며 시스템 자원 고갈을 방지하는 백프레셔(Backpressure)가 동작하지만, `default` 모드는 대기 지점 없이 소켓을 계속 새로 열어 서버 자원을 소모한다.
+
+---
+
+## 4가지 모드 비교 요약
+
+| 구분 | DEFAULT (기본 Feign) | HC5 (Feign + HC5) | OKHTTP (Feign + OkHttp) | HTTP_INTERFACE (Spring) |
+|---|---|---|---|---|
+| **기본 HTTP 클라이언트** | JDK `HttpURLConnection` | Apache `HttpClient5` | Square `OkHttp` | Spring `RestClient` (HC5 연결) |
+| **커넥션 풀 지원** | <RedText>없음 (idle 캐시 5개 한계)</RedText> | <GreenText>지원 (PoolingManager)</GreenText> | <GreenText>지원 (ConnectionPool)</GreenText> | <GreenText>지원 (Spring RequestFactory)</GreenText> |
+| **동시 버스트 커넥션 재사용** | 상한(5개) 초과분 신규 생성 | <GreenText>풀 범위 내 전부 재사용</GreenText> | <GreenText>풀 범위 내 전부 재사용</GreenText> | <GreenText>풀 범위 내 전부 재사용</GreenText> |
+| **풀 모니터링/통계** | 불가 (OS 소켓 직접 확인) | 가능 (`getTotalStats()`) | 가능 (`connectionCount()`) | 가능 (`getTotalStats()`) |
+| **Spring 표준 지원** | Spring Cloud (유지보수 모드) | Spring Cloud (유지보수 모드) | Spring Cloud (유지보수 모드) | <BlueText>Spring 6+ Core 표준</BlueText> |
+
+---
+
+## 마이그레이션 체크리스트
+
+기존 Spring Cloud OpenFeign 에서 Spring 6 HTTP Interface 로 전환할 때, Feign 이 하던 일을 어떤 걸로 바꿔치기해야 하는지 항목별로 정리하면 다음과 같다.
+
+| 점검 항목 | Feign (AS-IS) | Spring HTTP Interface (TO-BE) |
+|---|---|---|
+| 인터페이스 선언 | `@FeignClient` / `@RequestLine` | `@HttpExchange`, `@GetExchange`, `@PostExchange`, `@PutExchange`, `@DeleteExchange` |
+| 파라미터 바인딩 | Spring MVC 어노테이션 사용 | 동일 (`@RequestParam`, `@PathVariable`, `@RequestBody`, `@RequestHeader` 그대로) |
+| 에러 핸들링 | `ErrorDecoder` | `RestClient.Builder.defaultStatusHandler()` 또는 `@ExceptionHandler` |
+| 인터셉터 (Auth / Tracing) | `RequestInterceptor` | `RestClient` 의 `ClientHttpRequestInterceptor` |
+| 타임아웃 / 풀 튜닝 | Feign 설정 프로퍼티 | `HttpComponentsClientHttpRequestFactory`(`ConnectionConfig`, `SocketConfig`) + `PoolingHttpClientConnectionManager` |
+
+<br/><br/>
+
+---
+
+:::success
+<b>정리</b>
+✔ 별도 HTTP 클라이언트 없이 OpenFeign 을 사용하면 JDK HttpURLConnection 기반 기본 클라이언트가 동작하여 명시적인 커넥션 풀이 작동하지 않는다. <br />
+✔ 순차 요청은 JVM KeepAliveCache 로 재사용되지만, 동시 요청 버스트 시에는 http.maxConnections(5)를 초과하는 idle 커넥션이 캐시에 남지 못한다. <br />
+✔ feign-hc5 또는 feign-okhttp 의존성을 추가하면 커넥션 풀 매니저를 통해 동시 버스트 환경에서도 풀 범위 안의 커넥션을 재사용할 수 있다. <br />
+✔ Spring Cloud OpenFeign 은 현재 Feature-complete 및 Maintenance 모드이므로, 신규 개발이나 장기 유지보수 관점에서는 Spring 6+ HTTP Interfaces 로 전환하는 것이 권장된다. <br />
+✔ Spring HTTP Interfaces 는 RestClient + Apache HttpClient 5 커넥션 풀 조합을 통해 별도 Spring Cloud 의존성 없이 표준적인 선언형 HTTP 클라이언트 구성을 제공한다.
+:::
+
+---
+
+## 📚 Reference
+
+* <a href="https://github.com/eottabom/let-me-code/tree/main/feign-http-client-migration" target="_blank" rel="noopener noreferrer">let-me-code / feign-http-client-migration 예제 소스코드 및 README</a>
+* <a href="https://github.com/OpenFeign/feign/blob/13.6/core/src/main/java/feign/Client.java" target="_blank" rel="noopener noreferrer">OpenFeign core - Client.java 공식 소스코드 (GitHub)</a>
+* <a href="https://github.com/spring-cloud/spring-cloud-openfeign" target="_blank" rel="noopener noreferrer">Spring Cloud OpenFeign GitHub 공식 저장소</a>
+* <a href="https://github.com/spring-cloud/spring-cloud-release/wiki/Spring-Cloud-2022.0-Release-Notes#spring-cloud-openfeign" target="_blank" rel="noopener noreferrer">Spring Cloud 2022.0 Release Notes</a>
+* <a href="https://spring.io/blog/2022/12/16/spring-cloud-2022-0-0-codename-kilburn-has-been-released#spring-cloud-openfeign-feature-complete-announcement" target="_blank" rel="noopener noreferrer">Spring Cloud 2022.0.0 릴리즈 공지 (OpenFeign Feature-complete 공식 발표)</a>
+* <a href="https://docs.spring.io/spring-framework/reference/integration/rest-clients.html#rest-http-interface" target="_blank" rel="noopener noreferrer">Spring Framework Documentation - REST Clients (HTTP Interfaces)</a>
+* <a href="https://spring.io/blog/2023/07/13/new-in-spring-6-1-restclient" target="_blank" rel="noopener noreferrer">Spring Official Blog - New in Spring 6.1: RestClient</a>
+* <a href="https://docs.spring.io/spring-cloud-openfeign/docs/current/reference/html/" target="_blank" rel="noopener noreferrer">Spring Cloud OpenFeign Official Reference</a>
+* <a href="https://hc.apache.org/httpcomponents-client-5.4.x/" target="_blank" rel="noopener noreferrer">Apache HttpComponents Client 5.x</a>
+
+<br/><br/>
