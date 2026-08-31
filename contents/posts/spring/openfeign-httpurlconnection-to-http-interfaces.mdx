@@ -2,7 +2,7 @@
 title: "OpenFeign 기본값의 함정 - 커넥션 풀 없는 HttpURLConnection과 Spring HTTP Interfaces 마이그레이션"
 date: "2026-08-29"
 tags: ["Spring", "Java"]
-summary: "OpenFeign's default client silently runs on connection-pool-less HttpURLConnection — how to spot it and migrate to Spring 6 HTTP Interfaces (HttpServiceProxyFactory)."
+summary: "OpenFeign's default client silently runs on connection-pool-less HttpURLConnection - how to spot it and migrate to Spring 6 HTTP Interfaces (HttpServiceProxyFactory)."
 description: "별다른 설정 없이 OpenFeign 을 쓰면 커넥션 풀이 없는 HttpURLConnection 이 기본 클라이언트로 동작한다는 함정을 데모로 검증하고, Apache HttpClient5/OkHttp 적용 및 Spring 6 HTTP Interfaces(HttpServiceProxyFactory)로의 마이그레이션 방법을 정리한다."
 ---
 
@@ -175,7 +175,7 @@ Spring Cloud OpenFeign 환경에서는 `feign-hc5` 의존성 추가 후 프로�
 :::note
 **Spring Cloud 버전별 프로퍼티 차이**
 * **Spring Boot 3.x / Spring Cloud 2022.0+ (v4.x 이상)**: HttpClient 4 지원이 제거됐고, feign-hc5 의존성만 있으면 별도 설정 없이 HC5 가 기본으로 활성화된다. 끄고 싶을 때만 spring.cloud.openfeign.httpclient.hc5.enabled=false 를 명시한다.
-* **Spring Boot 2.x / Spring Cloud 2021.x 이하 (레거시)**: 프로퍼티 프리픽스가 spring.cloud.openfeign 이 아니라 feign 이다. feign-httpclient(Apache HttpClient 4)가 classpath 에 있으면 기본으로 그게 선택되고, feign-hc5 를 추가해도 자동으로 켜지지 않는다 — feign.httpclient.hc5.enabled=true 를 명시해야 HC5 로 전환된다. OkHttp 는 feign.okhttp.enabled=true 를 사용한다.
+* **Spring Boot 2.x / Spring Cloud 2021.x 이하 (레거시)**: 프로퍼티 프리픽스가 spring.cloud.openfeign 이 아니라 feign 이다. feign-httpclient(Apache HttpClient 4)가 classpath 에 있으면 기본으로 그게 선택되고, feign-hc5 를 추가해도 자동으로 켜지지 않는다 - feign.httpclient.hc5.enabled=true 를 명시해야 HC5 로 전환된다. OkHttp 는 feign.okhttp.enabled=true 를 사용한다.
 :::
 
 ---

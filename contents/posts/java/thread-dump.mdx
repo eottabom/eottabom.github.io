@@ -358,7 +358,7 @@ Thread Dump는 텍스트만으로도 읽을 수 있지만, 스레드 수가 많�
 **요약** <br />
 ✔ Thread Dump는 수집 부담이 낮고 장애 상황에서 첫 번째로 꺼내야 할 도구다 <br />
 ✔ 수집은 jcmd &lt;pid&gt; Thread.print -l을 기본으로, 가상 스레드 환경은 Thread.dump_to_file -format=json 사용 <br />
-✔ RUNNABLE이 많아도 CPU 스파이크로 단정 금지 — 스택 트레이스로 실제 CPU 작업인지 I/O 대기인지 구분 <br />
+✔ RUNNABLE이 많아도 CPU 스파이크로 단정 금지 - 스택 트레이스로 실제 CPU 작업인지 I/O 대기인지 구분 <br />
 ✔ 데드락: 덤프 하단 Found N deadlock 확인 <br />
 ✔ BLOCKED 병목: 같은 락 주소를 기다리는 스레드 수 확인, 그 락을 보유한 스레드가 원인. java.util.concurrent 락은 -l 옵션 필수 <br />
 ✔ CPU 스파이크: top -H로 TID를 16진수 변환 후 nid로 매핑 <br />
