@@ -110,6 +110,11 @@ body {
   line-height: 1.5 !important;
 }
 
+.prose li > ul,
+.prose li > ol {
+  padding-left: 1rem !important;
+}
+
 .custom-quote {
   @apply border-l-4 border-gray-300 pl-4 italic text-gray-800;
 }
