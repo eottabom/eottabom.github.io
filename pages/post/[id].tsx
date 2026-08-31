@@ -18,6 +18,7 @@ import { Kbd, KeyCombo, TopShortcut } from "../../components/Keyboard";
 import KeyboardVisual from "../../components/KeyboardVisual";
 import dynamic from 'next/dynamic';
 import G1GCSimulator from '../../components/G1GCSimulator';
+import CodeBlock from '../../components/CodeBlock';
 
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
@@ -118,6 +119,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     TopShortcut,
     KeyboardVisual,
     G1GCSimulator,
+    pre: CodeBlock,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
 

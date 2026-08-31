@@ -5,6 +5,12 @@ export default function Document() {
     <Html lang="ko">
       <Head>
         <meta name="color-scheme" content="light" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+          rel="stylesheet"
+        />
         {/* Google tag (gtag.js) - 로컬에서는 비활성화 */}
         <script
           dangerouslySetInnerHTML={{

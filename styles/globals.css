@@ -27,7 +27,66 @@ body {
 
 .prose pre {
   padding: 1rem;
+}
+
+.code-block {
+  margin: 1.5rem 0;
   border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.code-block pre {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.3rem 0.75rem;
+  background-color: hsl(230, 1%, 94%);
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+.code-block-lang {
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.code-block-copy {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.15rem;
+  border-radius: 0.25rem;
+  background-color: transparent;
+  color: #6b7280;
+}
+
+.code-block-copy:hover {
+  background-color: #d1d5db;
+  color: #1f2937;
+}
+
+@media (max-width: 640px) {
+  .prose pre {
+    padding: 0.75rem;
+  }
+
+  .prose pre code {
+    font-size: 0.8rem !important;
+  }
+
+  .code-block-header {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+  }
 }
 
 .prose {
@@ -77,10 +136,17 @@ body {
 code {
   background-color: #fffde7;
   font-weight: 750;
-  font-family: 'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas,
+    monospace;
   color: #1f2937;
   padding: 0.2em 0.4em;
   border-radius: 4px;
+}
+
+code[class*='language-'],
+pre[class*='language-'] {
+  font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas,
+    monospace !important;
 }
 
 .prose code::before,
