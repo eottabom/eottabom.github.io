@@ -6,9 +6,19 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Mon, 31 Aug 2026 10:01:51 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 02 Sep 2026 12:44:36 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Timeout 설정 헷갈리지 않기: Tomcat, WebFlux, HTTP Client, HikariCP 기준 정리</title>
+      <link>https://eottabom.github.io/post/timeout-settings-guide/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/timeout-settings-guide/</guid>
+      <description>이름은 비슷한데 하는 일이 다른 타임아웃/keepalive 설정들을 Tomcat, WebFlux(Reactor Netty), HTTP 클라이언트(Feign, RestTemplate, WebClient), HikariCP 기준으로 나눠서 정리한다.</description>
+      <pubDate>Mon, 31 Aug 2026 00:00:00 GMT</pubDate>
+      <category>Spring</category>
+      <category>Tomcat</category>
+      <category>Database</category>
+    </item>
     <item>
       <title>OpenFeign 기본값의 함정 - 커넥션 풀 없는 HttpURLConnection과 Spring HTTP Interfaces 마이그레이션</title>
       <link>https://eottabom.github.io/post/openfeign-httpurlconnection-to-http-interfaces/</link>
@@ -176,15 +186,6 @@
       <pubDate>Sun, 13 Jul 2025 00:00:00 GMT</pubDate>
       <category>Clean Code</category>
       <category>Java</category>
-    </item>
-    <item>
-      <title>Spring Data JPA - 새로운 Entity 판별</title>
-      <link>https://eottabom.github.io/post/jpa-determine-entity-is-new/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/jpa-determine-entity-is-new/</guid>
-      <description>Spring Data JPA 에서 Entity 가 새로운 것인지 판단하는 방법에 대해서 알아보자.</description>
-      <pubDate>Wed, 30 Apr 2025 00:00:00 GMT</pubDate>
-      <category>Spring</category>
-      <category>JPA</category>
     </item>
   </channel>
 </rss>
