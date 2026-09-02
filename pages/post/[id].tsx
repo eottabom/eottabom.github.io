@@ -19,6 +19,7 @@ import KeyboardVisual from "../../components/KeyboardVisual";
 import dynamic from 'next/dynamic';
 import G1GCSimulator from '../../components/G1GCSimulator';
 import CodeBlock from '../../components/CodeBlock';
+import PoolLifecycleDiagram from '../../components/PoolLifecycleDiagram';
 
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
@@ -120,6 +121,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     KeyboardVisual,
     G1GCSimulator,
     pre: CodeBlock,
+    PoolLifecycleDiagram,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
 
