@@ -18,9 +18,11 @@ Tomcat, Netty, HTTP Client, HikariCP 에서 자주 만나는 timeout 설정을 �
 
 timeout 이 헷갈리는 이유는 같은 이름이 여러 계층에서 다른 뜻으로 쓰이기 때문이다.
 
-예를 들어 **connection timeout** 은 클라이언트(HttpClient, HikariCP)에서는 <BlueText>"상대와 TCP 연결을 맺는 데 허용하는 시간"</BlueText>을 뜻한다.
+예를 들어 **connection timeout** 은 HTTP 클라이언트나 JDBC 드라이버에서는 <BlueText>"상대와 TCP 연결을 맺는 데 허용하는 시간"</BlueText>을 뜻한다.
 
-반면 서버(Tomcat/Netty)에서는 비슷한 이름의 설정이 <BlueText>"연결은 맺었지만 요청을 기다리는 시간"</BlueText>을 가리키기도 한다.
+반면 Tomcat의 server.tomcat.connection-timeout은 <BlueText>"연결은 맺었지만 요청 라인이 들어오기를 기다리는 시간"</BlueText>이고, HikariCP의 connectionTimeout은 또 <BlueText>"풀에서 커넥션을 빌릴 때 기다리는 시간"</BlueText>이다. 이름은 셋 다 비슷한데 재는 대상이 전부 다르다.
+
+Reactor Netty는 Tomcat과 타임아웃 모델 자체가 달라서, 이름이 같다고 Tomcat의 connection-timeout처럼 해석하면 안 된다.
 
 **keepalive** 도 TCP keepalive, HTTP keep-alive, HikariCP keepaliveTime 이름만 비슷할 뿐 서로 다른 위치에서 동작한다.
 
@@ -32,32 +34,46 @@ timeout 이 헷갈리는 이유는 같은 이름이 여러 계층에서 다른 �
 
 | 이름 | 상황 | 어디서 설정하는가 | 대표 설정 키 |
 |---|---|---|---|
-| connection timeout | TCP 연결을 맺는 동안 | HTTP 클라이언트, DB 커넥션 풀 | `RestClient`/`RestTemplate`의 connect timeout, `spring.datasource.hikari.connection-timeout` |
-| socket timeout / read timeout | 커넥션은 맺었는데 응답 데이터가 안 올 때 | HTTP 클라이언트 | `RestClient`/`RestTemplate`의 read timeout, WebClient의 `ReadTimeoutHandler` |
+| connect timeout | TCP 연결을 맺는 동안 | HTTP 클라이언트, JDBC 드라이버 | `RestClient`/`RestTemplate`의 connect timeout, JDBC `connectTimeout` |
+| connection request timeout | 풀에서 커넥션을 빌릴 차례를 기다리는 동안 | HTTP 커넥션 풀, DB 커넥션 풀 | HttpClient5 `setConnectionRequestTimeout`, `spring.datasource.hikari.connection-timeout` |
+| read timeout (socket timeout) | 커넥션은 맺었는데 응답 데이터가 안 올 때 | HTTP 클라이언트, JDBC 드라이버 | `RestClient`/`RestTemplate`의 read timeout, JDBC `socketTimeout` |
+| response timeout | HTTP 응답을 읽는 동안 연속된 network read 사이에 허용하는 최대 대기 시간 | HTTP 클라이언트 | WebClient(Reactor Netty)의 `responseTimeout` |
 | write timeout | 요청 바디를 상대에게 다 못 보내고 있을 때 | HTTP 클라이언트 | WebClient의 `WriteTimeoutHandler` |
 | server connection timeout | 커넥션은 맺었는데 클라이언트가 요청을 안 보낼 때 | Tomcat 등 WAS | `server.tomcat.connection-timeout` |
 | keep-alive timeout | 요청/응답이 끝난 뒤 커넥션을 재사용 대기시키는 시간 | Tomcat, HTTP 클라이언트 | `server.tomcat.keep-alive-timeout` |
 | max lifetime | 커넥션 하나를 최대 얼마나 오래 살려둘지 | HikariCP, HTTP 커넥션 풀 | `spring.datasource.hikari.max-lifetime`, Apache HttpClient5의 `ConnectionConfig` TTL |
 
-connection timeout 과 read timeout 은 특히 헷갈리기 쉬운데, 그 기준은 생각보다 간단하다.
+read timeout, socket timeout, response timeout은 라이브러리마다 이름과 적용 범위가 다르다. 특히 Reactor Netty의 `responseTimeout`은 HTTP 응답 전체의 총 수행 시간이 아니라, 응답을 읽는 동안 각 network-level read operation 사이의 최대 대기 시간을 뜻한다. <br />
+이름만 보고 서로 완전히 다른 종류의 타임아웃이라고 단정하기보다, 쓰고 있는 HTTP 클라이언트의 정확한 정의를 확인하는 게 안전하다.
+
+:::warning
+이름이 같아 보여도 HikariCP의 connection-timeout은 **TCP 연결을 맺는 시간이 아니다.** <br />
+풀에서 커넥션을 빌릴 때까지 기다리는 시간이고, 이 시간을 넘기면 SQLTransientConnectionException이 발생한다. DB와 TCP 연결을 맺는 시간은 JDBC 드라이버의 connectTimeout으로 따로 설정한다.
+:::
+
+connect timeout 과 read timeout 은 특히 헷갈리기 쉬운데, 그 기준은 생각보다 간단하다.
 
 기준은 **TCP 연결이 끝났는가?** 이다.
 
-아직 연결 중이면 connection timeout 이다.
+아직 연결 중이면 connect timeout 이다.
 
 연결은 됐는데 응답 데이터가 안 오면 read timeout 이다. 비슷해 보이는 상황을 나누어보면 아래와 같다.
 
 | 상황 | 에러 |
 |---|---|
-| 상대 IP가 방화벽에 막혀 있거나 라우팅되지 않음 (SYN에 응답 없음) | connection timeout |
+| 상대 IP가 방화벽에 막혀 있거나 라우팅되지 않음 (SYN에 응답 없음) | connect timeout |
 | TCP 연결은 맺었는데 상대 애플리케이션이 응답을 안 만듦(DB 락, GC pause, 무한루프), 또는 응답을 시작했지만 끝까지 보내지 않고 멈춤 | read timeout |
 | 요청 바디가 커서 클라이언트가 다 못 보내고 있음(느린 업로드 등) | write timeout |
 | 상대 서버는 떠 있지만 해당 포트에 아무것도 안 열려 있음 | ConnectException: Connection refused |
 | hostname 자체를 못 찾음 | UnknownHostException |
 
-참고로, `Connection refused`와 `UnknownHostException`은 timeout이 아니다.
+직접 조작해보면 더 명확하다. 상황을 바꿔가며 요청을 보내보면, 같은 "응답이 안 온다"라도 어느 구간에서 막히느냐에 따라 다른 타임아웃이 나는 걸 볼 수 있다.
 
-둘 다 "연결이 안 됐다"는 점에서는 connection timeout처럼 보이지만, 설정한 timeout 시간까지 기다리지 않고 바로 실패한다. "기다릴 것도 없이 바로 안 되는" 경우다.
+<ConnectReadTimeoutSimulator />
+
+참고로, Connection refused와 UnknownHostException은 timeout이 아니다.
+
+둘 다 "연결이 안 됐다"는 점에서는 connect timeout처럼 보이지만, 설정한 timeout 시간까지 기다리지 않고 바로 실패한다. "기다릴 것도 없이 바로 안 되는" 경우다.
 
 반면, timeout은 "기다렸는데도 안 됐을 때" 발생한다.
 
@@ -70,7 +86,7 @@ connection timeout 과 read timeout 은 특히 헷갈리기 쉬운데, 그 기�
 | 용어 | 쉽게 말하면 |
 |---|---|
 | 유휴 (idle) | 지금 아무 요청도 처리하지 않고 그냥 쉬고 있는 상태 |
-| socket timeout | read timeout과 같은 말 |
+| socket timeout | 소켓에서 다음 데이터를 읽을 때까지 기다리는 시간. <br /> 보통 read timeout이라 부르지만, 클라이언트에 따라 response timeout과 별도로 관리되기도 한다 |
 | 커넥션 풀 | 매번 새로 연결하지 않고, 다 쓴 연결을 모아뒀다가 재사용하는 통 |
 | keep-alive | 연결을 끊지 않고 잠깐 열어둬서 다음 요청 때 재사용하게 해주는 것 |
 | evict / expire | 재사용하던 연결을 진짜로 닫아버리는 것 |
@@ -99,15 +115,18 @@ server:
 
 응답 후 다음 요청을 얼마나 기다릴지, 즉 "이 시간 안에 다음 요청 없으면 커넥션을 닫는다"는 것이 문서 그대로의 의미다.
 
-방향을 반대로 잡기 쉬운데, 앞단에 로드밸런서나 리버스 프록시가 있다면 <BlueText>Tomcat 의 `keep-alive-timeout` 을 로드밸런서의 idle timeout 보다 길게</BlueText> 잡는 편이 안전하다.
+`connection-timeout` 쪽은 한 가지 더 봐야 할 게 있다. 이 값은 요청 라인이 들어오기를 기다리는 데만 쓰이는 게 아니라, Tomcat 커넥터 설정에 따라 request body를 읽는 구간에도 적용될 수 있다. 느린 업로드를 다루는 서비스라면 이 값을 요청 라인 기준으로만 생각하고 짧게 잡으면 안 된다.
 
-Tomcat이 먼저 닫으면 로드밸런서가 죽은 커넥션으로 요청을 보내려다가 에러가 나는데, 클라이언트는 <RedText>502</RedText>를 만나게 된다.
+방향을 반대로 잡기 쉬운데, ALB처럼 백엔드 keep-alive 커넥션을 재사용하는 로드밸런서나 리버스 프록시가 앞단에 있다면 <BlueText>Tomcat 의 `keep-alive-timeout` 을 로드밸런서의 idle timeout 보다 여유 있게 길게</BlueText> 잡는 편이 안전하다.
+
+로드밸런서가 아직 재사용 가능하다고 보고 있던 커넥션을 서버가 먼저 종료한 상태에서 요청이 겹치면 <RedText>502</RedText>가 발생할 수 있다. AWS도 [ALB 트러블슈팅 문서](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html)에서 타깃의 keep-alive duration이 ALB idle timeout보다 짧은 경우를 502 원인 중 하나로 안내한다.
 
 반대로 로드밸런서가 먼저 닫는 경우도 있다. 이때는 유휴 커넥션인지, 처리 중인 요청인지 나눠봐야 한다.
 
 * 요청/응답이 이미 끝난 유휴(idle) keep-alive 커넥션이었다면, 보통 사용자 요청 실패로 이어지지 않는다.
 * Tomcat이 긴 작업을 처리하느라 응답을 못 만드는 중이었다면, 로드밸런서 idle timeout이 먼저 만료될 수 있다.
-  * 이때 클라이언트는 먼저 <RedText>504 Gateway Timeout</RedText>을 받고, Tomcat은 뒤늦게 응답을 쓰려다 아래 같은 Broken pipe 로그를 남길 수 있다.
+  * 로드밸런서가 보는 idle은 "애플리케이션이 일하는 중인지"가 아니라 "그 TCP 커넥션에 데이터가 오갔는지"다. 그래서 서버가 열심히 처리 중이어도 그동안 아무것도 안 보냈다면 유휴로 판단한다.
+  * 이때 클라이언트는 먼저 <RedText>504 Gateway Timeout</RedText>을 받을 수 있고, Tomcat은 뒤늦게 응답을 쓰려다 아래 같은 Broken pipe 로그를 남길 수 있다.
 
 ```text
 org.apache.catalina.connector.ClientAbortException: java.io.IOException: Broken pipe
@@ -119,6 +138,12 @@ org.apache.catalina.connector.ClientAbortException: java.io.IOException: Broken 
   * Tomcat과 로드밸런서는 서로 다른 프로세스라 각자 따로 시간을 재기 때문에, 서버 쪽을 몇 초라도 확실히 더 길게 잡아야 한다(예: 로드밸런서 60초 → Tomcat 65초).
 * **요청 처리 중 504 문제** : 로드밸런서 idle timeout을 늘리거나, 애플리케이션 처리 시간을 줄이거나, 비동기/큐/폴링 구조로 바꾼다.
 * **DB/외부 API 지연이 원인일 때** : DB query timeout, HTTP 클라이언트 read timeout을 로드밸런서 idle timeout보다 짧게 잡아서 애플리케이션이 먼저 실패 처리하게 만든다.
+
+아래에서 두 값을 직접 조절해보면 어느 쪽이 먼저 keep-alive 커넥션을 종료하는지에 따라 동작이 어떻게 달라지는지 확인할 수 있다. <br />
+서버가 먼저 닫은 커넥션을 로드밸런서가 재사용하려는 시점과 요청이 겹치면 502가 발생할 수 있고, 로드밸런서가 요청 사이의 유휴 keep-alive 커넥션을 먼저 정리한 경우에는 보통 사용자 요청 실패로 이어지지 않는다. <br />
+값을 동일하게 맞추면 서로 독립적인 타이머의 경계 시점에서 경합이 생길 수 있으므로, 서버 쪽 keep-alive timeout에 여유를 두는 편이 안전하다.
+
+<KeepAliveAlignmentSimulator />
 
 Tomcat 이 실제로 keep-alive-timeout 이 지난 커넥션을 닫는지는 직접 소켓을 열어서 확인할 수 있다.
 
@@ -135,16 +160,23 @@ Reactor Netty(WebFlux) 기준으로는 `application.yml`에 아래 설정들이 
 ```yaml
 server:
   netty:
-    connection-timeout: 20000       # 서버 채널의 연결 관련 타임아웃
-    idle-timeout: 60000             # Tomcat의 keep-alive-timeout과 같은 역할
+    idle-timeout: 60000             # keep-alive 커넥션이 다음 요청을 기다리는 최대 시간
     max-keep-alive-requests: 100
 ```
 
-개념은 Tomcat과 동일하다. 로드밸런서 뒤에서는 `idle-timeout`을 로드밸런서 idle timeout보다 길게 잡아야 같은 이유로 안전하다.
+keep-alive 커넥션이 다음 요청을 얼마나 기다릴지를 정하는 건 `idle-timeout`이다. 값을 지정하지 않으면 타임아웃이 적용되지 않아 무제한으로 기다린다.
+
+HTTP keep-alive 상황에서는 결과적으로 Tomcat의 `keep-alive-timeout`과 비슷한 역할을 하지만, 구현 계층과 동작 방식이 같지는 않다.
+
+```text
+Tomcat          server.tomcat.keep-alive-timeout
+Reactor Netty   server.netty.idle-timeout
+```
+
+각 property 의 정의는 [Spring Boot - Common Application Properties](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.server) 에서 확인할 수 있다. 로드밸런서 뒤에서 keep-alive 타임아웃을 정렬하려는 목적이라면, 봐야 할 값은 `connection-timeout`이 아니라 `idle-timeout`이다. 이 값을 로드밸런서 idle timeout보다 길게 잡아야 안전한 건 Tomcat과 같다.
 
 :::warning
-Tomcat과 달리 connection-timeout, idle-timeout 모두 기본값이 없다(Spring Boot 4.0.7 기준). <br />
-설정하지 않으면 무제한으로 동작하므로, 운영 환경이라면 반드시 명시적으로 값을 잡아줘야 한다.
+server.netty.connection-timeout은 이름만 보고 Tomcat의 connection-timeout과 같은 의미로 해석하지 않는 게 좋다. 쓰는 Spring Boot / Reactor Netty 버전에서 실제로 어떤 ChannelOption에 매핑되고 어떻게 동작하는지 확인한다.
 :::
 
 :::tip
@@ -178,24 +210,28 @@ Available = 풀 안에서 대기, Leased = 누가 빌려서 쓰는 중, Expired 
 * 살아있는 시간이 `max-lifetime` 또는 커넥션 최대 수명(TTL)을 넘겼을 때
 * 살아있는지 확인하는 체크(keepalive)에서 이미 죽은 것으로 판정됐을 때
 
-중요한 점은 **커넥션을 언제 폐기할지는 애플리케이션이 아니라 풀이 결정**한다는 것이다.
-코드에서 `connection.close()` 를 호출해도 실제로는 물리 커넥션을 닫지 않고, 풀에 되돌려 놓는 동작일 때가 많다.
+중요한 점은 **애플리케이션의 `connection.close()`가 항상 물리 커넥션 종료를 뜻하지는 않는다**는 것이다. 풀을 쓰면 close()는 보통 커넥션을 실제로 닫지 않고 풀에 반납하는 동작이다.
 
-그래서 `max-lifetime`을 DB나 중간 장비가 커넥션을 끊는 시점보다 길게 잡으면 문제가 생길 수 있다. 상대는 이미 끊었는데, 풀은 아직 쓸 수 있다고 보고 애플리케이션에 다시 빌려줄 수 있기 때문이다(자세한 기준은 HikariCP 섹션에서 다룬다).
+다만 커넥션 종료를 풀만 결정하는 건 아니다. 풀은 `max-lifetime`이나 `idle-timeout` 같은 정책에 따라 계획적으로 폐기하지만, DB 서버나 로드밸런서, 방화벽도 각자의 timeout 정책에 따라 독립적으로 커넥션을 끊는다. 그래서 풀 설정과 외부 시스템의 정책을 함께 확인해야 한다(자세한 기준은 HikariCP 섹션에서 다룬다).
 
 ---
 
 ## HTTP 클라이언트 설정
 
-각 Http Client마다 connect/read/write timeout을 설정하는 API가 다르고, 커넥션 풀을 쓰는지에 따라 keep-alive 동작도 달라진다.
+각 HTTP 클라이언트마다 connect/read/write timeout을 설정하는 API가 다르고, 커넥션 풀을 쓰는지에 따라 keep-alive 동작도 달라진다.
 
-| Client | connect / read timeout | 커넥션 풀 |
+| 클라이언트 | connect / read timeout | 커넥션 풀 |
 |---|---|---|
-| Feign (`feign.Client.Default`) | 있음 | 명시적 풀 없음 - 요청마다 `HttpURLConnection` 생성. 호스트당 5개(`http.maxConnections`)로 제한된 JDK 캐시로만 일부 재사용 |
+| Feign (`feign.Client.Default`) | 있음 | 명시적 풀 없음 - JDK `HttpURLConnection`의 keep-alive 캐시에만 의존 (`http.maxConnections` 기본값 5) |
 | Feign + HC5/OkHttp | 있음 | Apache HttpClient5 / OkHttp 풀 사용 |
 | RestTemplate (`HttpComponentsClientHttpRequestFactory`) | 있음 | Apache HttpClient5 풀 사용 가능 |
-| WebClient (Reactor Netty) | 있음 (connect는 채널 옵션, read/write는 핸들러) | Reactor Netty 커넥션 풀 사용 |
+| WebClient (Reactor Netty) | 있음 (connect는 채널 옵션, 응답 대기는 `responseTimeout` 또는 핸들러) | Reactor Netty 커넥션 풀 사용 |
 | `java.net.http.HttpClient` (JDK 11+) | 있음 | 내장 커넥션 풀 사용 |
+
+:::note
+http.maxConnections(기본값 5)는 목적지별로 **동시에 유지할 수 있는 유휴 keep-alive 커넥션 수**다. 그 호스트로 동시에 열 수 있는 전체 커넥션이 5개로 제한된다는 뜻이 아니다. <br />
+동시 요청이 5개를 넘는다고 초과분이 곧바로 거절되는 것도 아니다. 트래픽이 많으면 5개를 넘는 TCP 커넥션도 동시에 만들어질 수 있고, 다만 응답이 끝난 뒤 keep-alive 캐시에 남겨두는 유휴 커넥션 수가 목적지별로 제한될 뿐이다.
+:::
 
 이 계층에서 connect/read timeout은 실제로 이런 예외로 나타난다.
 
@@ -203,7 +239,7 @@ Available = 풀 안에서 대기, Leased = 누가 빌려서 쓰는 중, Expired 
   * `RestClient`/`RestTemplate`에서는 `ResourceAccessException`으로 래핑되어 올라온다
 * **read timeout** - `java.net.SocketTimeoutException: Read timed out`
 
-풀을 쓴다면 이 둘 말고 챙길 게 두 개 더 있다.
+풀을 쓴다면 이 둘 말고 챙길 게 더 있다.
 
 ### connection request timeout
 
@@ -212,41 +248,93 @@ Available = 풀 안에서 대기, Leased = 누가 빌려서 쓰는 중, Expired 
 Apache HttpClient5는 RequestConfig.setConnectionRequestTimeout(...)으로 설정한다.
 
 :::tip
-실무에서는 connect timeout보다 connection request timeout(풀 고갈)을 더 자주 만난다.
+트래픽이 높거나 풀을 작게 잡아둔 서비스라면, connect timeout보다 이 풀 획득 대기 타임아웃을 더 자주 만나기도 한다.
 :::
 
 ### 커넥션 최대 수명(TTL)
 
 커넥션이 생성된 시각 기준으로 계산되는 유통기한으로, HikariCP max-lifetime처럼 커넥션 수명을 제한한다. Apache HttpClient5에서는 `ConnectionConfig`의 time-to-live(TTL)로 설정한다.
 
-TTL을 안 정해두면 중간 장비가 조용히 끊어버린 죽은 커넥션을 풀이 계속 꺼내 쓸 수 있다.
+TTL을 정해두면 오래 살아있던 커넥션을 주기적으로 교체할 수 있다. 다만 TTL은 죽은 커넥션을 찾아내는 기능이 아니라 **수명을 제한하는 기능**이다. 중간 장비가 조용히 끊어버린 커넥션에 대응하려면 TTL만으로는 부족하고, 뒤에 나오는 유휴 커넥션 검증과 퇴거를 같이 봐야 한다.
 
 :::warning
-OkHttp의 `ConnectionPool`은 유휴 시간 기준의 `keepAliveDuration`을 중심으로 동작한다. Apache HttpClient5처럼 connection request timeout과 커넥션 TTL을 풀 설정으로 세밀하게 나누는 모델은 아니다. Feign에 OkHttp를 붙였을 때 죽은 커넥션 재사용 이슈가 반복된다면 Feign + HC5 조합으로 전환하는 것도 검토할 수 있다.
+OkHttp의 ConnectionPool은 유휴 시간 기준의 keepAliveDuration을 중심으로 동작한다. <br />
+Apache HttpClient5처럼 connection request timeout과 커넥션 TTL을 풀 설정으로 세밀하게 나누는 모델은 아니다. <br />
+Feign에 OkHttp를 붙였을 때 죽은 커넥션 재사용 이슈가 반복된다면 Feign + HC5 조합으로 전환하는 것도 검토할 수 있다.
 :::
 
 ### 유휴 커넥션 검증과 자동 퇴거 (Apache HttpClient5)
 
-Apache HttpClient5는 HikariCP의 keepalive-time처럼 죽은 커넥션을 사전에 정리하는 두 가지 보조 장치를 제공한다.
+Apache HttpClient5는 죽은 커넥션을 그대로 재사용하는 걸 막아주는 보조 장치를 제공한다. 하나는 빌릴 때 검증하고, 다른 하나는 미리 치워둔다.
 
-* **`validateAfterInactivity`** - 커넥션이 일정 시간 유휴 상태였으면, 재사용 직전에 소켓이 살아있는지 찔러보고 검증한다.
-* **`IdleConnectionEvictor`** - `closeExpired()`, `closeIdle()` 같은 수동 퇴거 메서드를 백그라운드 스레드에서 주기적으로 대신 호출해주는 자동 청소기다. 스프링 빈으로 등록하고 `start()`/`shutdown()` 생명주기만 맞춰주면 된다.
+* **validateAfterInactivity**
+  * 설정한 시간 이상 유휴 상태였던 커넥션을 풀에서 빌릴 때, 아직 쓸 수 있는지 검증한다.
+  * 매 요청마다 새로 연결한다는 뜻이 아니라, 정상 커넥션은 그대로 재사용된다.
+* **evictExpiredConnections() / evictIdleConnections()**
+  * HttpClientBuilder에서 활성화하면 백그라운드 작업이 돌면서, 수명이 끝났거나 일정 시간 이상 유휴 상태인 커넥션을 주기적으로 풀에서 제거한다.
+  * 내부적으로는 IdleConnectionEvictor 백그라운드 스레드가 떠서 closeExpired()/closeIdle()을 대신 호출해준다.
+
+```java
+CloseableHttpClient httpClient = HttpClients.custom()
+    .evictExpiredConnections()
+    .evictIdleConnections(TimeValue.ofSeconds(30))
+    .build();
+```
+
+이 기능은 백그라운드 스레드를 쓰기 때문에, 애플리케이션 종료 시 `CloseableHttpClient.close()`를 호출해 함께 정리해야 한다.
+
+한 가지 주의할 점은, 커넥션 매니저를 shared 로 구성하면 이 빌더 기반 eviction 이 동작하지 않는다는 것이다.
+
+```java
+HttpClients.custom()
+    .setConnectionManager(connectionManager)
+    .setConnectionManagerShared(true)
+```
+
+기준은 커넥션 매니저를 외부에서 주입했는지가 아니라, `setConnectionManagerShared(true)` 로 shared 로 선언했는지다. [HttpClientBuilder javadoc](https://hc.apache.org/components/httpcomponents-client-5.5.x/5.5.2/httpclient5/apidocs/org/apache/hc/client5/http/impl/classic/HttpClientBuilder.html) 의 `evictIdleConnections` / `evictExpiredConnections` 설명에 이 조건이 명시되어 있다.
 
 :::tip
-<a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/ValidateAfterInactivityTests.java" target="_blank" rel="noopener noreferrer">재사용 전 검증 예제 보러가기</a>, <a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/PoolMaintenanceTests.java" target="_blank" rel="noopener noreferrer">수동 퇴거 예제 보러가기</a>, <a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/IdleConnectionEvictorTests.java" target="_blank" rel="noopener noreferrer">자동 퇴거 예제 보러가기</a>
+<div><a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/ValidateAfterInactivityTests.java" target="_blank" rel="noopener noreferrer">재사용 전 검증 예제 보러가기</a></div>
+<div><a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/PoolMaintenanceTests.java" target="_blank" rel="noopener noreferrer">수동 퇴거 예제 보러가기</a></div>
+<div><a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/IdleConnectionEvictorTests.java" target="_blank" rel="noopener noreferrer">자동 퇴거 예제 보러가기</a></div>
 :::
 
-WebClient만 connect timeout과 read/write timeout을 아예 다른 API로 설정한다.
+### WebClient(Reactor Netty)의 타임아웃
+
+WebClient(Reactor Netty)는 connect timeout과 response timeout을 서로 다른 API로 설정한다. <br />
+TCP 연결 수립 시간은 `CONNECT_TIMEOUT_MILLIS`로 제한하고, HTTP 응답을 읽는 과정에서 network read 사이의 최대 대기 시간은 `responseTimeout`으로 설정한다.
 
 ```java
 HttpClient httpClient = HttpClient.create()
-    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)  // TCP 연결 수립
+    .responseTimeout(Duration.ofSeconds(5));             // 응답 read 사이 최대 대기 시간
+```
+
+:::warning
+responseTimeout 은 요청 하나의 전체 수행 시간을 제한하는 값이 아니다.
+
+정확히는 요청을 보낸 뒤 응답을 읽는 동안, 각 network-level read operation 사이에 허용하는 최대 대기 시간이다.
+
+[HttpClientRequest javadoc](https://projectreactor.io/docs/netty/release/api/reactor/netty/http/client/HttpClientRequest.html) 에 이 정의가 그대로 나와 있다.
+:::
+
+따라서 응답 데이터가 설정한 시간보다 짧은 간격으로 계속 들어온다면, 전체 응답 시간이 `responseTimeout`보다 길어도 타임아웃이 발생하지 않을 수 있다. <br />
+반대로 응답을 읽는 도중 다음 데이터가 `responseTimeout`보다 오래 들어오지 않으면 타임아웃이 발생한다.
+
+`responseTimeout`을 설정하지 않으면 Reactor Netty 자체의 response timeout은 적용되지 않는다. 상위 계층에 별도 타임아웃이 없다면 응답 지연을 그대로 기다리게 되므로, 운영 환경에서는 명시적으로 잡아주는 게 좋다.
+
+요청 전체의 end-to-end 시간을 제한하고 싶다면 `Mono.timeout()`이나 `Flux.timeout()` 같은 리액티브 연산자를 따로 쓸 수 있다. 적용 범위가 responseTimeout처럼 응답 read 구간에 한정되지 않고 파이프라인 전체에 걸린다는 점이 다르다. <br />
+`Mono.timeout()`은 단일 신호를 기준으로 하므로 요청 하나의 전체 시간 제한에 가깝지만, `Flux.timeout()`은 스트림의 각 원소 사이 간격에 적용되기 때문에 그대로 전체 deadline이 되지는 않는다. 스트리밍 응답이라면 이 차이를 확인하고 써야 한다. 타임아웃 종류별 구분은 [Reactor Netty - HTTP Client](https://projectreactor.io/docs/netty/release/reference/http-client.html) 와 [Timeout Configurations](https://projectreactor.io/docs/netty/release/reference/index.html#_configuring_timeout) 에 정리되어 있다.
+
+Netty 채널 레벨의 read/write timeout을 직접 제어하려면 `ReadTimeoutHandler`나 `WriteTimeoutHandler`를 추가할 수 있다. <br />
+참고로 `responseTimeout`도 HTTP 응답을 읽는 동안 `ReadTimeoutHandler`를 채널 파이프라인에 추가하는 방식으로 동작한다. 그래서 둘을 완전히 별개의 메커니즘으로 보기보다는, 핸들러가 적용되는 시점과 범위가 다르다고 이해하는 편이 정확하다.
+
+```java
+HttpClient httpClient = HttpClient.create()
     .doOnConnected(conn -> conn
         .addHandlerLast(new ReadTimeoutHandler(5, TimeUnit.SECONDS))
         .addHandlerLast(new WriteTimeoutHandler(5, TimeUnit.SECONDS)));
 ```
-
-`ReadTimeoutHandler`를 빼먹으면 connect timeout만 걸리고, 응답이 영원히 안 와도 요청이 끝없이 대기한다.
 
 :::tip
 <a href="https://github.com/eottabom/let-me-code/tree/main/timeout-settings" target="_blank" rel="noopener noreferrer">예제 보러가기</a> (WebClient는 <a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/WebClientTimeoutTests.java" target="_blank" rel="noopener noreferrer">여기</a>)
@@ -262,25 +350,42 @@ spring:
     hikari:
       connection-timeout: 30000   # 풀에서 커넥션을 못 받으면 이 시간 후 예외 (기본값 30초)
       max-lifetime: 1800000       # 커넥션 하나를 최대 이 시간까지만 사용 (기본값 30분, 최소 30초)
-      idle-timeout: 600000        # 유휴 커넥션을 이 시간 후 제거 (minimum-idle < maximum-pool-size 일 때만 동작)
+      idle-timeout: 600000        # 커넥션이 풀에서 유휴로 유지될 수 있는 최대 시간 (minimum-idle 아래로는 줄지 않음)
       keepalive-time: 120000      # 이 주기로 유휴 커넥션에 ping (최소 30초, max-lifetime 보다 작아야 함)
 ```
 
-핵심은 `max-lifetime`과 DB/네트워크 장비의 idle timeout 관계다.
+여기서 먼저 구분해야 할 게 있다. 이름은 다 "시간"이지만 재는 기준이 다르다.
 
-MySQL `wait_timeout`, AWS RDS Proxy, L4 로드밸런서, 방화벽은 각자 유휴 커넥션을 강제로 끊는 제한 시간을 갖고 있다. <RedText>`max-lifetime`이 그보다 길면(0=무제한 포함) DB나 방화벽이 먼저 소켓을 끊어버린 죽은 커넥션을 풀이 계속 꺼내 쓰게 된다</RedText>.
+* **`max-lifetime`** - 커넥션이 **만들어진 시점**부터 세는 절대 수명
+  * 수명이 다했다고 사용 중인 커넥션을 강제로 끊지는 않고, 반납된 뒤에 제거한다.
+* **`idle-timeout`** - 커넥션이 풀에서 **유휴 상태로 머무를 수 있는 기준 시간**
+  * 만료 즉시 제거되는 hard deadline은 아니고, HikariCP 문서도 실제 제거 시점에 약간의 편차가 있다고 설명한다.
+  * 유휴 커넥션이 제거되어도 풀은 `minimum-idle` 아래로는 줄어들지 않는다. 그래서 `minimum-idle < maximum-pool-size`인 탄력적인 풀에서 주로 의미가 있고, 둘이 같은 고정 크기 풀에서는 이 설정만으로 풀 크기가 줄지 않는다.
+* **`keepalive-time`** - 유휴 커넥션을 주기적으로 잠깐 풀에서 꺼내 유효성을 확인한 뒤 다시 반납
+  * JDBC4를 지원하는 일반적인 드라이버에서는 `Connection.isValid()`를 쓰고, `connectionTestQuery`를 설정했다면 그 쿼리로 검증한다. [HikariCP 문서](https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby)는 JDBC4 드라이버라면 `connectionTestQuery`를 설정하지 말고 `Connection.isValid()`를 쓰길 권장한다.
+  * 이 확인 과정에서 실제 DB 통신이 발생하기 때문에, DB나 인프라가 idle timeout으로 끊는 걸 막는 데 쓸 수 있다. 유휴 커넥션에만 동작하고, `max-lifetime`보다 작아야 한다.
+
+이 셋을 하나로 뭉뚱그리면 설정이 꼬인다. 그래서 대응도 나눠서 봐야 한다.
+
+**DB나 인프라가 커넥션의 절대 수명을 제한하는 경우**라면, 그보다 `max-lifetime`을 짧게 잡아 풀이 먼저 교체하게 만든다.
 
 ```text
-max-lifetime (HikariCP)  <  MIN( wait_timeout (MySQL), idle timeout (L4/RDS Proxy, 방화벽 등) )
+max-lifetime (HikariCP)  <  DB / Proxy 가 강제하는 절대 커넥션 수명
 ```
 
-"DB의 wait_timeout이 항상 더 짧다"고 오해하기 쉬운데, 실무에서는 반대인 경우가 많다. MySQL `wait_timeout` 기본값은 8시간(28,800초)이지만, AWS NLB(350초)나 방화벽, RDS Proxy의 유휴 타임아웃은 그보다 훨씬 짧게 설정돼 있는 경우가 대부분이다.
+<RedText>`max-lifetime`이 그보다 길면(0=무제한 포함) DB나 인프라가 애플리케이션보다 먼저 커넥션을 종료할 수 있다.</RedText> 이렇게 되면 이미 끊긴 커넥션이 풀에 남아 있다가, 검증이나 재사용 시점에 쓸 수 없는 커넥션으로 드러난다.
 
-정확한 값을 짐작하지 말고 직접 확인한다(MySQL 기준 `SHOW VARIABLES LIKE 'wait_timeout'`). <GreenText>그 중 더 짧은 쪽보다 최소 30초 이상 짧게 `max-lifetime`을 잡는다</GreenText>.
+**중간 장비가 유휴 커넥션을 끊는 경우**는 절대 수명이 아니라 유휴 시간이 문제다. 이때는 `keepalive-time`을 외부 idle timeout보다 충분히 짧게 잡아 유휴 커넥션에 주기적으로 활동이 생기게 하거나, 풀 크기를 탄력적으로 운영한다면 `idle-timeout`을 외부보다 짧게 잡아 HikariCP가 먼저 정리하게 만드는 방법을 검토한다. 다만 앞서 말했듯 `idle-timeout`은 `minimum-idle`이 `maximum-pool-size`보다 작을 때만 커넥션 수를 줄인다.
 
-`keepalive-time`은 이 문제를 줄이는 보조 장치다. 유휴 커넥션에 주기적으로 ping을 보내 살아있는지 확인하는데, 반드시 `max-lifetime`보다 작고 최소 30초 이상이어야 한다. 이 조건을 안 지키면 설정이 보정되거나 무시될 수 있으니 시작 로그를 확인하는 게 안전하다.
+주의할 점은 MySQL `wait_timeout`이나 로드밸런서의 idle timeout은 **절대 수명이 아니라 유휴 시간 기준**이라는 것이다. `max-lifetime`과 단순 비교해서 더 작은 값을 고르는 식으로 접근하면 안 된다. 유휴 시간 때문에 끊기는 환경이라면 `keepalive-time`이나 `idle-timeout` 쪽을 함께 봐야 한다.
 
-아래는 `max-lifetime`이 DB의 `wait_timeout`보다 길 때 발생하는 에러다.
+참고로 MySQL `wait_timeout` 기본값은 8시간(28,800초)이고, AWS NLB의 TCP flow idle timeout 기본값은 350초다(TCP 리스너는 변경 가능, TLS 리스너는 350초 고정). 방화벽이나 프록시도 각자 idle timeout을 가질 수 있다. 값은 환경마다 다르니 짐작하지 말고 직접 확인한다(MySQL 기준 `SHOW VARIABLES LIKE 'wait_timeout'`). <GreenText>커넥션 수명을 강제하는 제한이 있다면, 그보다 여유를 두고 `max-lifetime`을 잡는다.</GreenText>
+
+NLB의 TCP idle timeout은 클라이언트와 타깃 어느 쪽에서도 데이터가 오가지 않은 시간을 기준으로 하며, TCP keepalive 패킷도 이 타이머를 다시 시작시킨다. 그래서 HikariCP `keepalive-time`처럼 애플리케이션 레벨에서 DB 트래픽을 발생시키는 방법뿐 아니라 OS TCP 스택의 TCP keepalive도 대응 수단이 될 수 있다. 둘은 비슷한 문제를 완화할 수 있지만 동작 계층은 다르다. [NLB 공식 문서](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html)에도 클라이언트나 타깃이 보내는 TCP keepalive 패킷이 idle timeout을 다시 시작시킨다고 명시되어 있다.
+
+`keepalive-time`은 반드시 `max-lifetime`보다 작고 최소 30초 이상이어야 한다. 이 조건을 안 지키면 설정이 보정되거나 무시될 수 있으니 시작 로그를 확인하는 게 안전하다.
+
+아래는 풀에 있던 커넥션이 MySQL `wait_timeout`을 넘겨 유휴 상태로 방치되다가, DB가 먼저 끊어버렸을 때 나는 에러다.
 
 ```text
 com.mysql.cj.jdbc.exceptions.CommunicationsException:
@@ -289,9 +394,9 @@ Communications link failure
 The last packet successfully received from the server was 1,801,203 milliseconds ago.
 ```
 
-`max-lifetime`을 30분(1,800,000ms)으로 잡았는데 로그의 "1,801,203 milliseconds ago"처럼 비슷한 시점에 에러가 난다면 timeout 관계를 의심해볼 수 있다. 30분씩 기다리지 않고도 재현해볼 수 있다.
+여기서 볼 것은 `max-lifetime`과 `wait_timeout`의 대소 관계가 아니다. MySQL `wait_timeout`은 "마지막 활동 이후 얼마나 오래 놀았는가"를 기준으로 끊기 때문에, 로그의 "last packet ... milliseconds ago" 값이 어떤 idle timeout과 비슷하다면 그 커넥션이 오래 유휴 상태였다가 DB나 중간 장비에 의해 종료된 건 아닌지 확인해야 한다.
 
-아래 예제는 MySQL(Docker)의 `wait_timeout`을 2초로 잡고 같은 에러를 몇 초 만에 확인한다.
+아래 예제는 MySQL(Docker)의 `wait_timeout`을 2초로 줄이고 커넥션을 2초 이상 놀린 뒤 다시 써서, 같은 유형의 에러를 몇 초 만에 재현한다.
 
 :::tip
 <a href="https://github.com/eottabom/let-me-code/blob/main/timeout-settings/src/test/java/com/eottabom/letmecode/example/timeoutsettings/DeadConnectionAfterWaitTimeoutTests.java" target="_blank" rel="noopener noreferrer">예제 보러가기</a>
@@ -303,11 +408,12 @@ The last packet successfully received from the server was 1,801,203 milliseconds
 
 * 로드밸런서/리버스 프록시 뒤라면 서버(Tomcat) keep-alive-timeout을 그쪽 idle timeout보다 몇 초 더 길게 잡는다.
   * `Tomcat keep-alive-timeout > 로드밸런서 idle timeout`
-* HTTP 클라이언트 풀을 쓴다면 connect timeout, read timeout 말고 connection request timeout(풀 고갈)도 반드시 설정한다.
-* 일반적인 웹 애플리케이션에서는 HikariCP `max-lifetime`을 DB `wait_timeout`과 중간 장비 idle timeout 중 더 짧은 쪽보다 최소 30초 이상 짧게 잡는다. 0(무제한)은 DB/인프라가 먼저 끊지 않는다는 확신이 있을 때만 선택한다.
-  * `max-lifetime + 30초 ≤ MIN(wait_timeout, 중간 장비 idle timeout)`
-* `keepalive-time`을 쓰려면 최소 30초 이상, `max-lifetime`보다 작게 잡아야 한다. 조건을 어기면 기대한 대로 동작하지 않을 수 있으니 시작 로그를 확인한다.
+* HTTP 클라이언트 풀을 쓴다면 connect timeout, read timeout 뿐 아니라 풀에서 커넥션을 얻기까지 기다리는 시간인 connection request timeout 도 명시적으로 설정하는 게 좋다.
+* DB나 인프라가 "커넥션 생성 후 최대 N분" 같은 **절대 수명**을 강제한다면, HikariCP `max-lifetime`을 그보다 여유 있게 짧게 잡는다. 0(무제한)은 먼저 끊는 쪽이 없다는 확신이 있을 때만 선택한다.
+  * `max-lifetime < DB / Proxy 가 강제하는 절대 커넥션 수명`
+* 반대로 MySQL `wait_timeout`이나 NLB idle timeout처럼 **통신이 없는 시간**을 기준으로 끊는 설정은 `max-lifetime`과 직접 비교하지 않는다. `keepalive-time`, TCP keepalive, `idle-timeout`을 함께 본다.
   * `30초 ≤ keepalive-time < max-lifetime`
+  * `idle-timeout`은 `minimum-idle < maximum-pool-size`일 때만 커넥션 수를 줄인다.
 * 값을 정할 때는 항상 "이 timeout이 지나면 무슨 일이 생기는가"부터 확인한다. 재시도되는지, 에러가 사용자에게 노출되는지에 따라 안전한 여유값이 달라진다.
 
 ---
@@ -318,18 +424,19 @@ The last packet successfully received from the server was 1,801,203 milliseconds
 
 | 계층 | 이 값이 너무 짧으면 | 이 값이 너무 길면 |
 |---|---|---|
-| connection timeout | 네트워크가 조금만 느려도 실패 | 장애 상황에서 스레드가 오래 묶임 |
-| read/write timeout | 정상 응답인데도 타임아웃 발생 | 느린 응답 하나가 스레드를 오래 점유 |
-| Tomcat keep-alive timeout | 커넥션 재사용 효과 감소 | 유휴 커넥션이 스레드/소켓 자원을 오래 점유 |
-| HikariCP max-lifetime | 커넥션 재생성 비용 증가 | 중간 장비가 끊은 죽은 커넥션을 재사용하다 에러 |
+| connect timeout | 일시적인 네트워크 지연에도 연결 실패가 증가 | 실패한 연결 시도가 오래 유지되어 장애 감지와 복구가 늦어짐 |
+| read/write timeout | 정상적으로 느린 요청도 실패할 수 있음 | 느린 요청이 커넥션이나 메모리 같은 자원을 오래 점유하고 실패 판단이 늦어짐 |
+| Tomcat keep-alive timeout | 커넥션 재사용 효과 감소, 재연결 증가 | 유휴 소켓/커넥션 관련 자원을 더 오래 유지 |
+| HikariCP max-lifetime | 커넥션 교체가 잦아져 재연결 비용 증가 | 절대 수명을 더 짧게 강제하는 환경에서 외부가 먼저 커넥션을 종료할 가능성 증가 |
 
 :::success
 <b>요약</b>
-✔ connection timeout 은 TCP 연결 중, read/write timeout 은 연결 이후 응답/전송 중에 발동한다.
-✔ 커넥션 풀은 대기 중(Available)과 사용 중(Leased)을 오가며, 커넥션을 언제 폐기할지는 애플리케이션이 아니라 풀이 결정한다.
+✔ connect timeout 은 TCP 연결 중, read/write timeout 은 연결 이후 응답/전송 중에 발동한다. HikariCP 의 connection-timeout 은 이름과 달리 풀에서 커넥션을 빌리는 대기 시간이다.
+✔ 풀을 쓰면 애플리케이션의 close() 는 물리 종료가 아니라 풀 반납인 경우가 많다. 풀은 maxLifetime, idleTimeout 정책으로 커넥션을 관리하지만, DB 나 로드밸런서 같은 외부 시스템도 각자의 정책으로 독립적으로 끊는다.
 ✔ Tomcat 의 keep-alive-timeout 은 로드밸런서 idle timeout 보다 길게 잡아야, 유휴 keep-alive 재사용 중 502 가능성을 줄일 수 있다.
 ✔ 일부 HTTP 클라이언트 풀이 지원하는 커넥션 최대 수명(TTL)은 HikariCP max-lifetime 과 유사한 개념이다.
-✔ HikariCP max-lifetime 은 DB/인프라의 idle timeout 보다 짧게 잡아야 죽은 커넥션 재사용을 피할 수 있다.
+✔ HikariCP max-lifetime 은 "생성 후 절대 수명", MySQL wait_timeout 이나 NLB idle timeout 은 "마지막 통신 이후 유휴 시간"이다. 단위만 시간일 뿐 기준이 다르니 크기만 비교하지 않는다.
+✔ HikariCP idle-timeout 은 유휴 커넥션을 정리하는 설정이지만 풀은 minimum-idle 아래로 줄어들지 않는다. 그래서 minimum-idle = maximum-pool-size 인 고정 크기 풀에서는 풀 크기를 줄이는 효과가 없다.
 :::
 
 ---
@@ -337,10 +444,16 @@ The last packet successfully received from the server was 1,801,203 milliseconds
 ## 📚 Reference
 
 * [Spring Boot - Common Application Properties (server.tomcat.*)](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.server)
-* [Apache HttpClient5 - Connection Management](https://hc.apache.org/httpcomponents-client-5.4.x/current/tutorial/html/connmgmt.html)
-* [Apache HttpClient5 - PoolStats](https://hc.apache.org/httpcomponents-client-5.4.x/current/httpclient5/apidocs/org/apache/hc/client5/http/io/PoolStats.html)
+* [Apache HttpClient5 - Connection Management](https://hc.apache.org/httpcomponents-client-5.5.x/connection-management.html)
+* [Apache HttpClient5 - Connection Pooling](https://hc.apache.org/httpcomponents-client-5.5.x/connection-pooling.html)
+* [Apache HttpClient5 - HttpClientBuilder javadoc](https://hc.apache.org/components/httpcomponents-client-5.5.x/5.5.2/httpclient5/apidocs/org/apache/hc/client5/http/impl/classic/HttpClientBuilder.html)
+* [Apache HttpCore5 - PoolStats javadoc](https://hc.apache.org/httpcomponents-core-5.3.x/current/httpcore5/apidocs/org/apache/hc/core5/pool/PoolStats.html)
 * [HikariCP - README (Configuration)](https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby)
 * [HikariCP Wiki - About Pool Sizing](https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing)
 * [Project Reactor Netty - Timeout Configurations](https://projectreactor.io/docs/netty/release/reference/index.html#_configuring_timeout)
+* [Project Reactor Netty - HTTP Client](https://projectreactor.io/docs/netty/release/reference/http-client.html)
+* [Project Reactor Netty - HttpClientRequest javadoc (responseTimeout)](https://projectreactor.io/docs/netty/release/api/reactor/netty/http/client/HttpClientRequest.html)
+* [AWS - Application Load Balancer 문제 해결 (HTTP 502)](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html)
+* [AWS - Network Load Balancer 구성 요소 (idle timeout, TCP keepalive)](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/network-load-balancers.html)
 * [Netmarble Engineering - HikariCP Options Optimization for Game Server](https://netmarble.engineering/hikaricp-options-optimization-for-game-server/)
 * [pkgonan - HikariCP test-while-idle 문의 기록](https://pkgonan.github.io/2018/04/HikariCP-test-while-idle)
