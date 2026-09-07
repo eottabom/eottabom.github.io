@@ -129,7 +129,9 @@ function extractLines(children: ReactNode): ReactNode[][] {
       });
     } else if (isValidElement(node)) {
       const { type, props } = node as any;
-      if (type === 'a') {
+      if (type === 'br') {
+        flush();
+      } else if (type === 'a') {
         line.push(React.cloneElement(node as React.ReactElement, {
           target: '_blank',
           rel: 'noopener noreferrer',
