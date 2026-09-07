@@ -4,8 +4,8 @@
     "url": "https://yozm.wishket.com/magazine/detail/3406/",
     "source": "요즘IT",
     "category": "Career",
-    "keywords": ["불안"],
-    "note": "",
+    "keywords": ["불안", "불안 관리", "커리어", "기술 낙오", "불확실성", "멘탈 관리"],
+    "note": "개발자가 느끼는 불안은 자연스러운 감정이고, 카렐 공식처럼 최악을 먼저 정리해두면 성장의 연료로 쓸 수 있다는 이야기.",
     "added": "2025-10-24"
   },
   {
@@ -13,8 +13,8 @@
     "url": "https://claude.com/blog/complete-guide-to-building-skills-for-claude",
     "source": "Claude Blog",
     "category": ["AI", "Claude"],
-    "keywords": ["Claude", "Skills", "Claude Code", "AI Agent", "Prompt"],
-    "note": "",
+    "keywords": ["Claude", "Skills", "스킬", "Claude Code", "MCP", "워크플로우 자동화", "공식 가이드"],
+    "note": "Claude Skills 공식 가이드. 스킬 구조와 작성법부터 테스트, 배포까지 전체 개발 과정을 다룬다.",
     "added": "2026-03-06"
   },
   {
@@ -22,8 +22,8 @@
     "url": "https://www.fullstackfamily.com/@urstory/posts/13752",
     "source": "김성박의 즐거운 에이전틱 코딩",
     "category": ["AI", "Claude"],
-    "keywords": ["Claude", "Skills", "Claude Code", "완벽 가이드"],
-    "note": "",
+    "keywords": ["Claude", "Skills", "스킬", "Claude Code", "MCP", "점진적 공개", "완벽 가이드"],
+    "note": "Claude Skills 한글 가이드. YAML frontmatter + Markdown 구조, 3단계 점진적 로딩, MCP와의 역할 분담을 정리했다.",
     "added": "2026-03-06"
   },
   {
@@ -31,8 +31,35 @@
     "url": "https://evan-moon.github.io/2026/01/30/developer-intuition-readable-code-and-neuroscience/",
     "source": "Evans Library",
     "category": ["Clean Code"],
-    "keywords": ["가독성", "클린코드", "인지과학", "코드 품질"],
-    "note": "",
+    "keywords": ["가독성", "클린코드", "인지과학", "작업 기억", "청킹", "인지 부하", "코드 품질"],
+    "note": "가독성이 좋다는 느낌의 정체를 인지과학으로 풀어낸 글. 작업 기억 한계, 청킹, 예측 부호화로 설명한다.",
     "added": "2026-03-06"
+  },
+  {
+    "title": "코드는 다 읽을 수 없고, 코드 리뷰가 맡아온 책임은 사라지지 않는다",
+    "url": "https://news.hada.io/article/code-outruns-review",
+    "source": "GeekNews",
+    "category": ["Code Review", "AI"],
+    "keywords": ["코드 리뷰", "AI", "리뷰 병목", "책임", "다단계 검증", "바이브 코딩"],
+    "note": "AI가 코드를 만드는 속도가 사람이 읽는 속도를 넘어서면서 기존 코드 리뷰가 무너진다는 문제 제기. 리뷰를 여러 단계로 나누고 책임 소재를 명확히 하자는 제안.",
+    "added": "2026-09-07"
+  },
+  {
+    "title": "Surviving Code Reviews in the era of AI",
+    "url": "https://lobste.rs/s/7tpc5q/surviving_code_reviews_era_ai",
+    "source": "Lobsters",
+    "category": ["Code Review", "AI"],
+    "keywords": ["코드 리뷰", "AI", "PR 크기", "stacked PR", "엔지니어링 문화", "리뷰 전략"],
+    "note": "AI로 만든 수천 줄짜리 PR을 어떻게 리뷰할 것인가. PR 크기 제한, stacked PR, 조직 문화와 교육 관점의 해법을 다룬다. (영문)",
+    "added": "2026-09-07"
+  },
+  {
+    "title": "AI handles incidents, engineers lose touch with their systems",
+    "url": "https://www.sylvainkalache.com/blog/ai-handles-incidents-engineers-lose-touch-with-their-systems",
+    "source": "Sylvain Kalache",
+    "category": ["SRE", "AI"],
+    "keywords": ["AI SRE", "장애 대응", "자동화의 역설", "이해력 부채", "장애 훈련", "운영", "SRE"],
+    "note": "AI가 장애 대응을 대신 해주면 엔지니어가 시스템 감각을 잃는다는 자동화의 역설. 항공업계처럼 정기적인 장애 훈련이 필요하다는 주장. (영문)",
+    "added": "2026-09-07"
   }
 ]

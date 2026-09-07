@@ -11,6 +11,22 @@ export type Article = {
     added?: string; // YYYY-MM-DD
 };
 
+// 카테고리별 뱃지 색상. Tailwind JIT 때문에 클래스는 완성된 문자열로 둔다.
+const CATEGORY_BADGE: Record<string, string> = {
+    "AI":          "bg-violet-50 text-violet-700 border-violet-200",
+    "Claude":      "bg-orange-50 text-orange-700 border-orange-200",
+    "Career":      "bg-rose-50 text-rose-700 border-rose-200",
+    "Clean Code":  "bg-emerald-50 text-emerald-700 border-emerald-200",
+    "Code Review": "bg-blue-50 text-blue-700 border-blue-200",
+    "SRE":         "bg-cyan-50 text-cyan-700 border-cyan-200",
+};
+
+const FALLBACK_BADGE = "bg-zinc-50 text-zinc-600 border-zinc-200";
+
+function categoryBadge(name: string) {
+    return CATEGORY_BADGE[name] ?? FALLBACK_BADGE;
+}
+
 function byAddedDesc(a?: string, b?: string) {
     const av = (a ?? "").trim();
     const bv = (b ?? "").trim();
@@ -206,7 +222,7 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
                                             </p>
                                         ) : null}
                                         {a.note ? (
-                                            <p className="mt-1 text-sm text-zinc-600 line-clamp-2">
+                                            <p className="mt-1 text-sm text-indigo-700 line-clamp-2">
                                                 {a.note}
                                             </p>
                                         ) : null}
@@ -217,7 +233,7 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
                                             {a.categories.map((category) => (
                                                 <span
                                                     key={`${a.url}-${category}`}
-                                                    className="rounded-full border px-2 py-0.5 text-xs text-zinc-600"
+                                                    className={`rounded-full border px-2 py-0.5 text-xs font-medium ${categoryBadge(category)}`}
                                                 >
                                                     {category}
                                                 </span>
