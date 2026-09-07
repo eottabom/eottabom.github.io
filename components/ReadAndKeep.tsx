@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 
 export type Article = {
     title: string;
@@ -48,6 +48,7 @@ function getSourceFromUrl(url: string) {
 
 export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
     const [selected, setSelected] = useState<string>("All");
+    const [query, setQuery] = useState<string>("");
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeft, setShowLeft] = useState(false);
     const [showRight, setShowRight] = useState(false);
@@ -57,6 +58,7 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
             const p = new URLSearchParams(window.location.search);
             const init = p.get("category") || "All";
             setSelected(init);
+            setQuery(p.get("q") || "");
         }
     }, []);
 
@@ -100,9 +102,14 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
             } else {
                 url.searchParams.set("category", selected);
             }
+            if (query.trim()) {
+                url.searchParams.set("q", query.trim());
+            } else {
+                url.searchParams.delete("q");
+            }
             window.history.replaceState({}, "", url.toString());
         }
-    }, [selected]);
+    }, [selected, query]);
 
     useEffect(() => {
         checkScroll();
@@ -119,9 +126,26 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
         scrollRef.current?.scrollBy({ left: dir * 200, behavior: "smooth" });
     };
 
+    // 검색어는 공백으로 나눠 모두 포함(AND)하는 항목만 남긴다.
+    const searched = useMemo(() => {
+        const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if (terms.length === 0) { return safeArticles; }
+        return safeArticles.filter((a) => {
+            const haystack = [
+                a.title,
+                a.note ?? "",
+                a.source ?? "",
+                getSourceFromUrl(a.url),
+                a.keywords.join(" "),
+                a.categories.join(" "),
+            ].join(" ").toLowerCase();
+            return terms.every((t) => haystack.includes(t));
+        });
+    }, [safeArticles, query]);
+
     const chips = useMemo(() => {
         const counts = new Map<string, number>();
-        for (const a of safeArticles) {
+        for (const a of searched) {
             for (const k of a.categories) {
                 counts.set(k, (counts.get(k) ?? 0) + 1);
             }
@@ -129,25 +153,26 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
         const cats = Array.from(counts.entries())
             .map(([name, count]) => ({ name, count }))
             .sort((a, b) => a.name.localeCompare(b.name));
-        return [{ name: "All", count: safeArticles.length }, ...cats];
-    }, [safeArticles]);
+        return [{ name: "All", count: searched.length }, ...cats];
+    }, [searched]);
 
     const filtered = useMemo(() => {
         const base = selected === "All"
-            ? [...safeArticles]
-            : safeArticles.filter((a) => a.categories.includes(selected));
+            ? [...searched]
+            : searched.filter((a) => a.categories.includes(selected));
         base.sort((a, b) => byAddedDesc(a.added, b.added));
         return base;
-    }, [safeArticles, selected]);
+    }, [searched, selected]);
 
     if (safeArticles.length === 0) {
         return <div className="text-center py-12 text-zinc-500">등록된 아티클이 없습니다.</div>;
     } else {
         return (
             <div className="space-y-6">
-                <div className="bg-white border-b border-gray-200 sticky top-14 z-30">
+                <div className="bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-14 z-30">
                     <div className="max-w-5xl mx-auto px-4 py-3">
-                        <div className="relative">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                        <div className="relative min-w-0 flex-1">
                             {showLeft && (
                                 <button
                                     onClick={() => scroll(-1)}
@@ -194,10 +219,53 @@ export default function ReadAndKeep({ articles }: { articles?: Article[] }) {
                                 </button>
                             )}
                         </div>
+
+                        {/* 검색바 */}
+                    <div className="flex items-center gap-2 shrink-0 sm:w-72">
+                            <div className={`w-full relative rounded-full p-[1.5px] transition-all duration-300 ${
+                                query
+                                    ? "bg-gradient-to-r from-green-500 via-emerald-400 to-teal-500"
+                                    : "bg-gradient-to-r from-green-300 via-emerald-200 to-teal-300"
+                            }`}>
+                                <div className="relative bg-white rounded-full">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        type="search"
+                                        value={query}
+                                        onChange={(e) => { setQuery(e.target.value); }}
+                                        placeholder="제목, 키워드, 요약, 출처로 검색"
+                                        className="w-full pl-9 pr-8 py-2 rounded-full bg-transparent
+                                            text-sm text-black placeholder-gray-400
+                                            outline-none"
+                                        aria-label="검색"
+                                    />
+                                    {query && (
+                                        <button
+                                            onClick={() => { setQuery(""); }}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                            aria-label="검색어 지우기"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {query && (
+                                <span className="flex-shrink-0 text-xs text-gray-400">{filtered.length}건</span>
+                            )}
+                        </div>
+                        </div>
                     </div>
                 </div>
 
-                <ol className="mt-8 rounded-xl border border-zinc-200 divide-y divide-zinc-200 overflow-hidden bg-white">
+                {filtered.length === 0 ? (
+                    <div className="mt-8 rounded-xl border border-zinc-200 bg-white py-12 text-center text-sm text-zinc-500">
+                        검색 결과가 없습니다.
+                    </div>
+                ) : null}
+
+                <ol className={`mt-8 rounded-xl border border-zinc-200 divide-y divide-zinc-200 overflow-hidden bg-white ${filtered.length === 0 ? "hidden" : ""}`}>
                     {filtered.map((a, idx) => (
                         <li key={`${a.url}-${idx}`}>
                             <a
