@@ -14,8 +14,8 @@ export default function LinkPage() {
                 title="Read / Keep"
                 description="개발자가 읽고 보관할 만한 기술 아티클 큐레이션. 백엔드, 아키텍처, 클린코드 등 주제별 링크 모음."
             />
-            <div className="bg-white text-black">
-                <Header />
+            <Header />
+            <div className="bg-gradient-to-b from-emerald-50 via-teal-50/40 to-white text-black">
                 <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Read / Keep</h1>
                     <p className="mt-2 text-sm text-gray-400">A place to keep articles I found interesting or worth revisiting. Each link opens the original page in a new tab.</p>

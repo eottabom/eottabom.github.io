@@ -6,6 +6,46 @@ import { GetStaticProps } from 'next';
 import { getPostsMetaOnly } from '../lib/posts';
 import { Home, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
+// 상단 히어로 그라데이션. 연한 색에서 흰색으로 빠지는 톤으로 통일한다.
+// Tailwind JIT 때문에 클래스는 완성된 문자열로 둔다.
+const GRADIENTS = [
+    // 초록 · 청록 계열
+    "from-emerald-50 via-teal-50/40 to-white",
+    "from-teal-50 via-cyan-50/40 to-white",
+    "from-lime-50 via-emerald-50/40 to-white",
+    "from-green-50 via-teal-50/40 to-white",
+    // 파랑 계열
+    "from-cyan-50 via-sky-50/40 to-white",
+    "from-sky-50 via-blue-50/40 to-white",
+    "from-blue-50 via-indigo-50/40 to-white",
+    "from-sky-50 via-emerald-50/40 to-white",
+    // 보라 계열
+    "from-indigo-50 via-violet-50/40 to-white",
+    "from-violet-50 via-purple-50/40 to-white",
+    "from-purple-50 via-fuchsia-50/40 to-white",
+    "from-violet-50 via-sky-50/40 to-white",
+    // 분홍 · 빨강 계열
+    "from-fuchsia-50 via-pink-50/40 to-white",
+    "from-pink-50 via-rose-50/40 to-white",
+    "from-rose-50 via-orange-50/40 to-white",
+    "from-red-50 via-amber-50/40 to-white",
+    // 주황 · 노랑 계열
+    "from-orange-50 via-amber-50/40 to-white",
+    "from-amber-50 via-yellow-50/40 to-white",
+    "from-yellow-50 via-lime-50/40 to-white",
+    "from-orange-50 via-rose-50/40 to-white",
+    // 중성 계열
+    "from-slate-100 via-slate-50/40 to-white",
+    "from-stone-100 via-amber-50/40 to-white",
+    "from-zinc-100 via-slate-50/40 to-white",
+    // 대비가 있는 조합
+    "from-emerald-50 via-sky-50/40 to-white",
+    "from-rose-50 via-violet-50/40 to-white",
+    "from-amber-50 via-lime-50/40 to-white",
+    "from-cyan-50 via-indigo-50/40 to-white",
+    "from-pink-50 via-purple-50/40 to-white",
+];
+
 function TagScroller({ tagList, tagCounts, selectedTag, globalSearch, onSelect }: {
     tagList: string[];
     tagCounts: Record<string, number>;
@@ -150,10 +190,15 @@ export const getStaticProps: GetStaticProps<Props> = async () => {
 export default function PostPage({ postsByTag, tagCounts }: Props) {
     const [selectedTag, setSelectedTag] = useState("latest");
     const [visibleCount, setVisibleCount] = useState(10);
-    const [gradientIndex, setGradientIndex] = useState(0);
 
     const [query, setQuery] = useState("");
     const [globalSearch, setGlobalSearch] = useState(false);
+    const [gradientIndex, setGradientIndex] = useState(0);
+
+    // 첫 렌더는 서버와 같은 값으로 두고, 마운트 후에 랜덤으로 바꾼다(hydration 불일치 방지).
+    useEffect(() => {
+        setGradientIndex(Math.floor(Math.random() * GRADIENTS.length));
+    }, []);
 
     const basePosts = useMemo(() => {
         return globalSearch ? (postsByTag['latest'] || []) : (postsByTag[selectedTag] || []);
@@ -187,38 +232,14 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
         ? "Posts sorted by last updated timestamp (falls back to created date)."
         : `Posts related to the '${selectedTag}' category.`;
 
-    const gradients = [
-        "from-slate-200 via-slate-100 to-blue-100",
-        "from-zinc-200 via-stone-100 to-amber-100",
-        "from-sky-200 via-blue-100 to-cyan-100",
-        "from-emerald-200 via-teal-100 to-cyan-100",
-        "from-rose-200 via-orange-100 to-amber-100",
-        "from-teal-200 via-emerald-100 to-lime-100",
-        "from-fuchsia-200 via-rose-100 to-orange-100",
-        "from-purple-200 via-violet-100 to-fuchsia-100",
-        "from-purple-200 via-pink-100 to-rose-100",
-        "from-blue-200 via-sky-100 to-teal-100",
-        "from-cyan-200 via-blue-100 to-sky-100",
-        "from-emerald-200 via-green-100 to-lime-100",
-        "from-green-200 via-emerald-100 to-teal-100",
-        "from-orange-200 via-amber-100 to-yellow-100",
-        "from-orange-200 via-rose-100 to-pink-100",
-        "from-blue-200 via-cyan-100 to-emerald-100",
-        "from-violet-200 via-purple-100 to-pink-100",
-        "from-sky-200 via-cyan-100 to-teal-100",
-        "from-lime-200 via-green-100 to-emerald-100",
-    ];
-
-    const tagGradient = selectedTag === 'latest'
-        ? ''
-        : `bg-gradient-to-r ${gradients[gradientIndex % gradients.length]}`;
+    const tagGradient = `bg-gradient-to-b ${GRADIENTS[gradientIndex % GRADIENTS.length]}`;
 
     const otherTags = Object.keys(tagCounts).filter(t => t !== 'latest' && t !== 'updated');
     const tagList = ['latest', 'updated', ...otherTags.sort((a, b) => a.localeCompare(b))];
 
     const handleSelectTag = (tag: string) => {
         setSelectedTag(tag);
-        setGradientIndex(Math.floor(Math.random() * gradients.length));
+        setGradientIndex(Math.floor(Math.random() * GRADIENTS.length));
         setVisibleCount(10);
         if (!globalSearch) setQuery("");
     };
@@ -238,7 +259,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
             <main>
                 {/* 상단 영역 */}
                 <div
-                    className={`${selectedTag !== 'latest' ? tagGradient : 'bg-white'} ${selectedTag !== 'latest' ? 'text-gray-800 border-b border-black/5' : 'text-black'} backdrop-blur-sm`}>
+                    className={`${tagGradient} text-gray-800`}>
                     <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
                         <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
                             {title}
@@ -250,8 +271,8 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                 </div>
 
                 {/* 검색 + 태그 (sticky) */}
-                <div className="bg-white border-b border-gray-200 sticky top-14 z-30">
-                    <div className="max-w-5xl mx-auto px-4 py-3 space-y-4">
+                <div className="bg-white/90 backdrop-blur-md sticky top-14 z-30">
+                    <div className="max-w-5xl mx-auto px-4 py-3 space-y-4 border-b border-gray-200 shadow-sm">
                         {/* 검색바 */}
                         <div className="flex items-center justify-center gap-3">
                             <div className={`w-full max-w-sm relative rounded-full p-[1.5px] transition-all duration-300 ${
