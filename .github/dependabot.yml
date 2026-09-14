@@ -1,12 +1,39 @@
 version: 2
+
+# 업데이트 정책
+# - 보안 취약점: 저장소 설정의 Dependabot security updates 가 즉시 PR 을 올린다.
+# - 정기 버전 업데이트: 아래 설정으로 매월 1일에 PR 하나로 묶어서 올린다.
+#   groups 에 patterns "*" 를 주어 모든 의존성을 한 PR 로 합친다.
+
 updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
+      interval: "monthly"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     commit-message:
       prefix: "build(deps)"
+    labels:
+      - "dependencies"
+    groups:
+      all-dependencies:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      time: "09:00"
+      timezone: "Asia/Seoul"
+    open-pull-requests-limit: 1
+    commit-message:
+      prefix: "ci"
+    labels:
+      - "dependencies"
+    groups:
+      all-actions:
+        patterns:
+          - "*"
