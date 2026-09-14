@@ -20,7 +20,7 @@
     "prism-themes": "^1.9.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "rehype-autolink-headings": "6.1.1",
+    "rehype-autolink-headings": "7.1.0",
     "rehype-prism-plus": "^2.0.2",
     "rehype-slug": "5.0.1",
     "remark-directive": "^4.0.0",
