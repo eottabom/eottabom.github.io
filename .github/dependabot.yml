@@ -2,11 +2,11 @@ version: 2
 
 # 업데이트 정책
 # - 보안 취약점: 저장소 설정의 Dependabot security updates 가 즉시 별도 PR 을 올린다.
-# - 정기 버전 업데이트: 매월 1일에 생태계당 최대 2개의 PR 로만 올라온다.
-#     1) minor-and-patch : minor/patch 를 전부 묶은 PR
-#     2) major           : major 를 전부 묶은 PR
-#   open-pull-requests-limit 도 2 로 맞춰서, 앞선 PR 을 처리하기 전에는
-#   새 PR 이 생기지 않는다. (PR 이 쌓이지 않게 하는 장치)
+# - 정기 버전 업데이트: 매월 1일, 의존성 하나당 PR 하나로 올라온다.
+#   묶지 않는 이유는 한 PR 에 여러 개가 섞이면 하나만 문제가 생겨도
+#   나머지까지 같이 멈추기 때문이다.
+#   대신 open-pull-requests-limit 으로 동시에 열리는 PR 수를 제한한다.
+#   이 개수에 도달하면 기존 PR 을 처리하기 전까지 새 PR 이 생기지 않는다.
 
 updates:
   - package-ecosystem: "npm"
@@ -15,23 +15,11 @@ updates:
       interval: "monthly"
       time: "09:00"
       timezone: "Asia/Seoul"
-    open-pull-requests-limit: 2
+    open-pull-requests-limit: 3
     commit-message:
       prefix: "build(deps)"
     labels:
       - "dependencies"
-    groups:
-      minor-and-patch:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-      major:
-        patterns:
-          - "*"
-        update-types:
-          - "major"
 
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -44,15 +32,3 @@ updates:
       prefix: "ci"
     labels:
       - "dependencies"
-    groups:
-      minor-and-patch:
-        patterns:
-          - "*"
-        update-types:
-          - "minor"
-          - "patch"
-      major:
-        patterns:
-          - "*"
-        update-types:
-          - "major"
