@@ -1,7 +1,7 @@
 ---
 title: "Timeout 설정 헷갈리지 않기: Tomcat, WebFlux, HTTP Client, HikariCP 기준 정리"
 date: "2026-09-02"
-updated: "2026-09-07"
+updated: "2026-09-23"
 tags: ["Spring", "Database"]
 summary: "connection/socket/read/write timeout, max lifetime, keepalive - what each setting actually controls on Tomcat, HTTP clients, and HikariCP, and how to configure them without mixing up the layers."
 description: "이름은 비슷한데 하는 일이 다른 타임아웃/keepalive 설정들을 Tomcat, WebFlux(Reactor Netty), HTTP 클라이언트(Feign, RestTemplate, WebClient), HikariCP 기준으로 나눠서 정리한다."
@@ -43,7 +43,7 @@ Reactor Netty는 Tomcat과 타임아웃 모델 자체가 달라서, 이름이 �
 | server connection timeout | 커넥션은 맺었는데 클라이언트가 요청을 안 보낼 때 | Tomcat 등 WAS | `server.tomcat.connection-timeout` |
 | keep-alive timeout | 요청/응답이 끝난 뒤 커넥션을 재사용 대기시키는 시간 | Tomcat, HTTP 클라이언트 | `server.tomcat.keep-alive-timeout` |
 | max lifetime | 커넥션 하나를 최대 얼마나 오래 살려둘지 | HikariCP, HTTP 커넥션 풀 | `spring.datasource.hikari.max-lifetime`, Apache HttpClient5의 `ConnectionConfig` TTL |
-| validation timeout | 풀이 커넥션의 유효성을 검사할 때 그 검사 자체에 허용하는 시간 | HikariCP | `spring.datasource.hikari.validation-timeout` (기본 5000, connection-timeout보다 작아야 함) |
+| validation timeout | 풀이 커넥션의 유효성을 검사할 때 그 검사 자체에 허용하는 시간 | HikariCP | `spring.datasource.hikari.validation-timeout` (기본 5000, 최소 250ms) |
 | query timeout | DB에 보낸 쿼리 하나가 끝나기를 기다리는 시간 | JDBC, 트랜잭션 | `Statement.setQueryTimeout()`, `@Transactional(timeout = ...)`, JPA `jakarta.persistence.query.timeout` |
 | async request timeout | 서블릿 비동기 요청이 완료되기를 기다리는 시간 | Spring MVC | `spring.mvc.async.request-timeout` |
 
@@ -130,7 +130,14 @@ server:
 * 즉 "요청 라인 대기는 짧게, 업로드는 길게" 는 이 두 값을 나눠서 만든다.
 
 :::note
-Tomcat `connectionTimeout` 자체의 기본값은 **60000**이다. 배포판 `server.xml`이 20000으로 덮어쓰기 때문에 20000을 기본값으로 오해하기 쉽다. 위 yaml 예시의 20000도 기본값이 아니라 흔히 쓰는 값일 뿐이다.
+`connectionTimeout`의 실제 기본값은 환경에 따라 다르다.
+
+* **Spring Boot 내장 Tomcat** — `ServerProperties.Tomcat.connectionTimeout`에 기본값이 없어(`null`) 아무것도 설정하지 않으면 Tomcat 자체 기본값인 **60000**이 그대로 적용된다.
+* **standalone Tomcat** — 배포판에 딸려오는 `server.xml`이 20000으로 덮어쓰기 때문에 20000이 뜬다.
+
+같은 이유로 `keepAliveTimeout`도 Spring Boot가 값을 넣지 않으며, 미설정 시 `connectionTimeout` 값을 따라간다. 반면 `maxKeepAliveRequests`는 Spring Boot가 100을 명시한다.
+
+위 yaml 예시의 20000은 기본값이 아니라 흔히 쓰는 값일 뿐이다.
 :::
 
 방향을 반대로 잡기 쉬운데, ALB처럼 백엔드 keep-alive 커넥션을 재사용하는 로드밸런서나 리버스 프록시가 앞단에 있다면 <BlueText>Tomcat 의 `keep-alive-timeout` 을 로드밸런서의 idle timeout 보다 여유 있게 길게</BlueText> 잡는 편이 안전하다.
@@ -196,7 +203,13 @@ Reactor Netty   server.netty.idle-timeout (하나로 두 구간을 모두 커버
 각 property 의 정의는 [Spring Boot - Common Application Properties](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.server) 에서 확인할 수 있다. 로드밸런서 뒤에서 keep-alive 타임아웃을 정렬하려는 목적이라면, 봐야 할 값은 `connection-timeout`이 아니라 `idle-timeout`이다. 이 값을 로드밸런서 idle timeout보다 길게 잡아야 안전한 건 Tomcat과 같다.
 
 :::warning
-server.netty.connection-timeout은 이름만 보고 Tomcat의 connection-timeout과 같은 의미로 해석하지 않는 게 좋다. 쓰는 Spring Boot / Reactor Netty 버전에서 실제로 어떤 ChannelOption에 매핑되고 어떻게 동작하는지 확인한다.
+`server.netty.connection-timeout`은 Tomcat의 `connection-timeout`과 전혀 다르다. Spring Boot의 `NettyWebServerFactoryCustomizer`는 이 값을 `ChannelOption.CONNECT_TIMEOUT_MILLIS`로 매핑한다.
+
+```java
+httpServer.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) connectionTimeout.toMillis())
+```
+
+`CONNECT_TIMEOUT_MILLIS`는 **연결을 거는 쪽**이 TCP 연결 수립을 기다리는 시간이라, 연결을 받기만 하는 서버 소켓에는 사실상 의미가 없다. 요청을 기다리는 시간을 잡으려면 `idle-timeout`을 써야 한다.
 :::
 
 :::tip
@@ -311,8 +324,9 @@ org.apache.hc.core5.http.NoHttpResponseException: localhost:8080 failed to respo
     * `ConnectionConfig`의 필드 자체는 `null`이지만, 커넥션 매니저가 그 `null`을 **2초로 해석**한다.
     * `PoolingHttpClientConnectionManager`의 `resolveValidateAfterInactivity()`가 값이 없으면 `TimeValue.ofSeconds(2)`를 돌려준다.
     * 5.1.x 에서는 아예 매니저 필드가 2초로 초기화된다. 설정 위치가 매니저에서 `ConnectionConfig`로 옮겨졌을 뿐, 동작이 꺼진 적은 없다.
-  * 공교롭게 Apache 권장값인 "1~2초"와 기본값이 같아서, 대부분은 명시적으로 다시 잡을 필요가 없다.
-    * 0에 가깝게 줄이면 사실상 매 요청 검증이 되어 지연만 늘어난다.
+  * 기본값 2초면 대부분의 환경에서 그대로 둬도 된다. 명시적으로 잡는다면 문서화 목적에 가깝다.
+    * `0`으로 두면 매 요청 검증이 되어 지연만 늘어난다. (`timeValue.getDuration() == 0`이면 무조건 stale 검사를 탄다)
+    * 음수로 두면 검증 자체가 꺼진다. (`TimeValue.isNonNegative()` 검사를 통과하지 못한다)
 * **evictExpiredConnections() / evictIdleConnections()**
   * HttpClientBuilder에서 활성화하면 백그라운드 작업이 돌면서, 수명이 끝났거나 일정 시간 이상 유휴 상태인 커넥션을 주기적으로 풀에서 제거한다.
   * 내부적으로는 IdleConnectionEvictor 백그라운드 스레드가 떠서 closeExpired()/closeIdle()을 대신 호출해준다.
@@ -423,8 +437,9 @@ spring:
     hikari:
       connection-timeout: 30000   # 풀에서 커넥션을 못 받으면 이 시간 후 예외 (기본값 30초)
       max-lifetime: 1800000       # 커넥션 하나를 최대 이 시간까지만 사용 (기본값 30분, 최소 30초)
-      idle-timeout: 600000        # 커넥션이 풀에서 유휴로 유지될 수 있는 최대 시간 (minimum-idle 아래로는 줄지 않음)
+      idle-timeout: 600000        # 커넥션이 풀에서 유휴로 유지될 수 있는 최대 시간 (기본값 10분, minimum-idle 아래로는 줄지 않음)
       keepalive-time: 120000      # 이 주기로 유휴 커넥션에 ping (최소 30초, max-lifetime 보다 작아야 함)
+                                  # 5.x 기본값은 0(비활성), 6.0+ 기본값은 120000
 ```
 
 여기서 먼저 구분해야 할 게 있다. 이름은 다 "시간"이지만 재는 기준이 다르다.
@@ -437,6 +452,9 @@ spring:
 * **`keepalive-time`** - 유휴 커넥션을 주기적으로 잠깐 풀에서 꺼내 유효성을 확인한 뒤 다시 반납
   * JDBC4를 지원하는 일반적인 드라이버에서는 `Connection.isValid()`를 쓰고, `connectionTestQuery`를 설정했다면 그 쿼리로 검증한다. [HikariCP 문서](https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby)는 JDBC4 드라이버라면 `connectionTestQuery`를 설정하지 말고 `Connection.isValid()`를 쓰길 권장한다.
   * 이 확인 과정에서 실제 DB 통신이 발생하기 때문에, DB나 인프라가 idle timeout으로 끊는 걸 막는 데 쓸 수 있다. 유휴 커넥션에만 동작하고, `max-lifetime`보다 작아야 한다.
+  * **기본값이 버전에 따라 다르다.** HikariCP 5.x까지는 `0`(비활성)이었고, **6.0부터 2분(120000)으로 기본 활성화**됐다. 쓰는 버전을 먼저 확인한다.
+    * 5.x에서 올라온 서비스라면 이 값을 건드리지 않아도 동작이 달라진다. 조건(최소 30초, `max-lifetime` 미만)에 걸리면 시작 로그에 경고가 찍히고 비활성화되므로, 업그레이드 직후 로그를 한 번 확인하는 게 안전하다.
+    * 참고로 `HikariConfig.setKeepaliveTime()`의 javadoc은 아직 `default is 0 (disabled)`로 남아 있어 코드와 어긋난다. 문서보다 쓰는 버전의 `DEFAULT_KEEPALIVE_TIME` 상수를 보는 편이 정확하다.
 
 이 셋을 하나로 뭉뚱그리면 설정이 꼬인다. 그래서 대응도 나눠서 봐야 한다.
 
@@ -449,6 +467,10 @@ max-lifetime (HikariCP)  <  DB / Proxy 가 강제하는 절대 커넥션 수명
 <RedText>`max-lifetime`이 그보다 길면(0=무제한 포함) DB나 인프라가 애플리케이션보다 먼저 커넥션을 종료할 수 있다.</RedText> 이렇게 되면 이미 끊긴 커넥션이 풀에 남아 있다가, 검증이나 재사용 시점에 쓸 수 없는 커넥션으로 드러난다.
 
 **중간 장비가 유휴 커넥션을 끊는 경우**는 절대 수명이 아니라 유휴 시간이 문제다. 이때는 `keepalive-time`을 외부 idle timeout보다 충분히 짧게 잡아 유휴 커넥션에 주기적으로 활동이 생기게 하거나, 풀 크기를 탄력적으로 운영한다면 `idle-timeout`을 외부보다 짧게 잡아 HikariCP가 먼저 정리하게 만드는 방법을 검토한다. 앞서 말했듯 `idle-timeout`은 `minimum-idle`이 `maximum-pool-size`보다 작을 때만 커넥션 수를 줄인다.
+
+:::note
+`validation-timeout`은 HikariCP 문서상 `connection-timeout`보다 작아야 한다(`This value must be less than the connectionTimeout`). 다만 이 관계는 **코드로 강제되지 않는다.** `validateNumerics()`는 `max-lifetime`·`keepalive-time`·`leakDetectionThreshold`만 보정하고 이 둘의 대소는 검사하지 않으므로, 잘못 잡아도 경고 없이 넘어간다.
+:::
 
 주의할 점은 MySQL `wait_timeout`이나 로드밸런서의 idle timeout은 **절대 수명이 아니라 유휴 시간 기준**이라는 것이다. `max-lifetime`과 단순 비교해서 더 작은 값을 고르는 식으로 접근하면 안 된다. 유휴 시간 때문에 끊기는 환경이라면 `keepalive-time`이나 `idle-timeout` 쪽을 함께 봐야 한다.
 
@@ -489,6 +511,7 @@ The last packet successfully received from the server was 28,801,047 millisecond
 * 반대로 MySQL `wait_timeout`이나 NLB idle timeout처럼 **통신이 없는 시간**을 기준으로 끊는 설정은 `max-lifetime`과 직접 비교하지 않는다. `keepalive-time`, TCP keepalive, `idle-timeout`을 함께 본다.
   * `30초 ≤ keepalive-time < max-lifetime`
   * `idle-timeout`은 `minimum-idle < maximum-pool-size`일 때만 커넥션 수를 줄인다.
+* HikariCP를 6.x로 올렸다면 `keepalive-time`이 기본으로 켜진다는 점을 먼저 확인한다. 5.x 기준으로 튜닝해둔 값이 있다면 의도와 달라질 수 있다.
 * 값을 정할 때는 항상 "이 timeout이 지나면 무슨 일이 생기는가"부터 확인한다. 재시도되는지, 에러가 사용자에게 노출되는지에 따라 안전한 여유값이 달라진다.
 
 ---
@@ -511,10 +534,13 @@ The last packet successfully received from the server was 28,801,047 millisecond
 ✔ 풀을 쓰면 close() 는 물리 종료가 아니라 풀 반납이다.
 ✔ 풀이 관리해도 DB·로드밸런서는 각자 정책으로 독립적으로 끊는다.
 ✔ Tomcat keep-alive-timeout 은 로드밸런서 idle timeout 보다 길게 잡는다. (502 방지)
+✔ Tomcat connection-timeout 기본값은 내장 60000, standalone 배포판 server.xml 은 20000 이다.
+✔ server.netty.connection-timeout 은 서버 소켓에 사실상 의미가 없다. Netty 는 idle-timeout 하나를 본다.
 ✔ HTTP 클라이언트 풀의 TTL 은 HikariCP max-lifetime 과 같은 개념이다.
 ✔ max-lifetime 은 "생성 후 절대 수명", wait_timeout·NLB idle timeout 은 "유휴 시간"이다.
 ✔ 기준이 다르므로 이 둘을 크기만 비교하지 않는다.
 ✔ HikariCP idle-timeout 은 minimum-idle 아래로는 풀을 줄이지 않는다.
+✔ HikariCP keepalive-time 기본값은 5.x 가 0(비활성), 6.0+ 가 120000 이다.
 ✔ JDK HttpClient 에는 read timeout 이 없다. 요청 단위 timeout 만 있다.
 ✔ NoHttpResponseException 은 stale 커넥션 재사용 신호다. TTL 을 인프라 idle timeout 보다 짧게 잡는다.
 :::
@@ -524,15 +550,21 @@ The last packet successfully received from the server was 28,801,047 millisecond
 ## 📚 Reference
 
 * [Spring Boot - Common Application Properties (server.tomcat.*)](https://docs.spring.io/spring-boot/appendix/application-properties/index.html#appendix.application-properties.server)
+* [Spring Boot - ServerProperties (Tomcat / Netty 기본값)](https://github.com/spring-projects/spring-boot/blob/main/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/ServerProperties.java)
+* [Spring Boot - NettyWebServerFactoryCustomizer (connection-timeout 매핑)](https://github.com/spring-projects/spring-boot/blob/main/spring-boot-project/spring-boot-autoconfigure/src/main/java/org/springframework/boot/autoconfigure/web/embedded/NettyWebServerFactoryCustomizer.java)
 * [Apache Tomcat 10.1 - HTTP Connector (connectionTimeout, disableUploadTimeout, connectionUploadTimeout)](https://tomcat.apache.org/tomcat-10.1-doc/config/http.html)
 * [JDK - java.net.http.HttpClient.Builder javadoc (connectTimeout)](https://docs.oracle.com/en/java/javase/17/docs/api/java.net.http/java/net/http/HttpClient.Builder.html)
+* [JDK - Networking Properties (http.maxConnections)](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/doc-files/net-properties.html)
 * [Project Reactor Netty - HttpServer javadoc (idleTimeout)](https://projectreactor.io/docs/netty/release/api/reactor/netty/http/server/HttpServer.html)
 * [Apache HttpClient5 - ConnectionConfig.Builder javadoc](https://hc.apache.org/httpcomponents-client-5.5.x/current/httpclient5/apidocs/org/apache/hc/client5/http/config/ConnectionConfig.Builder.html)
+* [Apache HttpClient5 - PoolingHttpClientConnectionManager 소스 (resolveValidateAfterInactivity)](https://github.com/apache/httpcomponents-client/blob/rel/v5.5/httpclient5/src/main/java/org/apache/hc/client5/http/impl/io/PoolingHttpClientConnectionManager.java)
+* [Apache HttpClient5 - DefaultHttpRequestRetryStrategy 소스 (멱등 메서드 재시도)](https://github.com/apache/httpcomponents-client/blob/rel/v5.5/httpclient5/src/main/java/org/apache/hc/client5/http/impl/DefaultHttpRequestRetryStrategy.java)
 * [Apache HttpClient5 - Connection Management](https://hc.apache.org/httpcomponents-client-5.5.x/connection-management.html)
 * [Apache HttpClient5 - Connection Pooling](https://hc.apache.org/httpcomponents-client-5.5.x/connection-pooling.html)
 * [Apache HttpClient5 - HttpClientBuilder javadoc](https://hc.apache.org/components/httpcomponents-client-5.5.x/5.5.2/httpclient5/apidocs/org/apache/hc/client5/http/impl/classic/HttpClientBuilder.html)
 * [Apache HttpCore5 - PoolStats javadoc](https://hc.apache.org/httpcomponents-core-5.3.x/current/httpcore5/apidocs/org/apache/hc/core5/pool/PoolStats.html)
 * [HikariCP - README (Configuration)](https://github.com/brettwooldridge/HikariCP#gear-configuration-knobs-baby)
+* [HikariCP - HikariConfig 소스 (버전별 기본값 상수)](https://github.com/brettwooldridge/HikariCP/blob/dev/src/main/java/com/zaxxer/hikari/HikariConfig.java)
 * [HikariCP Wiki - About Pool Sizing](https://github.com/brettwooldridge/HikariCP/wiki/About-Pool-Sizing)
 * [Project Reactor Netty - Timeout Configurations](https://projectreactor.io/docs/netty/release/reference/index.html#_configuring_timeout)
 * [Project Reactor Netty - HTTP Client](https://projectreactor.io/docs/netty/release/reference/http-client.html)
