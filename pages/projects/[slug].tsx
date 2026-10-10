@@ -16,6 +16,19 @@ type ProjectDetailProps = {
     project: Project;
 };
 
+function DetailText({ content }: { content: string | string[] }) {
+    if (Array.isArray(content)) {
+        return (
+            <ul className="list-disc space-y-2 pl-5">
+                {content.map((item) => (
+                    <li key={item}>{item}</li>
+                ))}
+            </ul>
+        );
+    }
+    return <p>{content}</p>;
+}
+
 function DetailSection({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className="rounded-3xl border border-gray-200 bg-white p-7 shadow-sm">
@@ -102,6 +115,18 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
                                     Live Demo
                                 </a>
                             )}
+                            {project.links?.map((link) => (
+                                <a
+                                    key={link.url}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                                >
+                                    <ArrowUpRight className="h-4 w-4" />
+                                    {link.label}
+                                </a>
+                            ))}
                         </div>
                     </div>
 
@@ -124,13 +149,13 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
 
                         {project.problem && (
                             <DetailSection title="Why I Built It">
-                                <p>{project.problem}</p>
+                                <DetailText content={project.problem} />
                             </DetailSection>
                         )}
 
                         {project.approach && (
                             <DetailSection title="Approach">
-                                <p>{project.approach}</p>
+                                <DetailText content={project.approach} />
                             </DetailSection>
                         )}
 

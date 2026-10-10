@@ -2,6 +2,11 @@ import projectData from "../contents/projects/data.json";
 
 export type ProjectStatus = "active" | "archived" | "wip";
 
+export type ProjectLink = {
+    label: string;
+    url: string;
+};
+
 export type Project = {
     slug: string;
     title: string;
@@ -9,14 +14,15 @@ export type Project = {
     status: ProjectStatus;
     summary: string;
     description: string;
-    problem?: string;
-    approach?: string;
+    problem?: string | string[];
+    approach?: string | string[];
     whatILearned?: string;
     tags: string[];
     features: string[];
     thumbnail?: string;
     github?: string;
     demo?: string;
+    links?: ProjectLink[];
     role?: string;
     techStack?: string[];
     aiAssisted?: boolean;
