@@ -109,6 +109,12 @@ body {
   line-height: 1.5 !important;
 }
 
+/* 본문(1rem)과 h3(1.5rem) 사이. #### Q. 같은 소제목이 본문과 구분되도록 키운다. */
+.prose h4 {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
 .prose code {
   font-size: 0.875em !important;
   line-height: 1.5 !important;
