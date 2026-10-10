@@ -217,6 +217,12 @@
       <lastmod>2021-05-30</lastmod>
     </url>
     <url>
+      <loc>https://eottabom.github.io/post/kubernetes-resources-jvm-gc-ergonomics/</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+      <lastmod>2026-10-10</lastmod>
+    </url>
+    <url>
       <loc>https://eottabom.github.io/post/lombok-process/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
