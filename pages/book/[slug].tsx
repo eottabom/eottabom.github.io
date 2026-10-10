@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { List } from 'lucide-react';
 
 import { Tabs, Tab } from '../../components/Tabs';
+import { headingComponents } from '../../components/HeadingAnchor';
 import { getBookSlugs, getBookData, BookData } from '../../lib/books';
 
 declare global {
@@ -55,6 +56,7 @@ export default function BookDetail({mdxSource, slug, title, author, date, update
         GreenText,
         Tabs,
         Tab,
+        ...headingComponents,
         a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
     };
 

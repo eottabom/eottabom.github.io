@@ -22,6 +22,7 @@ import CodeBlock from '../../components/CodeBlock';
 import PoolLifecycleDiagram from '../../components/PoolLifecycleDiagram';
 import ConnectReadTimeoutSimulator from '../../components/ConnectReadTimeoutSimulator';
 import KeepAliveAlignmentSimulator from '../../components/KeepAliveAlignmentSimulator';
+import { headingComponents } from '../../components/HeadingAnchor';
 
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
@@ -126,6 +127,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     PoolLifecycleDiagram,
     ConnectReadTimeoutSimulator,
     KeepAliveAlignmentSimulator,
+    ...headingComponents,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
 
