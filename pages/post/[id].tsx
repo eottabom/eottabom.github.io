@@ -11,8 +11,7 @@ import { BlueText, RedText, GreenText } from '../../components/Highlight';
 import { useTocObserver } from '../../lib/useTocObserver';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { List } from 'lucide-react';
-import { ArrowDownCircle } from 'lucide-react';
+import { List, ListTree } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
 import { Kbd, KeyCombo, TopShortcut } from "../../components/Keyboard";
 import KeyboardVisual from "../../components/KeyboardVisual";
@@ -96,6 +95,17 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
       setShowScrollHint(true);
     }
   }, [toc]);
+
+  // 현재 위치가 바뀌면 목차 안에서도 해당 항목이 보이도록 목차 영역만 스크롤한다.
+  useEffect(() => {
+    const el = scrollRef.current;
+    const item = el?.querySelector<HTMLElement>(`[data-toc-id="${CSS.escape(activeId)}"]`);
+    if (!el || !item) return;
+    const top = item.offsetTop - el.offsetTop;
+    if (top < el.scrollTop || top + item.offsetHeight > el.scrollTop + el.clientHeight - 64) {
+      el.scrollTo({ top: Math.max(0, top - el.clientHeight / 3), behavior: 'smooth' });
+    }
+  }, [activeId]);
 
   const handleScroll = () => {
     const el = scrollRef.current;
@@ -281,29 +291,39 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
                   className="overflow-y-auto h-full pr-2 scrollbar-hide"
                   onScroll={handleScroll}
               >
-                <h2 className="text-sm font-semibold mb-2">🧾 목차</h2>
-                <ul className="space-y-1 text-xs sm:text-sm text-gray-700 pb-12">
-                  {toc.map((item) => (
-                      <li key={item.id} className={item.level === 3 ? 'ml-4' : ''}>
-                        <a
-                            href={`#${item.id}`}
-                            className={`hover:text-blue-600 hover:underline ${
-                                item.id === activeId ? 'text-blue-600 font-semibold' : ''
-                            }`}
-                        >
-                          {item.text}
-                        </a>
-                      </li>
-                  ))}
+                <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-gray-900">
+                  <ListTree className="h-4 w-4 text-gray-500" aria-hidden />
+                  목차
+                </p>
+                <ul className="border-l border-gray-200 pb-12 text-sm">
+                  {toc.map((item) => {
+                    const active = item.id === activeId;
+                    return (
+                        <li key={item.id}>
+                          <a
+                              href={`#${item.id}`}
+                              data-toc-id={item.id}
+                              className={`-ml-px block border-l-2 py-1 leading-snug transition-colors ${
+                                  item.level === 3 ? 'pl-6 text-[13px]' : 'pl-3'
+                              } ${
+                                  active
+                                      ? 'border-blue-600 font-semibold text-blue-600'
+                                      : `border-transparent hover:border-gray-400 hover:text-gray-900 ${
+                                          item.level === 3 ? 'text-gray-500' : 'text-gray-700'
+                                      }`
+                              }`}
+                          >
+                            {item.text}
+                          </a>
+                        </li>
+                    );
+                  })}
                 </ul>
               </div>
 
-              {/* 스크롤 힌트 */}
+              {/* 아래에 목차가 더 있으면 흐리게 표시한다 */}
               {showScrollHint && (
-                  <div
-                      className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-blue-500 text-white px-2 py-2 rounded-full shadow animate-bounce z-10">
-                    <ArrowDownCircle className="w-5 h-5"/>
-                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white to-transparent" />
               )}
             </div>
           </aside>
