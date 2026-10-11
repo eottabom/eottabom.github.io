@@ -193,7 +193,7 @@ server:
 
 > Specifies an idle timeout on the connection when it is waiting for an HTTP request (resolution: ms).
 
-즉 응답을 보낸 뒤 다음 요청을 기다리는 구간뿐 아니라, 연결 직후 **최초 요청 라인을 기다리는 구간까지** 포함한다. 결과적으로 Netty의 `idle-timeout` 하나가 Tomcat의 `keep-alive-timeout` + `connection-timeout` 두 역할을 겸하는 구조다. 이름만 보고 Tomcat 설정과 1:1로 옮기면 어긋난다.
+즉 응답을 보낸 뒤 다음 요청을 기다리는 구간뿐 아니라, 연결 직후 **최초 요청 라인을 기다리는 구간까지** 포함한다. 결과적으로 Netty의 `idle-timeout` 하나가 Tomcat의 `keep-alive-timeout` + `connection-timeout` 두 역할을 겸하는 구조다. 이름만 보고 Tomcat 설정과 1\:1로 옮기면 어긋난다.
 
 ```text
 Tomcat          server.tomcat.keep-alive-timeout + server.tomcat.connection-timeout

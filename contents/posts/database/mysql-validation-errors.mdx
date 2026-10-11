@@ -22,7 +22,7 @@ JAVA – Value ‘0000-00-00’ can not be represented as java.sql.Date
 
 ### 원인
 
-MySQL에서 날짜 타입(date, datetime)에 값이 **'0000-00-00'**, **'0000-00-00 00:00:00'** 경우, `Connector/J driver`에서 에러로 판단해서 발생하게 된다.
+MySQL에서 날짜 타입(date, datetime)에 값이 **'0000-00-00'**, **'0000-00-00 00\:00\:00'** 경우, `Connector/J driver`에서 에러로 판단해서 발생하게 된다.
 MySQL의 `Connector/J 3.1` 또는 `Connector/J 5.x JDBC driver`를 사용할 때도 발생한다.
 
 ---
