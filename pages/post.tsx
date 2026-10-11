@@ -244,6 +244,11 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
         if (!globalSearch) setQuery("");
     };
 
+    // 태그를 고른 상태에서는 그 태그 안에서만 검색된다는 걸 검색창에서 바로 알 수 있게 한다.
+    const searchPlaceholder = globalSearch || selectedTag === 'latest' || selectedTag === 'updated'
+        ? "모든 글에서 제목, 태그, 키워드로 검색"
+        : `'${selectedTag}' 태그 글에서 검색`;
+
     const clearQuery = () => {
         setQuery("");
         setVisibleCount(10);
@@ -286,7 +291,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                                         type="search"
                                         value={query}
                                         onChange={(e) => { setQuery(e.target.value); setVisibleCount(10); }}
-                                        placeholder="글 제목, 태그, 키워드로 검색"
+                                        placeholder={searchPlaceholder}
                                         className="w-full pl-9 pr-8 py-2 rounded-full bg-transparent
                                             text-sm text-black placeholder-gray-400
                                             outline-none"
@@ -311,6 +316,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                                 aria-checked={globalSearch}
                                 onClick={() => { setGlobalSearch(v => !v); setVisibleCount(10); }}
                                 className="flex-shrink-0 flex items-center gap-2"
+                                title="켜면 선택한 태그와 상관없이 모든 글에서 검색합니다"
                             >
                                 <span className={`
                                     relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-200
@@ -321,7 +327,7 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                                         ${globalSearch ? "translate-x-[18px]" : "translate-x-[3px]"}
                                     `} />
                                 </span>
-                                <span className="text-xs text-gray-500 whitespace-nowrap">전체</span>
+                                <span className={`text-xs whitespace-nowrap ${globalSearch ? "font-semibold text-green-700" : "text-gray-500"}`}>모든 글에서</span>
                             </button>
 
                             {query && (
