@@ -24,6 +24,17 @@ import KeepAliveAlignmentSimulator from '../../components/KeepAliveAlignmentSimu
 import JvmErgonomicsSimulator from '../../components/JvmErgonomicsSimulator';
 import { headingComponents } from '../../components/HeadingAnchor';
 import { MdxTable } from '../../components/MdxTable';
+import { desktopOnly } from '../../components/DesktopOnly';
+
+// 모바일에서는 안내 카드로 대신 보여줄 시뮬레이터들. 렌더링마다 새 컴포넌트가 만들어지지 않도록 모듈에서 한 번만 감싼다.
+const desktopOnlyComponents = {
+  KeyboardVisual: desktopOnly(KeyboardVisual),
+  G1GCSimulator: desktopOnly(G1GCSimulator),
+  PoolLifecycleDiagram: desktopOnly(PoolLifecycleDiagram),
+  ConnectReadTimeoutSimulator: desktopOnly(ConnectReadTimeoutSimulator),
+  KeepAliveAlignmentSimulator: desktopOnly(KeepAliveAlignmentSimulator),
+  JvmErgonomicsSimulator: desktopOnly(JvmErgonomicsSimulator),
+};
 
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
@@ -134,13 +145,13 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     Kbd,
     KeyCombo,
     TopShortcut,
-    KeyboardVisual,
-    G1GCSimulator,
+    KeyboardVisual: desktopOnlyComponents.KeyboardVisual,
+    G1GCSimulator: desktopOnlyComponents.G1GCSimulator,
     pre: CodeBlock,
-    PoolLifecycleDiagram,
-    ConnectReadTimeoutSimulator,
-    KeepAliveAlignmentSimulator,
-    JvmErgonomicsSimulator,
+    PoolLifecycleDiagram: desktopOnlyComponents.PoolLifecycleDiagram,
+    ConnectReadTimeoutSimulator: desktopOnlyComponents.ConnectReadTimeoutSimulator,
+    KeepAliveAlignmentSimulator: desktopOnlyComponents.KeepAliveAlignmentSimulator,
+    JvmErgonomicsSimulator: desktopOnlyComponents.JvmErgonomicsSimulator,
     ...headingComponents,
     table: MdxTable,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
