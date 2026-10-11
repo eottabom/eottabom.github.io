@@ -18,7 +18,7 @@ self.__BUILD_MANIFEST = {
     "static/chunks/1_kvd-fcv3g4c.js"
   ],
   "/link": [
-    "static/chunks/2gwtry2mv6sh4.js"
+    "static/chunks/1f72ekxef2x87.js"
   ],
   "/post": [
     "static/chunks/1kva5o128sj-6.js"
@@ -27,10 +27,10 @@ self.__BUILD_MANIFEST = {
     "static/chunks/0e06ouccpj-n0.js"
   ],
   "/projects": [
-    "static/chunks/2aqnt9kixl0vc.js"
+    "static/chunks/3k5snjejmgevx.js"
   ],
   "/projects/[slug]": [
-    "static/chunks/40k_v86ob9dvp.js"
+    "static/chunks/2ek8xmqi8wa1j.js"
   ],
   "__rewrites": {
     "afterFiles": [],
