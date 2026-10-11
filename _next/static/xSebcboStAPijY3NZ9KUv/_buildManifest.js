@@ -15,16 +15,16 @@ self.__BUILD_MANIFEST = {
     "static/chunks/2pi4kv4ccafk6.js"
   ],
   "/book/[slug]": [
-    "static/chunks/1a8ngnjm4k4xg.js"
+    "static/chunks/1_kvd-fcv3g4c.js"
   ],
   "/link": [
     "static/chunks/2gwtry2mv6sh4.js"
   ],
   "/post": [
-    "static/chunks/2ppyrk8ubimqd.js"
+    "static/chunks/1kva5o128sj-6.js"
   ],
   "/post/[id]": [
-    "static/chunks/2zw-e3bquxcfx.js"
+    "static/chunks/0e06ouccpj-n0.js"
   ],
   "/projects": [
     "static/chunks/2aqnt9kixl0vc.js"
