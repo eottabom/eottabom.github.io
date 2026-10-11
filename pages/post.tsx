@@ -344,20 +344,22 @@ export default function PostPage({ postsByTag, tagCounts }: Props) {
                 <div className="card-section max-w-6xl mx-auto px-4 pt-8 pb-16 bg-white">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
                         {visiblePosts.map(({id, title, summary, description, date, updated}) => (
-                            <Link key={id} href={`/post/${id}`} legacyBehavior>
-                                <a className="group flex flex-col justify-between p-6 min-h-[200px] rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 transition duration-200 ease-in-out">
-                                    <div className="space-y-2">
-                                        <h2 className="text-xl font-extrabold leading-snug text-gray-900 group-hover:text-blue-600 transition">
-                                            {title}
-                                        </h2>
-                                        {summary && <p className="text-blue-500 text-sm font-medium">{summary}</p>}
-                                        <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{description}</p>
-                                    </div>
-                                    <p className="text-xs text-gray-400 mt-4">
-                                        Posted Date: {date}
-                                        {updated && updated !== date && (<> ・ Updated: {updated}</>)}
-                                    </p>
-                                </a>
+                            <Link
+                                key={id}
+                                href={`/post/${id}`}
+                                className="group flex flex-col justify-between p-6 min-h-[200px] rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 hover:bg-gray-50 transition duration-200 ease-in-out"
+                            >
+                                <div className="space-y-2">
+                                    <h2 className="text-xl font-extrabold leading-snug text-gray-900 group-hover:text-blue-600 transition">
+                                        {title}
+                                    </h2>
+                                    {summary && <p className="text-blue-500 text-sm font-medium">{summary}</p>}
+                                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{description}</p>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-4">
+                                    Posted Date: {date}
+                                    {updated && updated !== date && (<> ・ Updated: {updated}</>)}
+                                </p>
                             </Link>
                         ))}
                     </div>
