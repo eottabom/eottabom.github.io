@@ -23,6 +23,7 @@ import ConnectReadTimeoutSimulator from '../../components/ConnectReadTimeoutSimu
 import KeepAliveAlignmentSimulator from '../../components/KeepAliveAlignmentSimulator';
 import JvmErgonomicsSimulator from '../../components/JvmErgonomicsSimulator';
 import { headingComponents } from '../../components/HeadingAnchor';
+import { MdxTable } from '../../components/MdxTable';
 
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
@@ -140,6 +141,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     KeepAliveAlignmentSimulator,
     JvmErgonomicsSimulator,
     ...headingComponents,
+    table: MdxTable,
     a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />
   };
 

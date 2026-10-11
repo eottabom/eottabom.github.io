@@ -12,6 +12,7 @@ import { List } from 'lucide-react';
 
 import { Tabs, Tab } from '../../components/Tabs';
 import { headingComponents } from '../../components/HeadingAnchor';
+import { MdxTable } from '../../components/MdxTable';
 import { getBookSlugs, getBookData, BookData } from '../../lib/books';
 
 declare global {
@@ -57,6 +58,7 @@ export default function BookDetail({mdxSource, slug, title, author, date, update
         Tabs,
         Tab,
         ...headingComponents,
+        table: MdxTable,
         a: (props: any) => <a {...props} target="_blank" rel="noopener noreferrer" />,
     };
 
