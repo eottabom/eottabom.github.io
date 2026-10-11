@@ -11,7 +11,7 @@ import { BlueText, RedText, GreenText } from '../../components/Highlight';
 import { useTocObserver } from '../../lib/useTocObserver';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { List, ListTree } from 'lucide-react';
+import { Calendar, ChevronRight, Clock, List, ListTree, RefreshCw } from 'lucide-react';
 import { Tabs, Tab } from "../../components/Tabs";
 import { Kbd, KeyCombo, TopShortcut } from "../../components/Keyboard";
 import KeyboardVisual from "../../components/KeyboardVisual";
@@ -44,6 +44,7 @@ type PostData = {
   tags?: string[];
   summary?: string;
   description?: string;
+  readingMinutes?: number;
   mdxSource: MDXRemoteSerializeResult;
 };
 
@@ -216,8 +217,30 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
           {/* Main content */}
           <main className="flex-1 prose prose-xl max-w-none">
+            <nav aria-label="breadcrumb" className="not-prose mb-4 flex items-center gap-1.5 text-sm text-gray-500">
+              <Link href="/" className="hover:text-blue-600">Home</Link>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400" aria-hidden />
+              <Link href="/post" className="hover:text-blue-600">Posts</Link>
+            </nav>
             <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
-            <time dateTime={postData.date} className="text-gray-500 text-sm mb-8 block">{postData.date}</time>
+            <div className="not-prose mb-8 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" aria-hidden />
+                <time dateTime={postData.date}>{postData.date}</time>
+              </span>
+              {postData.updated && postData.updated !== postData.date && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <RefreshCw className="h-4 w-4" aria-hidden />
+                    <span>수정 <time dateTime={postData.updated}>{postData.updated}</time></span>
+                  </span>
+              )}
+              {postData.readingMinutes && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-4 w-4" aria-hidden />
+                    <span>약 {postData.readingMinutes}분</span>
+                  </span>
+              )}
+            </div>
             {postData.tags && (
                 <div className="flex flex-wrap gap-2 mb-8">
                   {postData.tags.map((tag) => (

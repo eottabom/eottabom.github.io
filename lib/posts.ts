@@ -23,6 +23,7 @@ type PostFrontmatter = {
 
 type PostData = PostFrontmatter & {
   id: string;
+  readingMinutes?: number;
   mdxSource: Awaited<ReturnType<typeof serialize>>;
 };
 
@@ -73,8 +74,20 @@ export async function getPostData(id: string): Promise<PostData> {
   return {
     id,
     mdxSource,
+    readingMinutes: estimateReadingMinutes(content),
     ...(data as PostFrontmatter),
   };
+}
+
+// 코드 블록, JSX 태그, 링크 주소, 마크다운 기호를 뺀 본문 글자 수를 분당 600자로 읽는다고 보고 어림한다.
+function estimateReadingMinutes(content: string): number {
+  const text = content
+    .replace(/```[\s\S]*?```/g, '')
+    .replace(/<[^>]+>/g, '')
+    .replace(/\]\([^)]*\)/g, ']')
+    .replace(/[#*`|>:\-[\]]/g, '')
+    .replace(/\s/g, '');
+  return Math.max(1, Math.round(text.length / 600));
 }
 
 export async function getSortedPostsDataWithContent(): Promise<PostData[]> {
