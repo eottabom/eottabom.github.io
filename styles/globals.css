@@ -6,6 +6,11 @@
   color-scheme: light;
 }
 
+/* 목차, 제목 링크로 이동할 때 고정 헤더(56px)에 제목이 가려지지 않도록 여백을 둔다. */
+html {
+  scroll-padding-top: 72px;
+}
+
 body {
   @apply bg-white text-gray-900 font-display leading-relaxed;
 }
