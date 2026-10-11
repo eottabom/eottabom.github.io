@@ -35,7 +35,7 @@ function createHeading(Tag: HeadingTag) {
           onClick={handleCopy}
           aria-label={copied ? '링크 복사됨' : '제목 링크 복사'}
           title={copied ? '복사됨' : '링크 복사'}
-          className="ml-2 inline-flex translate-y-[-0.1em] items-center gap-1 rounded align-middle text-sm font-normal text-slate-400 opacity-0 transition-opacity hover:text-blue-600 focus-visible:opacity-100 group-hover:opacity-100 dark:hover:text-blue-400"
+          className="-my-2 ml-1 inline-flex translate-y-[-0.1em] items-center gap-1 rounded p-2 align-middle text-sm font-normal text-slate-400 opacity-0 transition-opacity hover:text-blue-600 focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-60 dark:hover:text-blue-400"
         >
           {copied ? (
             <>

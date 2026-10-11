@@ -93,6 +93,11 @@ body {
     font-size: 0.7rem;
   }
 
+  /* 아이콘 크기는 그대로 두고 누르는 영역만 32px 로 키운다. */
+  .code-block-copy {
+    padding: 0.6rem;
+    margin: -0.45rem -0.6rem -0.45rem 0;
+  }
 }
 
 .prose {

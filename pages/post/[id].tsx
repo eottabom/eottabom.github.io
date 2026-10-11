@@ -218,9 +218,9 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
           {/* Main content */}
           <main className="flex-1 prose prose-xl max-w-none">
             <nav aria-label="breadcrumb" className="not-prose mb-4 flex items-center gap-1.5 text-sm text-gray-500">
-              <Link href="/" className="hover:text-blue-600">Home</Link>
+              <Link href="/" className="-my-2 py-2 hover:text-blue-600">Home</Link>
               <ChevronRight className="h-3.5 w-3.5 text-gray-400" aria-hidden />
-              <Link href="/post" className="hover:text-blue-600">Posts</Link>
+              <Link href="/post" className="-my-2 py-2 hover:text-blue-600">Posts</Link>
             </nav>
             <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
             <div className="not-prose mb-8 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
