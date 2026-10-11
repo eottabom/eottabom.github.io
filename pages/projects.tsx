@@ -40,7 +40,7 @@ export default function ProjectsPage({ projects }: ProjectsPageProps) {
                 <div className="mx-auto w-full px-4 py-14 text-center sm:px-6 lg:px-8">
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Projects</h1>
                     <p className="mt-2 text-sm text-gray-400">
-                        Side projects, experiments, and small products I wanted to build out for myself.
+                        Personal projects I built because I wanted to use them myself, taken from idea to release on my own.
                     </p>
                 </div>
             </div>

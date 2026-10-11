@@ -92,15 +92,15 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
                             ))}
                         </div>
 
-                        <div className="mt-8 flex flex-wrap gap-3">
+                        <div className="mt-6 flex flex-wrap gap-2">
                             {project.github && (
                                 <a
                                     href={project.github}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
+                                    className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-medium text-slate-900 transition hover:bg-slate-100"
                                 >
-                                    <Github className="h-4 w-4" />
+                                    <Github className="h-3.5 w-3.5" />
                                     View GitHub
                                 </a>
                             )}
@@ -109,9 +109,9 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
                                     href={project.demo}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-[13px] font-medium text-white transition hover:bg-white/10"
                                 >
-                                    <ArrowUpRight className="h-4 w-4" />
+                                    <ArrowUpRight className="h-3.5 w-3.5" />
                                     Live Demo
                                 </a>
                             )}
@@ -121,9 +121,9 @@ export default function ProjectDetailPage({ project }: ProjectDetailProps) {
                                     href={link.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+                                    className="inline-flex items-center gap-1.5 rounded-full border border-white/30 px-3.5 py-1.5 text-[13px] font-medium text-white transition hover:bg-white/10"
                                 >
-                                    <ArrowUpRight className="h-4 w-4" />
+                                    <ArrowUpRight className="h-3.5 w-3.5" />
                                     {link.label}
                                 </a>
                             ))}
