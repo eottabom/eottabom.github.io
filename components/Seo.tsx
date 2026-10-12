@@ -34,6 +34,8 @@ export default function Seo({
   const rawPath = router.asPath.split('?')[0];
   const normalizedPath = rawPath === '/index' ? '/' : rawPath;
   const canonical = `${SITE_URL}${normalizedPath}`;
+  // 공유 미리보기는 절대 경로만 읽으므로 /images/... 같은 경로에는 도메인을 붙인다.
+  const ogImageUrl = ogImage.startsWith('/') ? `${SITE_URL}${ogImage}` : ogImage;
 
   return (
     <Head>
@@ -49,7 +51,7 @@ export default function Seo({
       <meta property="og:url" content={canonical} />
       <meta property="og:site_name" content={DEFAULT_TITLE} />
       <meta property="og:type" content={ogType} />
-      <meta property="og:image" content={ogImage} />
+      <meta property="og:image" content={ogImageUrl} />
       <meta property="og:locale" content="ko_KR" />
 
       {ogType === 'article' && publishedTime && (
@@ -69,7 +71,7 @@ export default function Seo({
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={pageTitle} />
       <meta name="twitter:description" content={description} />
-      <meta name="twitter:image" content={ogImage} />
+      <meta name="twitter:image" content={ogImageUrl} />
 
       {Array.isArray(jsonLd)
         ? jsonLd.map((item, idx) => (
