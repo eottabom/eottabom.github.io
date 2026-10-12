@@ -1,30 +1,30 @@
 self.__BUILD_MANIFEST = {
   "/": [
-    "static/chunks/1cpvguqw563ot.js"
+    "static/chunks/07n55k0_625bo.js"
   ],
   "/404": [
-    "static/chunks/1jvyqhggy0iw-.js"
+    "static/chunks/1_-_hfg54i4f6.js"
   ],
   "/_error": [
     "static/chunks/0tisahjf_ore7.js"
   ],
   "/about": [
-    "static/chunks/22sctwool-ywy.js"
+    "static/chunks/2rqcbenzu_ikf.js"
   ],
   "/book": [
-    "static/chunks/03zh948_qexcw.js"
+    "static/chunks/3vnzvk4al1jwm.js"
   ],
   "/book/[slug]": [
-    "static/chunks/2pj29ikbb74ru.js"
+    "static/chunks/0eew_fzuxq0-g.js"
   ],
   "/link": [
-    "static/chunks/10lkqigr-6pgd.js"
+    "static/chunks/03x706dfue82h.js"
   ],
   "/post": [
-    "static/chunks/081sochjphug8.js"
+    "static/chunks/1aa_fkyztr32a.js"
   ],
   "/post/[id]": [
-    "static/chunks/0_-1e3f2m3ni5.js"
+    "static/chunks/2y18fhedzhhl0.js"
   ],
   "/projects": [
     "static/chunks/04f0r9k0yxt05.js"
@@ -33,10 +33,10 @@ self.__BUILD_MANIFEST = {
     "static/chunks/2rwn36wfuudm9.js"
   ],
   "/side-projects": [
-    "static/chunks/25ez6p3df-5rs.js"
+    "static/chunks/14nzxv_fvvnc_.js"
   ],
   "/side-projects/[slug]": [
-    "static/chunks/2kqi6dwvfr6kv.js"
+    "static/chunks/43od9f77cmdz0.js"
   ],
   "__rewrites": {
     "afterFiles": [],
