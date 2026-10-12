@@ -48,7 +48,7 @@ const generateSitemap = () => {
         { loc: `${BASE_URL}/`, changefreq: 'daily', priority: '1.0', lastmod: today },
         { loc: `${BASE_URL}/post/`, changefreq: 'daily', priority: '0.9', lastmod: today },
         { loc: `${BASE_URL}/book/`, changefreq: 'weekly', priority: '0.7', lastmod: today },
-        { loc: `${BASE_URL}/projects/`, changefreq: 'weekly', priority: '0.7', lastmod: today },
+        { loc: `${BASE_URL}/side-projects/`, changefreq: 'weekly', priority: '0.7', lastmod: today },
         { loc: `${BASE_URL}/about/`, changefreq: 'monthly', priority: '0.5' },
         { loc: `${BASE_URL}/link/`, changefreq: 'monthly', priority: '0.4' },
     ];
@@ -84,7 +84,7 @@ const generateSitemap = () => {
         const lastmod = toW3CDate(project.date);
         return `
     <url>
-      <loc>${BASE_URL}/projects/${project.slug}/</loc>
+      <loc>${BASE_URL}/side-projects/${project.slug}/</loc>
       <changefreq>monthly</changefreq>
       <priority>0.6</priority>${lastmod ? `\n      <lastmod>${lastmod}</lastmod>` : ''}
     </url>`;

@@ -17,7 +17,7 @@ const statusClassName = {
 export default function ProjectCard({ project }: { project: Project }) {
     return (
         <article className="group h-full overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm transition duration-200 hover:-translate-y-1 hover:shadow-lg">
-            <Link href={`/projects/${project.slug}`} className="block h-full">
+            <Link href={`/side-projects/${project.slug}`} className="block h-full">
                 <div className="flex h-full flex-col">
                     <div className="relative h-48 overflow-hidden bg-gradient-to-br from-slate-900 via-slate-700 to-blue-500">
                         {project.thumbnail ? (

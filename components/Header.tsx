@@ -25,7 +25,7 @@ export default function Header() {
         { href: "/", label: "Home", icon: Home },
         { href: "/post", label: "Posts", icon: FileText },
         { href: "/book", label: "Books", icon: BookOpen },
-        { href: "/projects", label: "Projects", icon: FolderKanban },
+        { href: "/side-projects", label: "Side Projects", icon: FolderKanban },
         { href: "/link", label: "Read/Keep", icon: Bookmark },
         { href: "/about", label: "About", icon: User },
     ];

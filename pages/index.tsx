@@ -137,10 +137,10 @@ export default function Home({
                     </p>
                     <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
                         <Link
-                            href="/projects"
+                            href="/side-projects"
                             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded transition"
                         >
-                            View My Projects →
+                            View My Side Projects →
                         </Link>
                         <Link
                             href="/toolkit"
