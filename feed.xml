@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Mon, 12 Oct 2026 13:11:10 GMT</lastBuildDate>
+    <lastBuildDate>Sat, 24 Oct 2026 07:46:40 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Gradle Version Catalog로 의존성 버전 한 곳에서 관리하기</title>
+      <link>https://eottabom.github.io/post/gradle-version-catalog/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/gradle-version-catalog/</guid>
+      <description>Gradle Version Catalog로 의존성과 플러그인 버전을 libs.versions.toml 한 곳에 모으는 방법을 정리한다. 기본 구조와 접근자 이름 규칙, 멀티 모듈과 여러 프로젝트에서 공유하는 방법, Dependabot 연동과 마이그레이션까지 Gradle 9.4로 직접 확인한 결과를 바탕으로 살펴본다.</description>
+      <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Java</category>
+      <category>Gradle</category>
+    </item>
     <item>
       <title>Pod 리소스를 줄였더니 GC가 바뀌었다 - JDK 21 ergonomics를 OTel과 Prometheus로 확인하기</title>
       <link>https://eottabom.github.io/post/kubernetes-resources-jvm-gc-ergonomics/</link>
@@ -177,15 +186,6 @@
       <description>웹, 서버 상태를 쉽게 모니터링 할 수 있는 오픈소스 툴인 Uptime Kuma 를 이용해보자.</description>
       <pubDate>Mon, 18 Aug 2025 00:00:00 GMT</pubDate>
       <category>Etc</category>
-    </item>
-    <item>
-      <title>E2E(End to End) 테스트 프레임 워크인, Playwright 로 놀아보자! (feat. playwright mcp + claude desktop)</title>
-      <link>https://eottabom.github.io/post/play-with-playwright/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/play-with-playwright/</guid>
-      <description>Playwright 를 기반으로 Java 에서 브라우저 자동화 테스트를 즐겨보자.</description>
-      <pubDate>Sat, 02 Aug 2025 00:00:00 GMT</pubDate>
-      <category>Testing</category>
-      <category>Java</category>
     </item>
   </channel>
 </rss>

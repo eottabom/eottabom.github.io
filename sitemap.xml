@@ -5,25 +5,25 @@
       <loc>https://eottabom.github.io/</loc>
       <changefreq>daily</changefreq>
       <priority>1.0</priority>
-      <lastmod>2026-10-12</lastmod>
+      <lastmod>2026-10-24</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/</loc>
       <changefreq>daily</changefreq>
       <priority>0.9</priority>
-      <lastmod>2026-10-12</lastmod>
+      <lastmod>2026-10-24</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/book/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-12</lastmod>
+      <lastmod>2026-10-24</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/side-projects/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-12</lastmod>
+      <lastmod>2026-10-24</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/about/</loc>
@@ -203,6 +203,12 @@
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
       <lastmod>2026-04-09</lastmod>
+    </url>
+    <url>
+      <loc>https://eottabom.github.io/post/gradle-version-catalog/</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+      <lastmod>2026-10-24</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/java-application-on-kubernetes/</loc>
