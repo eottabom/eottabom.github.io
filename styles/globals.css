@@ -34,6 +34,11 @@ body {
   padding: 1rem;
 }
 
+/* Prism 이 TOML 섹션, Markdown 표에 붙이는 .table 이 Tailwind 의 .table(display: table) 과 겹쳐 줄이 끊기지 않게 한다. */
+.prose pre code .token.table {
+  display: inline;
+}
+
 .code-block {
   margin: 1.5rem 0;
   border-radius: 0.5rem;
