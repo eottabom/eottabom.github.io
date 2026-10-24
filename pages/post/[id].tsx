@@ -39,6 +39,13 @@ const desktopOnlyComponents = {
 const Giscus = dynamic(() => import('../../components/Giscus'), {
   ssr: false,
 });
+
+// 개발 서버에서만 글 화면 편집기를 불러온다. 배포 빌드에는 포함되지 않는다.
+const isDev = process.env.NODE_ENV === 'development';
+const DevEditor =
+  isDev
+    ? dynamic(() => import('../../components/DevEditor'), { ssr: false })
+    : () => null;
 import {serialize} from "next-mdx-remote/serialize";
 
 declare global {
@@ -233,7 +240,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
               <ChevronRight className="h-3.5 w-3.5 text-gray-400" aria-hidden />
               <Link href="/post" className="-my-2 py-2 hover:text-blue-600">Posts</Link>
             </nav>
-            <h1 className="text-4xl font-bold mb-4">{postData.title}</h1>
+            <h1 className="text-4xl font-bold mb-4" data-dev-meta={isDev || undefined}>{postData.title}</h1>
             <div className="not-prose mb-8 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
               <span className="inline-flex items-center gap-1.5">
                 <Calendar className="h-4 w-4" aria-hidden />
@@ -253,7 +260,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
               )}
             </div>
             {postData.tags && (
-                <div className="flex flex-wrap gap-2 mb-8">
+                <div className="flex flex-wrap gap-2 mb-8" data-dev-meta={isDev || undefined}>
                   {postData.tags.map((tag) => (
                       <span
                           key={tag}
@@ -267,6 +274,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
             <article className="overflow-x-auto">
               <MDXRemote {...postData.mdxSource} components={components}/>
             </article>
+            <DevEditor postId={postData.id} />
             <Giscus />
             {relatedPosts.length > 0 && (
                 <div className="mt-20 p-6 border rounded-2xl bg-gray-50 shadow-sm">

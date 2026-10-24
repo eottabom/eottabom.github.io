@@ -8,6 +8,7 @@ import rehypePrism from 'rehype-prism-plus';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 import remarkDirective from 'remark-directive';
 import remarkDirectiveTransformer from './remarkDirectiveTransformer';
+import remarkSourceRange from './remarkSourceRange';
 
 const postsDirectory = path.join(process.cwd(), 'contents', 'posts');
 
@@ -65,7 +66,12 @@ export async function getPostData(id: string): Promise<PostData> {
 
   const mdxSource = await serialize(content, {
     mdxOptions: {
-      remarkPlugins: [remarkDirective, remarkDirectiveTransformer, remarkGfm] as any,
+      remarkPlugins: [
+        remarkDirective,
+        remarkDirectiveTransformer,
+        remarkGfm,
+        ...(process.env.NODE_ENV === 'development' ? [remarkSourceRange] : []),
+      ] as any,
       rehypePlugins: [rehypeSlug, rehypeAutolinkHeadings, rehypePrism] as any,
     },
     scope: data,

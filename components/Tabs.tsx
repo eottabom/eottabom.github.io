@@ -2,16 +2,17 @@ import React, { ReactNode, ReactElement, useId, useState } from 'react';
 
 type TabProps = { label: string; children: ReactNode };
 
-export function Tabs({children, defaultIndex = 0, }: {
+export function Tabs({children, defaultIndex = 0, 'data-src': dataSrc }: {
     children: ReactNode;
     defaultIndex?: number;
+    'data-src'?: string;
 }) {
     const tabList = React.Children.toArray(children) as ReactElement<TabProps>[];
     const [active, setActive] = useState(Math.min(defaultIndex, tabList.length - 1));
     const uid = useId();
 
     return (
-        <div className="w-full">
+        <div className="w-full" data-src={dataSrc}>
             {/* Tab bar */}
             <div
                 role="tablist"

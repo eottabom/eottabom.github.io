@@ -23,6 +23,7 @@ export type InfoPanelType =
 interface InfoPanelProps {
   type?: InfoPanelType;
   children: ReactNode;
+  'data-src'?: string;
 }
 
 const typeStyles: Record<
@@ -186,11 +187,12 @@ function renderText(type: InfoPanelType, children: ReactNode) {
 }
 
 
-export default function InfoPanel({ type = 'info', children, }: InfoPanelProps) {
+export default function InfoPanel({ type = 'info', children, 'data-src': dataSrc }: InfoPanelProps) {
   const style = typeStyles[type];
 
   return (
       <div
+          data-src={dataSrc}
           className={`my-4 px-4 py-3 rounded-md prose ${style.bg} ${style.border} ${style.text}`}
       >
         {renderText(type, children)}
