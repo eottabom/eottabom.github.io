@@ -1,0 +1,574 @@
+---
+title: "Gradle Version Catalog로 의존성 버전 한 곳에서 관리하기"
+date: "2026-10-24"
+tags: ["Java", "Gradle"]
+summary: "Gradle Version Catalog keeps dependency and plugin versions in one TOML file. Covers the libs.versions.toml structure, multi-module and cross-project sharing, and what the catalog does not do."
+description: "Gradle Version Catalog로 의존성과 플러그인 버전을 libs.versions.toml 한 곳에 모으는 방법을 정리한다. 기본 구조와 접근자 이름 규칙, 멀티 모듈과 여러 프로젝트에서 공유하는 방법, Dependabot 연동과 마이그레이션까지 Gradle 9.4로 직접 확인한 결과를 바탕으로 살펴본다."
+---
+
+:::info
+모듈이 늘어나면 같은 라이브러리 버전이 build.gradle 여기저기에 흩어지고, 버전을 올릴 때마다 어디를 고쳐야 하는지 찾게 된다. <br />
+Gradle Version Catalog는 의존성과 플러그인 버전을 TOML 파일 하나에 모아두고, 빌드 스크립트에서는 이름으로만 참조하게 해준다. <br />
+기본 사용법부터 멀티 모듈, 여러 프로젝트에서 공유하는 방법까지 Gradle 9.4로 직접 돌려보면서 살펴보자.
+:::
+
+---
+
+## Version Catalog는 무엇일까?
+
+Version Catalog는 Gradle 7.0에서 실험 기능으로 처음 들어왔고, 7.4부터 정식 기능이 되었다. <br />
+의존성 좌표(group, name)와 버전을 `gradle/libs.versions.toml`에 모아두기만 하면 Gradle이 이 파일을 읽어서 `libs`라는 접근자를 알아서 만들어준다.
+
+```groovy
+// 카탈로그 전
+implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+// 카탈로그 후
+implementation libs.okhttp
+```
+
+### 기존 방식 (ext, buildSrc)의 한계
+
+카탈로그가 나오기 전에도 버전을 한 곳에 모으는 방법은 있었는데, 각각 아쉬운 점이 있었다.
+
+| 방식 | 사용법 | 한계 |
+| --- | --- | --- |
+| 하드코딩 | 모듈마다 `'group:name:version'` 직접 작성 | 버전을 올릴 때 모든 모듈을 찾아서 고쳐야 한다 |
+| ext | 루트에 `ext { okhttpVersion = '4.12.0' }` 선언 | 버전만 모이고 좌표는 모듈마다 문자열로 남는다, IDE 자동 완성이 약하다 |
+| buildSrc 상수 | `Deps.kt` 같은 클래스에 상수 선언 | 상수 하나만 바꿔도 `buildSrc` 전체가 다시 컴파일되고, 빌드 캐시가 깨진다 |
+
+카탈로그를 사용하게 되면 이러한 문제를 아래와 같이 풀어준다.
+
+- 의존성의 좌표(group, name)과 버전이 TOML 파일 하나에 모인다
+- Gradle이 만든 접근자로 참조하기 때문에 IDE 자동 완성이 되고, 없는 이름을 쓰면 빌드가 바로 실패한다
+- 좌표와 버전이 같이 모이기 때문에, 모듈의 빌드 스크립트에는 버전 문자열이 남지 않는다
+- Dependabot, Renovate 같은 도구가 이 파일 하나만 보고 버전을 올릴 수 있다
+
+---
+
+## 기본 사용법
+
+### libs.versions.toml 구조
+
+`gradle/libs.versions.toml`은 아래 4개 섹션으로 이루어진다.
+
+| 섹션 | 역할 | 접근자 |
+| --- | --- | --- |
+| [versions] | 여러 라이브러리가 같이 쓰는 버전 | libs.versions.이름 |
+| [libraries] | 라이브러리 좌표와 버전 | libs.이름 |
+| [bundles] | 같이 쓰는 라이브러리 묶음 | libs.bundles.이름 |
+| [plugins] | Gradle 플러그인 id와 버전 | libs.plugins.이름 |
+
+```toml
+[versions]
+jackson = "2.15.0"
+spring-boot = "4.0.7"
+
+[libraries]
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+commons_lang3 = "org.apache.commons:commons-lang3:3.14.0"
+guavaCore = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
+
+[bundles]
+jackson = ["jackson-databind", "jackson-datatype-jsr310"]
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+```
+
+라이브러리는 `"group:name:version"` 한 줄로 써도 되고 `module`, `group`/`name`으로 나눠 써도 되는데, <br />
+여러 라이브러리가 같은 버전을 따라가야 한다면 `[versions]`에 버전을 두고 `version.ref`로 참조하는 게 편하다.
+
+### libs.xxx로 참조하기
+
+별칭에 들어간 `-`, `_`는 접근자에서 `.`으로 바뀌면서 단계마다 하위 그룹이 되는데, <br />
+하위 그룹을 만들고 싶지 않다면 camelCase로 쓰면 된다.
+
+| 별칭 | 접근자 |
+| --- | --- |
+| `jackson-databind` | `libs.jackson.databind` |
+| `commons_lang3` | `libs.commons.lang3` |
+| `guavaCore` | `libs.guavaCore` |
+| `spring-boot` (plugins) | `libs.plugins.spring.boot` |
+
+```groovy
+plugins {
+    id 'java'
+    alias(libs.plugins.spring.boot)
+}
+
+dependencies {
+    implementation libs.bundles.jackson
+    implementation libs.commons.lang3
+    implementation libs.guavaCore
+}
+```
+
+위 설정으로 `runtimeClasspath`를 확인하면 카탈로그에 적은 버전이 그대로 들어간다.
+
+```text
+$ ./gradlew dependencies --configuration runtimeClasspath
++--- com.fasterxml.jackson.core:jackson-databind:2.15.0
++--- com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.0
++--- org.apache.commons:commons-lang3:3.14.0
+\--- com.google.guava:guava:33.0.0-jre
+```
+
+버전 값만 필요할 때는 `libs.versions.이름.get()`으로 꺼낼 수 있는데, checkstyle 같은 도구 버전을 지정할 때 쓸 수 있다.
+
+```groovy
+checkstyle {
+    toolVersion = libs.versions.checkstyle.get()
+}
+```
+
+:::warning
+<b>주의 사항</b>
+bundles, versions, plugins 는 라이브러리 별칭의 첫 단어로 쓸 수 없다.
+extensions, class, convention 같은 예약어도 별칭으로 사용 할 수 없다.
+:::
+
+#### Q. jackson과 jackson-bom을 같이 선언하면 왜 get()이 안 될까?
+
+<BlueText><span style={{ fontSize: '1.5rem' }}>A. </span></BlueText>
+버전 이름이 다른 버전 이름의 앞부분과 겹치면, `libs.versions.jackson`이 버전이 아니라 <b>하위 그룹</b>이 되기 때문이다. <br />
+실제로 `jackson`과 `jackson-bom`을 같이 선언하고 `libs.versions.jackson.get()`을 호출하면 아래와 같이 실패한다.
+
+```text
+> No signature of method: org.gradle.accessors.dm.LibrariesForLibs$JacksonVersionAccessors.get() is applicable for argument types: () values: []
+```
+
+이때는 `libs.versions.jackson.asProvider().get()`처럼 `asProvider()`를 거쳐서 꺼내야 한다.
+
+### 버전 없이 선언하기
+
+BOM이 버전을 관리하는 라이브러리는 카탈로그에 버전 없이 좌표만 적어도 된다. <br />
+Spring Boot starter가 대표적인데, 버전은 Spring Boot 플러그인과 BOM이 정하고 카탈로그는 이름만 제공한다.
+
+```toml
+[libraries]
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+```
+
+`junit-platform-launcher`처럼 버전 없이 선언한 라이브러리도 `junit-jupiter`가 가져오는 `junit-bom`이 버전을 정해준다.
+
+```text
++--- org.junit.jupiter:junit-jupiter:5.11.4
+\--- org.junit.platform:junit-platform-launcher -> 1.11.4
+```
+
+BOM 자체를 카탈로그에 두고 꺼내 쓸 수도 있다.
+
+```groovy
+dependencyManagement {
+    imports {
+        mavenBom libs.spring.cloud.dependencies.get().toString()
+    }
+}
+```
+
+### 카탈로그는 버전을 강제하지 않는다
+
+카탈로그에 적은 버전이 그대로 들어갈 것 같지만, 꼭 그렇지는 않다. <br />
+카탈로그 버전은 <BlueText>"이 버전을 쓰고 싶다"는 요청</BlueText>에 가깝고, 최종 버전은 여전히 Gradle의 충돌 해결 규칙이 정한다. <br />
+`jackson-databind`를 2.15.0으로 선언해두고 Jackson 2.17.0에 의존하는 `jackson-dataformat-yaml`을 같이 추가해보면, 카탈로그와 상관없이 2.17.0이 선택되는 걸 볼 수 있다.
+
+```text
+$ ./gradlew dependencyInsight --dependency jackson-databind --configuration runtimeClasspath
+com.fasterxml.jackson.core:jackson-databind:2.17.0
+   Selection reasons:
+      - By constraint
+      - By conflict resolution: between versions 2.17.0 and 2.15.0
+```
+
+카탈로그 버전을 꼭 지켜야 한다면 rich version의 `strictly`를 쓸 수 있다.
+
+```toml
+[versions]
+jackson = { strictly = "2.15.0" }
+```
+
+그런데 `strictly`는 <RedText>해당 라이브러리에만 걸린다</RedText>는 게 함정이다. <br />
+위 예제에 `strictly`를 걸면 `jackson-databind`는 2.15.0으로 내려가지만, 카탈로그에 없는 `jackson-core`, `jackson-annotations`는 2.17.0으로 남아서 같은 Jackson 안에서 버전이 섞여버린다.
+
+```text
++--- com.fasterxml.jackson.core:jackson-databind:{strictly 2.15.0} -> 2.15.0
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.15.0 -> 2.17.0
+|    +--- com.fasterxml.jackson.core:jackson-core:2.15.0 -> 2.17.0
+```
+
+:::tip
+버전을 맞춰야 하는 라이브러리 묶음이라면 카탈로그의 strictly보다 BOM(platform)으로 버전을 맞추는 쪽이 안전하다. <br />
+카탈로그는 이름과 요청 버전을 모아두는 곳이고, 버전을 강제하는 건 BOM이나 dependency constraint의 역할이다.
+:::
+
+---
+
+## 멀티 모듈에서 쓰기
+
+### settings.gradle에서 카탈로그 선언
+
+`gradle/libs.versions.toml`은 아무 설정 없이도 `libs`라는 이름으로 자동 등록되고, <br />
+파일 위치나 이름이 다르거나 카탈로그를 여러 개 쓰고 싶다면 `settings.gradle`에서 직접 선언하면 된다.
+
+```groovy
+// settings.gradle
+dependencyResolutionManagement {
+    versionCatalogs {
+        create('testLibs') {
+            from(files('gradle/test-libs.versions.toml'))
+        }
+    }
+}
+```
+
+이렇게 선언하면 빌드 스크립트에서 `testLibs.junit.jupiter`처럼 쓸 수 있고, `from()`은 카탈로그 하나에 한 번만 호출할 수 있다.
+
+### 여러 모듈에서 공유
+
+같은 빌드에 포함된 모듈은 모두 루트의 카탈로그를 같이 쓰는데, <br />
+[예제 코드 저장소](https://github.com/eottabom/let-me-code)도 16개 모듈이 `gradle/libs.versions.toml` 하나를 공유하고, 각 모듈은 필요한 라이브러리만 이름으로 가져다 쓰고 있다.
+
+```groovy
+// 루트 build.gradle
+plugins {
+    alias(libs.plugins.spring.boot) apply false
+    alias(libs.plugins.spring.dependency.management) apply false
+}
+
+// jpa-entity/build.gradle
+plugins {
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+dependencies {
+    implementation libs.spring.boot.starter.data.jpa
+    runtimeOnly libs.h2
+    testImplementation libs.spring.boot.starter.test
+    testRuntimeOnly libs.junit.platform.launcher
+}
+```
+
+루트에서 `apply false`로 플러그인 버전을 한 번만 정해두면, 하위 모듈은 버전을 신경 쓸 필요 없이 적용만 하면 된다.
+
+### buildSrc, convention plugin에서 쓰기
+
+공통 설정을 `buildSrc`의 convention plugin으로 빼면 카탈로그 접근 방법이 DSL에 따라 달라진다.
+
+Groovy로 만든 precompiled script plugin은 플러그인이 적용되는 시점에 `libs`를 찾기 때문에, 그대로 써도 동작했다.
+
+```groovy
+// buildSrc/src/main/groovy/java-conventions.gradle
+plugins { id 'java' }
+
+dependencies {
+    testImplementation libs.junit.jupiter
+}
+```
+
+문제는 Kotlin DSL이다. 컴파일 시점에 타입을 확인하기 때문에, 같은 코드를 `.gradle.kts`로 옮기면 바로 컴파일 오류가 난다.
+
+```text
+$ ./gradlew build
+
+> Task :buildSrc:compileKotlin FAILED
+e: file:///.../buildSrc/src/main/kotlin/java-conventions.gradle.kts:4:24 Unresolved reference 'libs'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':buildSrc:compileKotlin'.
+```
+
+`buildSrc`를 컴파일하는 단계(`:buildSrc:compileKotlin`)에서 실패하는데, `java-conventions.gradle.kts` 4번째 줄의 `libs`를 찾을 수 없다는 오류다.
+
+이때는 `VersionCatalogsExtension`으로 카탈로그를 꺼내서 별칭 문자열로 찾아야 한다.
+
+```kotlin
+// buildSrc/src/main/kotlin/java-conventions.gradle.kts
+val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+
+dependencies {
+    testImplementation(libs.findLibrary("junit-jupiter").get())
+    testRuntimeOnly(libs.findLibrary("junit-platform-launcher").get())
+}
+```
+
+:::note
+buildSrc는 별도의 빌드라서 메인 빌드의 카탈로그를 자동으로 물려받지 않는다. <br />
+buildSrc의 build.gradle에서 카탈로그를 쓰려면 buildSrc/settings.gradle에서 상위 폴더의 toml 파일을 직접 가져와야 한다.
+:::
+
+```groovy
+// buildSrc/settings.gradle
+dependencyResolutionManagement {
+    versionCatalogs {
+        create('libs') {
+            from(files('../gradle/libs.versions.toml'))
+        }
+    }
+}
+```
+
+---
+
+## 여러 프로젝트에서 공유하기
+
+하나의 빌드 안에서는 카탈로그가 알아서 공유되는데, 빌드가 나뉘는 순간 각자 버전을 따로 들고 가게 된다. <br />
+실제로 [예제 코드 저장소](https://github.com/eottabom/let-me-code)에도 루트 빌드에 포함되지 않은 독립 빌드(`mongodb-pagination/benchmark-kit/spring-benchmark`)가 하나 있는데, 버전을 직접 적다 보니 어느새 Spring Boot 버전이 벌어져 있었다.
+
+| 위치 | Spring Boot |
+| --- | --- |
+| 루트 카탈로그 (`gradle/libs.versions.toml`) | 4.0.7 |
+| 독립 빌드 (`spring-benchmark/build.gradle.kts`) | 4.0.3 |
+
+Dependabot도 두 빌드를 따로 보기 때문에, 독립 빌드의 Spring Boot 업데이트 PR이 루트와 별도로 올라온다. <br />
+빌드가 나뉘어 있어도 카탈로그를 공유하는 방법은 크게 두 가지가 있다.
+
+### 1) 파일 경로로 가져오기 (같은 저장소, Git submodule)
+
+같은 저장소 안에 있거나 Git submodule로 공통 저장소를 받아둔 경우, `from(files(...))`로 toml 파일 경로를 직접 가리키면 된다.
+
+```kotlin
+// spring-benchmark/settings.gradle.kts
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            from(files("../../../gradle/libs.versions.toml"))
+        }
+    }
+}
+```
+
+```kotlin
+// spring-benchmark/build.gradle.kts
+plugins {
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+    java
+}
+
+dependencies {
+    implementation(libs.spring.boot.starter.data.mongodb)
+}
+```
+
+이렇게 루트 카탈로그를 가져오면, 4.0.3에 머물러 있던 플러그인과 starter가 루트와 같은 4.0.7로 맞춰진다.
+
+```text
+|    \--- org.springframework.boot:spring-boot-gradle-plugin:4.0.7
+\--- org.springframework.boot:spring-boot-starter-data-mongodb -> 4.0.7
+```
+
+### 2) Maven으로 배포해서 가져오기 (Published catalog)
+
+저장소가 아예 다르다면 카탈로그를 Maven 아티팩트로 배포해두고 좌표로 가져올 수 있는데, <br />
+배포하는 쪽은 `version-catalog`와 `maven-publish` 플러그인을 적용하면 된다.
+
+```groovy
+// platform-catalog/build.gradle
+plugins {
+    id 'version-catalog'
+    id 'maven-publish'
+}
+
+group = 'com.eottabom'
+version = '1.0.0'
+
+catalog {
+    versionCatalog {
+        from(files('gradle/libs.versions.toml'))
+    }
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.versionCatalog
+        }
+    }
+}
+```
+
+`publish`를 실행하면 저장소에 `.pom`과 함께 `.toml` 파일이 올라간다.
+
+```text
+com/eottabom/platform-catalog/1.0.0/platform-catalog-1.0.0.pom
+com/eottabom/platform-catalog/1.0.0/platform-catalog-1.0.0.toml
+```
+
+가져다 쓰는 쪽은 `settings.gradle`에서 좌표로 가져오고, 필요하면 일부 버전만 덮어쓸 수 있다.
+
+```groovy
+// consumer/settings.gradle
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri('https://repo.example.com/maven') }
+        mavenCentral()
+    }
+    versionCatalogs {
+        create('libs') {
+            from('com.eottabom:platform-catalog:1.0.0')
+            version('okhttp', '4.11.0')
+        }
+    }
+}
+```
+
+배포한 카탈로그에는 okhttp가 4.12.0으로 되어 있지만, `version('okhttp', '4.11.0')`으로 덮어쓰면 이 프로젝트에서는 4.11.0이 들어간다.
+
+```text
+\--- com.squareup.okhttp3:okhttp:4.11.0
+```
+
+#### Q. includeBuild로 카탈로그 프로젝트를 포함하면 배포 없이 쓸 수 있지 않을까?
+
+<BlueText><span style={{ fontSize: '1.5rem' }}>A. </span></BlueText>
+그렇지 않다. 카탈로그는 <b>settings 단계에서 저장소에서 내려받기</b> 때문에, `includeBuild`로 카탈로그 프로젝트를 포함해도 좌표로 가져올 수 없고, 저장소에 배포되어 있지 않으면 아래와 같이 실패한다.
+
+```text
+Could not resolve all artifacts for configuration 'incomingCatalogForLibs0'.
+> Could not find com.eottabom:platform-catalog:1.0.0.
+```
+
+`includeBuild`는 convention plugin을 공유할 때 쓰고, 카탈로그는 파일 경로나 배포로 가져와야 한다.
+
+두 방법을 비교해보면 아래와 같다.
+
+| 방법 | 어울리는 경우 | 버전 반영 |
+| --- | --- | --- |
+| 파일 경로 (`from(files(...))`) | 같은 저장소의 독립 빌드, Git submodule | 파일이 바뀌면 바로 반영 |
+| Published catalog (`from("g:a:v")`) | 저장소가 다른 여러 팀, 여러 서비스 | 카탈로그 버전을 올려야 반영 |
+
+---
+
+## 운영 팁
+
+### 1) 버전 업데이트는 Dependabot, Renovate에 맡기기
+
+Dependabot은 2023년 3월부터 `gradle/libs.versions.toml`의 versions, libraries, plugins를 업데이트해주는데, <br />
+[예제 코드 저장소](https://github.com/eottabom/let-me-code)에서도 Dependabot이 카탈로그 파일 하나만 고치는 PR을 올려준다.
+
+| PR 제목 | 바뀐 파일 |
+| --- | --- |
+| build(deps): bump grpc from 1.56.0 to 1.84.0 | `gradle/libs.versions.toml` |
+| build(deps): bump feign from 13.6 to 13.15 | `gradle/libs.versions.toml` |
+| build(deps): bump com.google.protobuf from 0.9.6 to 0.10.0 | `gradle/libs.versions.toml` |
+
+`version.ref`로 묶은 버전은 PR 제목에 `grpc`, `feign`처럼 `[versions]`의 이름이 나오고, 묶인 라이브러리가 같이 올라간다.
+
+:::warning
+Dependabot은 기본 위치의 gradle/libs.versions.toml만 지원하고, settings.gradle에서 다른 경로로 선언한 카탈로그는 지원하지 않는다. <br />
+카탈로그를 여러 개로 나누거나 다른 경로에 두려면 Renovate를 쓰거나, 업데이트가 필요한 버전은 기본 카탈로그에 모아두는 게 낫다.
+:::
+
+Renovate는 `gradle/` 아래의 `.toml`과 `.versions.toml`로 끝나는 파일을 기본으로 찾고, rich version의 `require`, `prefer`, `strictly`도 그대로 유지한 채 버전을 올린다.
+
+### 2) bundle은 항상 같이 쓰는 묶음에만
+
+bundle은 여러 라이브러리를 한 줄로 추가할 수 있어서 편한데, 묶음이 커지면 필요 없는 의존성까지 같이 들어간다.
+
+```toml
+[bundles]
+jackson = ["jackson-databind", "jackson-datatype-jsr310"]
+grpc = ["grpc-netty-shaded", "grpc-protobuf", "grpc-stub"]
+```
+
+- 항상 같이 쓰는 묶음만 bundle로 만든다
+- 모듈마다 조합이 다르면 bundle보다 각 라이브러리를 따로 추가하는 게 의존성을 파악하기 쉽다
+- bundle은 버전을 맞춰주지 않고, 버전은 각 라이브러리의 `version.ref`가 정한다
+
+### 3) 플러그인 버전도 카탈로그로
+
+플러그인 버전을 `plugins { id '...' version '...' }`로 모듈마다 쓰면, 라이브러리 버전은 모아놓고 정작 플러그인 버전은 흩어져 있게 된다. <br />
+`[plugins]`에 모아두고 `alias()`로 쓰면, Spring Boot처럼 플러그인 버전이 라이브러리 버전까지 정하는 경우에도 한 곳에서 관리할 수 있다.
+
+```toml
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+```
+
+카탈로그의 플러그인은 `settings.gradle`이나 settings 플러그인에서는 쓸 수 없고, 프로젝트의 `plugins {}` 블록에서만 쓸 수 있다.
+
+### 4) 기존 ext에서 카탈로그로 옮기기
+
+[예제 코드 저장소](https://github.com/eottabom/let-me-code)도 처음에는 루트 `build.gradle`에 버전을 직접 적다가, 멀티 모듈로 나누면서 카탈로그로 옮겼다.
+
+```groovy
+// 전 : build.gradle
+plugins {
+    id 'org.springframework.boot' version '3.4.5'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'com.microsoft.playwright:playwright:1.54.0'
+}
+```
+
+```groovy
+// 후 : build.gradle
+plugins {
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.spring.dependency.management)
+}
+
+dependencies {
+    implementation libs.spring.boot.starter.data.jpa
+    implementation libs.playwright
+}
+```
+
+한 번에 다 바꿀 필요는 없고, 아래 순서로 조금씩 옮기면 된다.
+
+1. `ext`나 하드코딩된 버전을 `[versions]`, `[libraries]`로 옮긴다
+2. 모듈 하나씩 `libs.xxx`로 바꾸고, 바꾸기 전후 `./gradlew dependencies` 결과를 비교한다
+3. 플러그인 버전을 `[plugins]`로 옮기고 `alias()`로 바꾼다
+4. 모든 모듈을 옮겼으면 `ext` 블록을 지운다
+
+TOML 형식은 classifier, exclude, capability를 표현하지 못하는데, <br />
+이런 설정은 카탈로그에서는 좌표만 가져오고, 빌드 스크립트에서 `variantOf(libs.xxx) { classifier('...') }`나 exclude 블록으로 따로 지정하면 된다.
+
+---
+
+## 정리
+
+:::success
+<b>요약</b>
+✔ Version Catalog는 의존성과 플러그인 버전을 gradle/libs.versions.toml 한 곳에 모으고, 빌드 스크립트에서는 libs 접근자로 참조한다<br />
+✔ 카탈로그 버전은 요청일 뿐이고 최종 버전은 Gradle의 충돌 해결이 정하므로, 버전을 맞춰야 하는 묶음은 BOM으로 고정한다<br />
+✔ 버전 이름이 겹치면 asProvider()를 거쳐야 하고, Kotlin DSL convention plugin에서는 VersionCatalogsExtension으로 꺼낸다<br />
+✔ 같은 저장소의 독립 빌드는 파일 경로로, 다른 저장소는 version-catalog 플러그인으로 배포해서 공유한다 (includeBuild로는 안 된다)<br />
+✔ Dependabot은 기본 경로의 카탈로그만 지원하므로, 카탈로그를 여러 개로 나눈다면 Renovate가 낫다
+:::
+
+| 원하는 것 | 방법 |
+| --- | --- |
+| 버전을 한 곳에 모으기 | `gradle/libs.versions.toml` (자동으로 `libs` 등록) |
+| 같은 버전을 여러 라이브러리가 따라가기 | `[versions]` + `version.ref` |
+| 플러그인 버전 관리 | `[plugins]` + `alias(libs.plugins.xxx)` |
+| 버전 강제 | 카탈로그가 아니라 BOM(platform)이나 constraint |
+| 같은 저장소의 독립 빌드와 공유 | `from(files('../gradle/libs.versions.toml'))` |
+| 다른 저장소와 공유 | `version-catalog` 플러그인으로 배포 후 `from('g:a:v')` |
+| 버전 업데이트 자동화 | Dependabot(기본 경로만), Renovate |
+
+즉, 카탈로그는 버전을 <b>"한 곳에 모으고 이름으로 부르는"</b> 도구이지, 최종 버전을 정해주는 도구는 아니다. <br />
+버전은 카탈로그로 모으고, 맞춰야 하는 묶음은 BOM으로 고정하고, 업데이트는 Dependabot이나 Renovate에 맡겨두면 버전 관리가 크게 어렵지 않다.
+
+
+---
+
+## 📚 Reference
+
+* [Gradle - Version Catalogs](https://docs.gradle.org/current/userguide/version_catalogs.html)
+* [Gradle - Sharing dependency versions between projects](https://docs.gradle.org/current/userguide/platforms.html)
+* [Gradle 7.4 Release Notes](https://docs.gradle.org/7.4/release-notes.html)
+* [GitHub Changelog - Dependabot version updates keeps Gradle version catalogs up-to-date](https://github.blog/changelog/2023-03-13-dependabot-version-updates-keeps-gradle-version-catalogs-up-to-date/)
+* [dependabot-core #6831 - Support custom version catalogs configured through settings.gradle](https://github.com/dependabot/dependabot-core/issues/6831)
+* [Renovate - Gradle manager](https://docs.renovatebot.com/modules/manager/gradle/)
+* [let-me-code - gradle/libs.versions.toml](https://github.com/eottabom/let-me-code/blob/main/gradle/libs.versions.toml)
