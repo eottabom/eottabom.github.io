@@ -1,6 +1,7 @@
 ---
 title: "CLAUDE.md 가이드 - 파일 위치, Rules, 메모리 구조 한 번에 보기"
 date: "2026-03-29"
+updated: "2026-10-31"
 tags: ["Etc", "AI"]
 summary: "A practical guide to organizing CLAUDE.md, rules, and memory across project scopes."
 description: "CLAUDE.md 의 파일 위치, Rules 분리 방식, 메모리 사용법, 읽는 순서와 작성 팁까지 한 번에 정리한다."
@@ -55,7 +56,8 @@ README 가 저장소를 소개하는 문서에 가깝다면, CLAUDE.md 는 실�
 ### 하위 디렉토리
 
 특정 폴더에서만 의미가 있는 세부 규칙을 두는 자리다.
-예를 들어 `contents/` 에는 글쓰기 규칙, `components/` 에는 UI 규칙, `scripts/` 에는 실행 주의사항을 둘 수 있다.
+예를 들어 `contents/` 에는 글쓰기 규칙, `components/` 에는 UI 규칙, `scripts/` 에는 실행 주의사항을 둘 수 있다. <br />
+하위 디렉토리의 CLAUDE.md 는 세션을 시작할 때 읽히지 않고, Claude 가 그 폴더의 파일을 읽거나 수정하는 순간 자동으로 로드된다.
 
 개인 취향은 전역에 두고, 팀이 같이 따라야 하는 기준은 프로젝트 안에 두고,
 디렉토리별 예외는 하위에서 좁히는 방식이 가장 덜 꼬인다.
@@ -79,6 +81,14 @@ README 가 저장소를 소개하는 문서에 가깝다면, CLAUDE.md 는 실�
 # 프로젝트 루트 규칙
 # 저장소 전체에 공통으로 적용할 기준
 
+./CLAUDE.local.md
+# 나만 쓰는 프로젝트 규칙 (.gitignore 에 추가)
+# 로컬 URL, 테스트 데이터 같은 개인 설정
+
+./.claude/rules/*.md
+# 프로젝트 규칙을 주제별로 나눈 디렉토리 (자동 로드)
+# paths frontmatter 로 특정 경로 작업에만 적용할 수도 있다
+
 ./docs/agents/common.md
 # 프로젝트 공통 규칙 문서
 # 모든 작업에서 먼저 읽게 할 공용 원칙
@@ -97,6 +107,11 @@ README 가 저장소를 소개하는 문서에 가깝다면, CLAUDE.md 는 실�
 ```
 
 이렇게 두면 전역 규칙, 프로젝트 공통 규칙, 디렉토리별 규칙이 자연스럽게 나뉜다.
+
+:::warning
+위 경로 중 Claude Code 가 자동으로 읽는 것은 CLAUDE.md, CLAUDE.local.md, .claude/rules 아래 파일뿐이다.
+docs/agents 처럼 직접 만든 경로의 문서는 CLAUDE.md 에 경로를 적어두는 것만으로는 로드되지 않고, @docs/agents/common.md 처럼 import 문법으로 가져와야 한다.
+:::
 
 여기서 `docs/agents` 는 예시일 뿐이고, 꼭 그 경로여야 하는 것은 아니다. <br />
 중요한 것은 <BlueText>공통 규칙이 어디 있는지 일관적일 것</BlueText>, <br />
@@ -186,7 +201,38 @@ README 가 저장소를 소개하는 문서에 가깝다면, CLAUDE.md 는 실�
 ./.ai/blog.md
 ```
 
-즉, 디렉토리 이름이 중요한 것이 아니라 역할과 읽는 순서가 더 중요하다.
+직접 만든 디렉토리라면 이름은 크게 중요하지 않고, 역할과 읽는 순서가 더 중요하다. <br />
+대신 이런 문서는 루트 CLAUDE.md 에서 import 해줘야 실제로 컨텍스트에 들어간다.
+
+```md
+# 프로젝트 이름
+
+@docs/agents/common.md
+@docs/agents/frontend.md
+```
+
+`@경로` 는 CLAUDE.md 를 읽을 때 그 파일 내용을 함께 펼쳐서 넣는 문법이다. <br />
+상대 경로는 import 를 적은 파일 기준이고, import 한 파일이 다시 다른 파일을 import 하는 것도 4단계까지 된다. <br />
+반대로 백틱으로 감싼 경로나 코드 블록 안의 경로는 import 되지 않는다. <br />
+그래서 "`docs/agents/common.md` 를 따른다" 처럼 경로를 백틱으로 감싸서 적어두면, 에이전트가 그 문장을 보고 스스로 열어보지 않는 한 규칙이 로드되지 않는다.
+
+### 공식 규칙 디렉토리 .claude/rules
+
+Claude Code 에는 규칙을 나누기 위한 공식 위치도 있다. <br />
+`.claude/rules/` 아래에 둔 `.md` 파일은 하위 폴더까지 자동으로 찾아서 로드되고, import 를 적을 필요가 없다.
+
+```md
+---
+paths:
+  - "contents/**/*.mdx"
+---
+
+# 글쓰기 규칙
+- frontmatter 의 date 는 바꾸지 않는다
+```
+
+`paths` frontmatter 를 주면 그 경로의 파일을 다룰 때만 규칙이 로드되기 때문에, 디렉토리별 규칙을 하위 CLAUDE.md 대신 여기에 모아둘 수도 있다. <br />
+이 경로는 이름이 정해져 있으니, 직접 만든 디렉토리와 달리 이름이 중요하다.
 
 ---
 
@@ -323,6 +369,10 @@ CLI 작업 흐름에서는 이 방식이 훨씬 자연스럽고, <GreenText>메�
 
 여기에는 규칙집보다, 다음 세션에서 다시 참고해야 할 작업 메모를 남기는 편이 맞다.
 
+짧게 써야 하는 이유는 로드 방식에도 있다. <br />
+`MEMORY.md` 는 주제별 메모를 가리키는 인덱스 파일인데, 매 세션 시작 시 앞에서부터 200줄 또는 25KB 까지만 로드된다. <br />
+주제별 파일은 처음부터 읽히지 않고 필요할 때 열어보기 때문에, `MEMORY.md` 에는 한 줄짜리 목록만 두고 내용은 주제별 파일로 나누는 편이 맞다.
+
 ---
 
 ## 자주 하는 실수
@@ -370,9 +420,9 @@ GitHub 레포와 함께 작업할수록 이 구조는 더 중요해진다.
 # 프로젝트 이름
 
 ## 먼저 읽을 문서
-- ./docs/agents/common.md
-- ./docs/agents/frontend.md
-- ./docs/agents/blog-post-writing.md
+@docs/agents/common.md
+@docs/agents/frontend.md
+@docs/agents/blog-post-writing.md
 
 ## 프로젝트 설명
 - Next.js 기반 정적 사이트
@@ -399,20 +449,17 @@ GitHub 레포와 함께 작업할수록 이 구조는 더 중요해진다.
 오히려 처음에는 작은 템플릿으로 시작하고, <br />
 실제로 반복해서 부딪히는 규칙만 조금씩 추가하는 편이 유지보수에 더 유리하다.
 
-그리고 루트 CLAUDE.md 에는 이런 식의 안내가 들어가면 읽는 순서를 잡기 쉽다.
+루트 CLAUDE.md 에서 공통 규칙은 import 로 가져오고, 디렉토리별 규칙은 따로 가리킬 필요가 없다. <br />
+`contents/CLAUDE.md`, `components/CLAUDE.md` 는 Claude 가 그 폴더의 파일을 다룰 때 자동으로 로드되기 때문이다.
 
 ```md
 ## 먼저 읽을 문서
-- ./docs/agents/common.md
-- ./docs/agents/frontend.md
-- ./docs/agents/blog-post-writing.md
-
-## 디렉토리별 규칙
-- contents/ 작업 시 -> ./contents/CLAUDE.md
-- components/ 작업 시 -> ./components/CLAUDE.md
+@docs/agents/common.md
+@docs/agents/frontend.md
+@docs/agents/blog-post-writing.md
 ```
 
-이렇게 적어두면 에이전트가 공통 규칙부터 읽고, 실제로 들어가는 디렉토리에 맞는 세부 규칙으로 내려가는 흐름을 만들기 쉽다.
+이렇게 두면 공통 규칙은 항상 들어가 있고, 실제로 들어가는 디렉토리의 세부 규칙은 그때그때 더해지는 흐름이 된다.
 
 여기서도 `./docs/agents` 는 하나의 예시일 뿐이다.
 팀에서 `./guides`, `./docs/rules`, `./.ai` 같은 경로를 쓰고 있다면 그 구조를 그대로 써도 된다.
@@ -439,6 +486,7 @@ GitHub 레포와 함께 작업할수록 이 구조는 더 중요해진다.
 ✔ CLAUDE.md 는 프로젝트에서 에이전트가 따라야 할 기준을 적는 문서다. <br/>
 ✔ 파일 위치가 곧 적용 범위이기 때문에 전역, 프로젝트, 디렉토리 단위 규칙을 구분해서 두는 편이 좋다. <br/>
 ✔ 규칙은 CLAUDE.md 와 rules 문서로, 반복 맥락은 memory 로 나누는 것이 가장 안정적이다. <br/>
+✔ 자동으로 읽히는 것은 CLAUDE.md, CLAUDE.local.md, .claude/rules 뿐이고, 직접 만든 경로의 문서는 @경로 로 import 해야 로드된다. <br/>
 ✔ 추상적인 표현보다 짧고 구체적인 지시형 문장이 훨씬 잘 작동한다. <br/>
 ✔ 처음에는 작은 템플릿으로 시작하고, 필요할 때만 규칙을 분리해 확장하면 된다. <br/>
 ✔ 결국 이 구조도 낯선 문제가 아니라, DDD 나 MSA, 객체지향에서 보던 것처럼 책임과 범위를 어디서 끊을지 정하는 문제에 가깝다.

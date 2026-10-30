@@ -1,6 +1,7 @@
 ---
 title: "LLM 토크나이저 Deep Dive - BPE 알고리즘부터 코드 뜯어보기까지"
 date: "2026-04-03"
+updated: "2026-10-31"
 tags: ["Etc", "AI"]
 summary: "Deep dive into LLM tokenizer - from BPE algorithm to building an offline tokenizer"
 description: "LLM 3사(OpenAI, Anthropic, Google)의 토크나이저를 분석하고, AI Agent의 도움을 받아 순수 JavaScript BPE 토크나이저 코드를 뜯어본 과정을 정리"
@@ -37,7 +38,7 @@ LLM은 텍스트를 그대로 처리하지 않고, 텍스트를 일정한 단위
 예를 들어, `"Hello, world!"`라는 텍스트는 다음과 같이 변환된다:
 
 ```
-"Hello, world!" → ["Hello", ",", " world", "!"] → [9906, 11, 1917, 0]
+"Hello, world!" → ["Hello", ",", " world", "!"] → [9906, 11, 1917, 0]   (OpenAI cl100k_base 기준)
 ```
 
 토큰은 단어 단위가 아니고, 자주 등장하는 문자열은 하나의 토큰이 되고, 드물게 등장하는 문자열은 더 작은 단위로 쪼개진다. <br />
@@ -323,8 +324,8 @@ OpenAI는 모델 세대별로 서로 다른 인코딩을 사용한다.
 
 :::warning
 Anthropic은 공식 오프라인 토크나이저를 공개하지 않고 있다.
-Claude 3 모델의 경우 [Xenova/claude-tokenizer](https://huggingface.co/Xenova/claude-tokenizer) 등 HuggingFace에 공개된 데이터로 근사할 수 있지만,
-실제 Claude API의 토큰 수와 ~10% 정도 오차가 발생할 수 있다.
+[Xenova/claude-tokenizer](https://huggingface.co/Xenova/claude-tokenizer) 같은 공개 데이터는 Claude 3 이전 모델의 토크나이저라서,
+Anthropic 도 Claude 3 이후 모델에는 정확하지 않고 "매우 대략적인 근사치"로만 쓸 수 있다고 밝히고 있다. 오차가 얼마인지도 정해진 값이 없다.
 정확한 토큰 수가 필요하다면 Anthropic에서 제공하는 [Token Counting API](https://docs.anthropic.com/en/api/messages-count-tokens)를 사용하는 것이 권장된다.
 :::
 
@@ -406,16 +407,19 @@ Gemini는 전체 텍스트를 한 번에 BPE에 넣는다.
 입력: "Hello, world! 안녕하세요."
 
 [ OpenAI ]
-▶ o200k_base  :  8 Tokens
+▶ o200k_base  :  7 Tokens
 ▶ cl100k_base :  9 Tokens
-▶ p50k_base   : 15 Tokens
+▶ p50k_base   : 19 Tokens
 
 [ Anthropic ]
-▶ Claude      : ~10 Tokens (근사치)
+▶ Claude      : 12 Tokens (Xenova/claude-tokenizer, 근사치)
 
 [ Google ]
-▶ Gemini      :  9 Tokens
+▶ Gemma3      :  6 Tokens
 ```
+
+토큰 수는 2026-10-31 에 tiktoken 0.14.0, HuggingFace tokenizers 0.23.3 으로 직접 세었다. <br />
+Gemma3 는 공식 저장소가 로그인을 요구해서, 같은 tokenizer.json 을 그대로 올려둔 unsloth/gemma-3-1b-it 의 파일을 썼다.
 
 차이가 발생하는 이유를 정리하면 다음과 같다.
 
@@ -428,7 +432,7 @@ Gemini는 전체 텍스트를 한 번에 BPE에 넣는다.
 | 데이터 크기 | 0.5 ~ 2.2MB | 1.7MB | 14MB |
 
 vocab 크기가 클수록 더 긴 문자열을 하나의 토큰으로 표현할 수 있어서, 일반적으로 토큰 수가 줄어드는 경향이 있다. <br />
-Gemini(Gemma3)의 vocab이 262K로 가장 크고, 실제로 많은 텍스트에서 가장 적은 토큰 수를 보인다.
+Gemini(Gemma3)의 vocab이 262K로 가장 큰데, 위 예시에서도 6개로 가장 적다. o200k는 "안녕하세요"를 " 안" + "녕하세요" 두 토큰으로 나누고, Gemma3는 "▁안녕하세요" 한 토큰으로 처리한 차이다.
 
 ---
 
@@ -738,15 +742,15 @@ function getTiktoken(encoding) {
 | Provider | 토크나이저 데이터 출처 | 정확도 |
 |---|---|---|
 | OpenAI | [tiktoken](https://github.com/openai/tiktoken) 공식 인코딩 데이터 포팅 | 공식 tiktoken과 동일 |
-| Anthropic | [Xenova/claude-tokenizer](https://huggingface.co/Xenova/claude-tokenizer) | 근사치 (~10% 오차 가능) |
+| Anthropic | [Xenova/claude-tokenizer](https://huggingface.co/Xenova/claude-tokenizer) | Claude 3 이전 토크나이저, 현행 모델에는 대략적인 근사치 |
 | Google | [unsloth/gemma-3-1b-it](https://huggingface.co/unsloth/gemma-3-1b-it) | Gemma3 토크나이저와 동일 |
 
 한 가지 짚고 넘어갈 점이 있다. OpenAI의 "공식 tiktoken과 동일"이라는 정확도는 **한국어에도 그대로 적용**된다. <br />
 tiktoken은 바이트 레벨에서 동작하기 때문에, 언어에 관계없이 동일한 UTF-8 바이트 시퀀스는 항상 동일한 토큰으로 분할된다. <br />
 공식 tiktoken의 rank 데이터를 그대로 포팅했으므로, 한국어든 일본어든 아랍어든 결과가 정확히 일치한다.
 
-반면 Anthropic의 ~10% 오차는 **실제 Claude API가 내부적으로 사용하는 토크나이저와 공개된 데이터 사이의 차이**에서 비롯된다. <br />
-Anthropic이 공식 토크나이저를 공개하지 않는 이상, 이 오차를 줄이기는 어렵다.
+반면 Anthropic 쪽 오차는 **실제 Claude API가 사용하는 토크나이저와 공개된 (Claude 3 이전) 데이터 사이의 차이**에서 비롯된다. <br />
+Anthropic이 현행 토크나이저를 공개하지 않는 이상, 오차가 얼마인지 알 수도 없고 줄이기도 어렵다.
 
 :::warning
 Anthropic 쪽은 공개 tokenizer 자산으로 근사치는 볼 수 있어도, 정확한 기준은 결국 공식 API 쪽에 더 가깝다. <br />
@@ -883,8 +887,8 @@ API 비용 절감도 중요하지만, 컨텍스트 윈도우를 전략적으로 
 토큰 효율만 따지면 영어가 유리한 건 맞다. 한국어 한 글자가 UTF-8로 3바이트인데 영어는 1바이트니까.
 
 ```
-"다음 텍스트를 요약해주세요."  → 약 12 토큰 (OpenAI cl100k 기준)
-"Summarize the following text." → 약 5 토큰
+"다음 텍스트를 요약해주세요."  → 12 토큰 (OpenAI cl100k 기준)
+"Summarize the following text." →  7 토큰
 ```
 
 그래서 "프롬프트는 영어로 쓰고, 응답만 한국어로 받아라"는 조언도 있다. <br />
@@ -1092,6 +1096,7 @@ LLM 토크나이저라는 최신 기술의 속을 열어보니, <br />
 - [OpenAI Token Counting Guide](https://developers.openai.com/api/docs/guides/token-counting) - API에서 토큰 수를 계산하는 방법 가이드
 - [OpenAI Models](https://platform.openai.com/docs/models/compare) - 모델별 컨텍스트 윈도우, 최대 출력 토큰, 가격 비교
 - [Anthropic Token Counting API](https://docs.anthropic.com/en/api/messages-count-tokens) - Claude의 count_tokens 엔드포인트 레퍼런스
+- [anthropic-tokenizer-typescript](https://github.com/anthropics/anthropic-tokenizer-typescript) - Claude 3 이후 모델에는 대략적인 근사치라는 안내
 - [Anthropic Context Windows](https://platform.claude.com/docs/en/build-with-claude/context-windows) - Claude의 컨텍스트 윈도우 개념과 활용
 - [Google Gemini Tokens Guide](https://ai.google.dev/gemini-api/docs/tokens) - Gemini API의 토큰 이해 및 카운팅 가이드
 - [Google Gemini Models](https://ai.google.dev/gemini-api/docs/models) - Gemini 모델별 사양 및 컨텍스트 윈도우

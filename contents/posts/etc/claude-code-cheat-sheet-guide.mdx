@@ -1,6 +1,7 @@
 ---
 title: "Claude Code Cheat Sheet 정리 - 자주 쓰는 단축키, Slash Command, MCP 빠르게 익히기"
 date: "2026-03-28"
+updated: "2026-10-31"
 tags: ["Etc", "AI"]
 summary: "A practical Korean guide to the Claude Code Cheat Sheet, covering the most useful shortcuts, slash commands, MCP, agents, and CLI workflows at a glance."
 description: "Claude Code v2.1.83 기준으로 꼭 먼저 익힐 단축키, Slash Command, MCP, Agent, CLI 사용 흐름을 한국어로 정리한다."
@@ -11,6 +12,10 @@ Claude Code를 쓰다 보면 단순히 질문만 입력하는 방식으로는 �
 자주 쓰는 단축키와 명령어, MCP, Agent, CLI 흐름을 같이 익혀야 작업 속도가 확실히 올라간다.
 [Claude Code Cheat Sheet](https://cc.storyfox.cz/) (Claude Code v2.1.83, 2026-03-25 업데이트 기준) 내용을 바탕으로, 먼저 손에 익히면 좋은 핵심 기능만 골라 정리해 보았다.
 CLI 기능과 키 바인딩은 버전에 따라 달라질 수 있으니, 사용 중인 버전과 함께 확인하는 편이 안전하다.
+:::
+
+:::note
+2026-10-31에 Claude Code v2.1.314와 공식 문서 기준으로 다시 확인해서, 동작이 바뀌었거나 제거된 단축키와 명령을 고쳤다.
 :::
 
 ---
@@ -59,8 +64,8 @@ Claude Code의 강점은 단순히 코드를 생성하는 데 머물지 않고, 
 |--|--|--|
 | `Ctrl + C` | 입력 또는 생성 중단 | 현재 진행 중인 입력이나 코드 생성을 취소한다. |
 | `Ctrl + D` | 세션 종료 | Claude Code를 종료한다. |
-| `Ctrl + L` | 화면 정리 | 터미널 화면을 정리한다. |
-| `Ctrl + O` | 상세 출력 보기 | Verbose 출력을 켜고 끈다. |
+| `Ctrl + L` | 화면 다시 그리기 | 입력과 대화 기록은 그대로 두고 화면을 다시 그린다. 화면이 깨졌을 때 쓴다. |
+| `Ctrl + O` | 트랜스크립트 보기 | 도구 사용 내역과 실행 결과를 자세히 보여주는 트랜스크립트 뷰어를 연다. |
 | `Ctrl + R` | 히스토리 검색 | 이전 프롬프트를 검색한다. |
 
 ### 입력과 편집
@@ -71,22 +76,22 @@ Claude Code의 강점은 단순히 코드를 생성하는 데 머물지 않고, 
 | `Ctrl + X, Ctrl + E` | 프롬프트 에디터 열기 | `Ctrl + G` 와 같은 동작이다. |
 | `\ + Enter` | 빠른 줄바꿈 | 메시지를 전송하지 않고 줄바꿈한다. |
 | `Ctrl + J` | 줄바꿈 | 입력창 안에서 줄바꿈한다. |
-| `Ctrl + V` | 이미지 붙여넣기 | 스크린샷 같은 이미지를 입력한다. |
+| `Ctrl + V` | 이미지 붙여넣기 | 스크린샷 같은 이미지를 입력한다. Windows와 WSL에서는 `Alt + V`를 쓴다. |
 
 ### 작업 흐름 전환
 
 | 단축키 | 동작 | 설명 |
 |--|--|--|
 | `Ctrl + B` | 백그라운드 전환 | 현재 작업을 백그라운드로 보낸다. |
-| `Ctrl + T` | 작업 목록 토글 | 진행 중인 작업 목록을 확인한다. |
-| `Shift + Tab` | 권한 모드 순환 | Normal, Auto-Accept, Plan 모드를 전환한다. |
+| `Ctrl + T` | 할 일 목록 토글 | Claude가 만든 to-do 체크리스트를 보이거나 숨긴다. 백그라운드 작업 목록은 `/tasks`로 본다. |
+| `Shift + Tab` | 권한 모드 순환 | default, acceptEdits, plan 순서로 돌고, 켜져 있으면 bypassPermissions와 auto도 포함한다. |
 | `Alt + P` | 모델 변경 | 사용할 모델을 전환한다. |
-| `Alt + T` | 추론 표시 전환 | thinking 표시를 전환한다. |
-| `Esc Esc` | 되감기 | 직전 상태로 rewind 또는 undo 한다. |
+| `Alt + T` | extended thinking 전환 | extended thinking을 켜고 끈다. macOS는 `Option + T`이고, 항상 thinking을 쓰는 모델에서는 효과가 없다. |
+| `Esc Esc` | 입력 지우기, 되감기 | 입력이 있으면 초안을 지우고, 입력이 비어 있으면 rewind 메뉴를 연다. |
 
 :::tip
-처음에는 `Ctrl + G`, `Ctrl + B`, `Ctrl + O` 세 가지만 익혀도 충분하다.
-긴 요청을 쓰고, 오래 걸리는 작업은 뒤로 보내고, 필요할 때만 상세 출력을 보는 흐름이 자연스러워진다.
+처음에는 Ctrl + G, Ctrl + B, Ctrl + O 세 가지만 익혀도 충분하다.
+긴 요청을 쓰고, 오래 걸리는 작업은 뒤로 보내고, 필요할 때만 트랜스크립트로 자세한 실행 내역을 보는 흐름이 자연스러워진다.
 :::
 
 ---
@@ -116,10 +121,9 @@ Claude Code 는 긴 세션도 잘 이어가는 편이지만, 대화가 길어질
 
 | 명령 | 설명 |
 |--|--|
-| /config | 설정 열기 |
+| /config | 설정 열기 (Vim 편집 모드도 여기서 Editor mode로 바꾼다) |
 | /model [model] | 모델 전환 |
 | /fast [on\|off] | 빠른 응답 모드 전환 |
-| /vim | vim 모드 전환 |
 | /theme | 색상 테마 변경 |
 | /permissions | 권한 설정 확인 |
 | /effort [level] | 추론 강도 변경 |
@@ -132,7 +136,8 @@ Claude Code 는 긴 세션도 잘 이어가는 편이지만, 대화가 길어질
 | /mcp | MCP 서버 관리 |
 | /hooks | Hook 관리 |
 | /skills | 스킬 목록 확인 |
-| /agents | Agent 관리 |
+| /agents | Subagent 안내 (v2.1.198부터 관리 화면 대신 안내 문구만 출력한다) |
+| /tasks | 백그라운드 작업 확인 |
 | /chrome | Chrome 연동 |
 | /reload-plugins | 플러그인 다시 로드 |
 | /add-dir [path] | 작업 디렉터리 추가 |
@@ -144,9 +149,12 @@ Claude Code 는 긴 세션도 잘 이어가는 편이지만, 대화가 길어질
 | /plan [desc] | 계획 모드 진입 |
 | /loop [interval] | 반복 작업 예약 |
 | /doctor | 설치 상태 점검 |
-| /pr-comments [PR] | GitHub PR 코멘트 가져오기 |
 | /usage | 사용량과 제한 확인 |
 | /security-review | 변경사항 보안 검토 |
+
+:::warning
+/vim은 v2.1.92에서, /pr-comments는 v2.1.91에서 제거됐다. Vim 모드는 /config의 Editor mode에서 바꾸고, PR 코멘트는 Claude에게 직접 보여달라고 요청하면 된다.
+:::
 
 :::note
 개인적으로는 compact, diff, permissions, mcp 네 개를 먼저 익히는 편이 가장 실용적이라고 생각한다.
@@ -164,9 +172,10 @@ Claude Code를 조금 더 제대로 쓰려면 MCP 서버와 메모리 파일이 
 
 MCP는 Claude Code가 외부 시스템에 접근하는 통로다.
 
-* 연결 방식은 `http`, `stdio`, `sse`
-* 관리 명령은 `/mcp`, `claude mcp list`, `claude mcp serve`
-* 프로젝트 단위 설정은 팀과 공유할 수 있고, 사용자 전역 설정은 개인 환경에만 적용된다
+* 연결 방식은 `http`, `stdio`이고, `sse`는 deprecated라서 가능하면 `http`를 쓴다
+* 관리 명령은 `/mcp`, `claude mcp add`, `claude mcp list`
+* `claude mcp serve`는 관리 명령이 아니라, Claude Code 자신을 MCP 서버로 실행하는 명령이다
+* 기본 scope는 `local`(나만, 이 프로젝트에서만)이고, 팀과 공유하려면 `--scope project`로 추가해서 `.mcp.json`에 넣는다
 
 GitHub, Notion, 브라우저, 사내 도구 연동은 MCP 유무에 따라 활용 범위가 크게 달라진다.
 
@@ -182,7 +191,7 @@ GitHub, Notion, 브라우저, 사내 도구 연동은 MCP 유무에 따라 활�
 | `~/.claude/rules/*.md` | 사용자 규칙 파일 |
 | `~/.claude/projects/<proj>/memory/` | 자동 메모리 디렉터리 |
 
-자동 메모리 디렉터리에 `MEMORY.md`와 주제별 메모 파일이 쌓일 수 있는데, 세션이 길어지거나 압축되도 프로젝트별 기록과 규칙을 비교적 안정적으로 이어갈 수 있다.
+자동 메모리 디렉터리에 `MEMORY.md`와 주제별 메모 파일이 쌓일 수 있는데, 세션이 길어지거나 압축돼도 프로젝트별 기록과 규칙을 비교적 안정적으로 이어갈 수 있다.
 
 :::warning
 프로젝트 규칙과 개인 규칙이 충돌하면 어떤 규칙을 우선할지 팀 정책을 먼저 정해두는 편이 안전하다.
@@ -200,10 +209,10 @@ Claude Code의 강력한 점 중 하나는 하나의 대화창에만 머무르�
 
 치트시트에는 아래 같은 내장 Agent 개념이 나온다.
 
-* Explore
-* Plan
-* General
-* Bash
+* Explore (읽기 전용 코드 탐색)
+* Plan (plan 모드에서 계획 전에 맥락 수집)
+* general-purpose (탐색과 수정을 함께 하는 범용 작업)
+* statusline-setup, claude-code-guide 같은 보조 Agent
 
 핵심은 단순히 답변을 여러 개 받는 것이 아니라, 역할에 따라 작업을 분리할 수 있다는 점이다.
 
@@ -211,7 +220,7 @@ Claude Code의 강력한 점 중 하나는 하나의 대화창에만 머무르�
 
 * `permissionMode`
 * `isolation: worktree`
-* `memory: user|project`
+* `memory: user|project|local`
 * `background: true`
 * `maxTurns`
 
@@ -250,9 +259,9 @@ claude update
 
 | 옵션 | 설명 | 활용 예시 |
 |--|--|--|
-| `-p`, `--prompt` | 단일 프롬프트 실행 | `claude -p "현재 변경사항 위험도 요약해줘"` |
+| `-p`, `--print` | 비대화형으로 한 번 실행하고 결과 출력 | `claude -p "현재 변경사항 위험도 요약해줘"` |
 | `--output-format json` | 구조화된 JSON 출력 | 자동화 파이프라인에서 결과 파싱 |
-| `-w`, `--worktree` | 특정 Git worktree 지정 | 격리된 브랜치에서 작업 지시 |
+| `-w`, `--worktree` | 새 Git worktree를 만들어 그 안에서 시작 | `.claude/worktrees/<name>`에 격리된 작업 공간 생성 |
 | `--allowedTools` | 도구 권한 사전 허용 | 스크립트 실행 시 권한 프롬프트 최소화 |
 | `--effort` | 추론 강도 설정 | 복잡한 분석 작업에서 `high` 설정 |
 
@@ -279,8 +288,8 @@ claude update
 :::success
 <b>정리</b>
 ✔ Claude Code Cheat Sheet는 단순한 기능 목록이 아니라 작업 속도를 높여주는 실전 참조표에 가깝다. <br/>
-✔ 처음에는 `Ctrl + G`, `/compact`, `/diff`, `/permissions` 같은 핵심 기능부터 익히는 편이 효율적이다. <br/>
-✔ `CLAUDE.md` 와 MCP를 이해하면 프로젝트 맞춤형 작업 환경을 만들기 쉽다. <br/>
+✔ 처음에는 Ctrl + G, /compact, /diff, /permissions 같은 핵심 기능부터 익히는 편이 효율적이다. <br/>
+✔ CLAUDE.md 와 MCP를 이해하면 프로젝트 맞춤형 작업 환경을 만들기 쉽다. <br/>
 ✔ Agent, Worktree, CLI 자동화를 익히면 Claude Code를 단순 채팅 도구 이상으로 활용할 수 있다. <br/>
 ✔ Claude Code 는 단순히 채팅하듯 쓰는 도구가 아니라, 알고 쓸수록 작업 품질과 자동화 범위가 함께 넓어지는 도구에 가깝다.
 :::
@@ -290,4 +299,6 @@ claude update
 ## 📚 Reference
 
 * [Claude Code Cheat Sheet](https://cc.storyfox.cz/)
-* [Claude Code Recent Changes](https://code.claude.com/)
+* [Claude Code Changelog](https://code.claude.com/docs/en/changelog)
+* [Claude Code Docs - Commands](https://code.claude.com/docs/en/commands)
+* [Claude Code Docs - Interactive mode](https://code.claude.com/docs/en/interactive-mode)
