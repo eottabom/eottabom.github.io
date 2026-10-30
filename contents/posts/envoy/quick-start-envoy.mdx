@@ -165,7 +165,7 @@ envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름(Listener -> filt
         * Cluster 는 내부에 설정된 로드밸린싱 정책을 고려해서 적합한 Endpoint 를 선정하고, 매칭된 곳으로 트래픽을 전달한다. <BlueText>(To Upstream)</BlueText>
 
         다시 정리하면, 아래의 과정이다.
-        1. **요청 수신**: Downstream → Envoy Listener (예: 0.0.0.0:8080)
+        1. **요청 수신**: Downstream → Envoy Listener (예: 0.0.0.0\:8080)
         2. **필터 체인 실행**: Listener Filters → Network Filters → HTTP Filters
         3. **라우팅 결정**: Router Filter가 Route 규칙에 따라 Cluster 선택
         4. **로드밸런싱**: Cluster가 LB 정책으로 Endpoint 선택
