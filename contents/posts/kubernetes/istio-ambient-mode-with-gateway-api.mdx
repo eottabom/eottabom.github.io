@@ -1,7 +1,7 @@
 ---
 title: "Demo로 이해하는 Istio Ambient mode (Gateway API + ext_authz)"
 date: "2026-06-23"
-updated: "2026-07-30"
+updated: "2026-10-31"
 tags: ["kubernetes", "Istio", "Service Mesh", "Spring Cloud"]
 summary: "Explore Istio Ambient mode and verify how Gateway API and ext_authz can replace an application-layer reverse proxy through a local demo."
 description: "Istio Ambient mode의 아키텍처와 트래픽 흐름을 알아보고, 기존 역방향 프록시 구조를 Istio Gateway(HTTPRoute)와 AuthorizationPolicy(ext_authz)로 전환하는 과정을 kind 기반 로컬 데모로 직접 검증한다."
@@ -40,7 +40,7 @@ waypoint를 별도로 배치하지 않고 Istio Gateway를 사용한다.
 | --- | --- | --- |
 | 리소스 | `networking.istio.io` Gateway + VirtualService | `gateway.networking.k8s.io` Gateway + HTTPRoute(TCPRoute 등) |
 | 표준 여부 | Istio 전용 CRD | Kubernetes SIG 표준(여러 구현체가 공통 지원) |
-| 프록시 프로비저닝 | 별도로 ingress gateway Deployment/Service를 설치·관리해야 함 | GatewayClass 컨트롤러(istiod)가 Gateway 리소스를 감지해 Deployment/Service를 자동 생성 |
+| 프록시 프로비저닝 | 별도로 ingress gateway Deployment/Service를 설치, 관리해야 함 | GatewayClass 컨트롤러(istiod)가 Gateway 리소스를 감지해 Deployment/Service를 자동 생성 |
 | 라우팅 규칙 정의 | VirtualService에서 정의 | HTTPRoute에서 정의, ReferenceGrant로 네임스페이스 간 위임 가능 |
 | 이식성 | Istio에서만 동작 | Envoy Gateway, Cilium 등 다른 구현체로도 이식 가능 |
 
@@ -81,8 +81,8 @@ istiod는 설정을 배포하고, ztunnel과 waypoint, Istio Gateway는 각 레�
 L4 AuthorizationPolicy를 통과한 요청만 애플리케이션 Pod로 전달된다.
 
 Istio Gateway에서 시작한 트래픽은 기본적으로 destination waypoint를 사용하지 않는다. <br />
-Ingress 트래픽에도 waypoint를 적용하려면 Service 또는 Namespace에 istio.io/ingress-use-waypoint: true를 설정하고,
-istiod의 ENABLE_INGRESS_WAYPOINT_ROUTING도 활성화해야 한다.
+Ingress 트래픽에도 waypoint를 적용하려면 Service 또는 Namespace에 istio.io/ingress-use-waypoint: true 라벨을 설정한다. <br />
+istiod의 ENABLE_INGRESS_WAYPOINT_ROUTING 플래그도 필요한데, Istio 1.30.1 소스 기준으로 ambient 가 켜져 있으면(PILOT_ENABLE_AMBIENT=true) 기본값이 true 라서 따로 켤 필요는 없다.
 
 내부 서비스 간 통신은 source ztunnel이 outbound 트래픽을 캡처하면서 시작한다. <br />
 목적지에 waypoint가 없으면 source ztunnel에서 destination ztunnel로 HBONE 연결을 만들고,
@@ -115,7 +115,7 @@ istiod-xxxxxxxxxx-xxxxx  1/1     Running   0          1m
 ztunnel-xxxxx            1/1     Running   0          1m
 ```
 
-내부 프로세스를 들여다보면 ztunnel은 ztunnel proxy ztunnel 단일 프로세스로 동작하고,
+내부 프로세스를 들여다보면 ztunnel은 `ztunnel proxy ztunnel` 명령으로 실행되는 단일 프로세스로 동작하고,
 istiod 안에는 실제 설정 배포를 담당하는 pilot-discovery 프로세스가 있다.
 
 ---
@@ -198,8 +198,12 @@ HTTPRoute 의 hostnames에 external-a.local을 지정했으므로,
 nginx가 Istio Gateway로 요청을 전달할 때 Host 헤더도 external-a.local로 설정해야 한다.
 Host 헤더가 일치하지 않으면 route-api가 매칭되지 않는다.
 
-클러스터 외부(Docker)에 떠 있는 백엔드는 ServiceEntry 대신 selector 없는 Service + Endpoints 조합으로 등록한다.
-이번 데모의 HTTPRoute가 backendRef로 Kubernetes Service를 참조하기 때문이다.
+클러스터 외부(Docker)에 떠 있는 백엔드는 selector 없는 Service + Endpoints 조합으로 등록했다. <br />
+HTTPRoute 의 backendRef 를 일반 Kubernetes Service 로 맞추려고 고른 방법인데, Istio 는 `group: networking.istio.io`, `kind: Hostname` 으로 ServiceEntry 의 호스트를 backendRef 에 직접 지정하는 것도 지원한다.
+
+:::note
+v1 Endpoints API 는 Kubernetes 1.33 부터 deprecated 다. 데모는 짧게 쓰려고 Endpoints 를 썼지만, 실제로 적용한다면 EndpointSlice 로 등록하는 편이 맞다.
+:::
 
 ### AS-IS에서 TO-BE로 전환하는 과정
 
@@ -265,10 +269,14 @@ spec:
 ```
 
 provider.name은 istiod ConfigMap의 extensionProviders에 등록한 이름과 일치해야 한다.
+
+:::warning
+AuthorizationPolicy 의 paths: ["/api"] 는 /api 와 정확히 일치하는 경로만 매칭한다. 이 데모의 authz HTTPRoute 는 경로 타입이 Exact 라서 문제가 없지만, 앞의 Demo 1 처럼 PathPrefix 로 라우팅하면서 이 정책을 그대로 쓰면 /api/orders 같은 하위 경로는 ext_authz 를 거치지 않고 통과한다. 하위 경로까지 막으려면 paths: ["/api", "/api/*"] 처럼 함께 적어야 한다.
+:::
 `switch-authz-to-istio.sh`는 다음 순서로 전환을 처리한다.
 
 1. authz-server 이미지를 빌드하고 kind 클러스터에 로드한다.
-2. istiod ConfigMap에 `demo-authz-grpc` provider를 등록한 뒤 istiod를 재시작해서 설정을 반영한다.
+2. istiod ConfigMap에 `demo-authz-grpc` provider를 등록한 뒤 istiod를 재시작한다. istiod 는 mesh config 를 감시해서 재시작 없이도 반영하지만, ConfigMap 이 파일로 마운트되어 있어 kubelet 이 바뀐 내용을 파일에 동기화할 때까지 시간이 걸리기 때문에 데모에서는 재시작으로 바로 반영한다.
 3. authz-server Deployment, Service + Endpoints, Gateway, HTTPRoute, AuthorizationPolicy를 순서대로 적용한다.
 4. `kubectl port-forward`로 Istio Gateway를 호스트의 18080 포트에 연결한다.
 5. nginx 설정을 port-forward 경로로 교체해서 재시작한다.
@@ -336,9 +344,24 @@ curl -H 'x-demo-user: alice' http://localhost:8080/api          # 허용, 응답
 
 AS-IS와 TO-BE 모두 `x-authz-user: alice`, `x-authz-result: allow` 헤더가 동일하게 찍히는 걸 확인할 수 있다. ext_authz로 옮긴 인가 로직이 기존 애플리케이션과 같은 헤더 계약을 그대로 유지한다는 뜻이다.
 
-`x-request-id` 값은 달라진다. 이건 Istio 자체의 동작이 아니라 이번 데모 코드의 구현 차이다. AS-IS의 `SessionAuthzGatewayFilter`는 `UUID.randomUUID()`로 직접 ID를 생성해서 내려보내는데, TO-BE의 ext_authz 서버(`ExtAuthzGrpcService`)는 이 헤더를 아예 건드리지 않는다. 그 결과 `x-request-id`가 비어 있는 채로 Envoy까지 도달하고, Envoy의 HTTP Connection Manager가 기본 옵션(`generate_request_id`)으로 새 값을 채워 넣는다.
+`x-request-id` 값은 달라지는데, 누가 어떤 형식으로 ID 를 만드느냐가 다르기 때문이다.
 
-실제로 ext_authz 서버에서도 들어온 `x-request-id`를 그대로 보존하도록 구현했다면 이런 차이는 없었을 것이다. 실무에서 인가 로직을 인프라로 옮길 때는 "애플리케이션이 암묵적으로 하던 일(헤더 생성, 보존 등)을 인프라 쪽 구현에서도 빠짐없이 챙겼는지"를 한 번씩 점검할 필요가 있다는 점에서는 참고할 만하다.
+* AS-IS: `SessionAuthzGatewayFilter` 가 들어온 `X-Request-Id` 가 있으면 그대로 쓰고, 없으면 `"req-" + UUID` 형식으로 직접 만든다.
+* TO-BE: 요청을 받은 Istio Gateway(Envoy)의 HTTP Connection Manager 가 기본 옵션(`generate_request_id`)으로 UUID 를 만든다.
+
+이 순서가 중요한데, Envoy 는 요청을 받자마자 ID 를 먼저 만들고 그 다음에 ext_authz 필터를 호출한다. <br />
+Envoy 를 따로 띄워서 ext_authz(HTTP) 서버와 업스트림이 받은 헤더를 찍어보면 아래와 같다.
+
+| 클라이언트 요청 | ext_authz 서버가 받은 x-request-id | 업스트림이 받은 x-request-id |
+| --- | --- | --- |
+| 헤더 없음 | `45485e6d-2846-4ab5-b21f-f16a7a39c1fb` | `45485e6d-2846-4ab5-b21f-f16a7a39c1fb` |
+| `x-request-id: req-from-client` | `req-from-client` | `req-from-client` |
+
+ext_authz 서버가 받는 시점에 이미 ID 가 들어 있고, 데모의 `ExtAuthzGrpcService` 는 이 헤더를 건드리지 않으니 그대로 업스트림까지 간다. <br />
+즉 ext_authz 서버가 헤더를 보존하지 않아서 생긴 차이가 아니라, AS-IS 는 애플리케이션이, TO-BE 는 Envoy 가 ID 를 만든다는 차이다.
+
+실무에서 인가 로직을 인프라로 옮길 때는 이런 식으로 "애플리케이션이 암묵적으로 하던 일(헤더 생성 형식, 보존 등)"이 바뀌지 않는지 한 번씩 점검할 필요가 있다. <br />
+로그나 트레이싱에서 `req-` 접두어로 ID 를 구분하고 있었다면, 전환 후에는 그 규칙이 깨진다.
 
 ---
 
