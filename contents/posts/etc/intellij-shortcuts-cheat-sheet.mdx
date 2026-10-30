@@ -1,6 +1,7 @@
 ---
 title: "IntelliJ IDEA 단축키 모음 - Mac & Windows 완벽 정리 (키보드 UI 포함)"
 date: "2026-04-13"
+updated: "2026-10-31"
 tags: ["Etc"]
 summary: "IntelliJ IDEA keyboard shortcuts cheat sheet for Mac and Windows with visual keyboard UI."
 description: "IntelliJ IDEA에서 자주 쓰는 단축키를 카테고리별로 Mac과 Windows 버전으로 정리하고, 키보드 UI로 시각적으로 보여준다."
@@ -23,7 +24,7 @@ IntelliJ IDEA를 쓰면서 마우스 없이 키보드만으로 작업하는 순�
 |-----|---------|------|
 | <Kbd>⌘</Kbd> Command | <Kbd>Ctrl</Kbd> | 주요 수정자 키 |
 | <Kbd>⌥</Kbd> Option | <Kbd>Alt</Kbd> | 보조 수정자 키 |
-| <Kbd>⌃</Kbd> Control | (없음) | Mac 고유 수정자 |
+| <Kbd>⌃</Kbd> Control | 단축키마다 다름 | Mac 전용 수정자, Windows 에서는 Ctrl(⌃H → Ctrl H)이나 Alt, Shift 조합으로 대응한다 |
 | <Kbd>⇧</Kbd> Shift | <Kbd>Shift</Kbd> | 확장/반전 |
 
 :::tip
@@ -72,7 +73,7 @@ Shift 를 두 번 빠르게 누르는 Search Everywhere 는 IntelliJ에서 가�
 | 이전 에러 지점으로 이동 | <KeyCombo keys="⇧ F2" /> | <KeyCombo keys="⇧ F2" /> |
 | 라인 번호로 이동 | <KeyCombo keys="⌘ L" /> | <KeyCombo keys="Ctrl G" /> |
 | 최근 파일 목록 | <KeyCombo keys="⌘ E" /> | <KeyCombo keys="Ctrl E" /> |
-| 최근 수정 파일 목록 | <KeyCombo keys="⌘ ⇧ E" /> | <KeyCombo keys="Ctrl ⇧ E" /> |
+| 최근 위치 목록 (Recent Locations) | <KeyCombo keys="⌘ ⇧ E" /> | <KeyCombo keys="Ctrl ⇧ E" /> |
 | 클래스 구조 보기 (파일 내) | <KeyCombo keys="⌘ F12" /> | <KeyCombo keys="Ctrl F12" /> |
 | 타입 계층 구조 | <KeyCombo keys="⌃ H" /> | <KeyCombo keys="Ctrl H" /> |
 | 메소드 호출 계층 | <KeyCombo keys="⌃ ⌥ H" /> | <KeyCombo keys="Ctrl Alt H" /> |
@@ -86,11 +87,11 @@ Shift 를 두 번 빠르게 누르는 Search Everywhere 는 IntelliJ에서 가�
 | 기능 | Mac | Windows / Linux |
 |------|-----|-----------------|
 | 줄 복사 | <KeyCombo keys="⌘ D" /> | <KeyCombo keys="Ctrl D" /> |
-| 줄 삭제 | <KeyCombo keys="⌘ X" /> | <KeyCombo keys="Ctrl Y" /> |
-| 줄 위로 이동 | <KeyCombo keys="⌘ ⇧ ↑" /> | <KeyCombo keys="Alt ⇧ ↑" /> |
-| 줄 아래로 이동 | <KeyCombo keys="⌘ ⇧ ↓" /> | <KeyCombo keys="Alt ⇧ ↓" /> |
-| 구문 단위 위로 이동 | <KeyCombo keys="⌥ ⇧ ↑" /> | <KeyCombo keys="Ctrl ⇧ ↑" /> |
-| 구문 단위 아래로 이동 | <KeyCombo keys="⌥ ⇧ ↓" /> | <KeyCombo keys="Ctrl ⇧ ↓" /> |
+| 줄 삭제 | <KeyCombo keys="⌘ ⌫" /> | <KeyCombo keys="Ctrl Y" /> |
+| 줄 위로 이동 | <KeyCombo keys="⌥ ⇧ ↑" /> | <KeyCombo keys="Alt ⇧ ↑" /> |
+| 줄 아래로 이동 | <KeyCombo keys="⌥ ⇧ ↓" /> | <KeyCombo keys="Alt ⇧ ↓" /> |
+| 구문 단위 위로 이동 | <KeyCombo keys="⌘ ⇧ ↑" /> | <KeyCombo keys="Ctrl ⇧ ↑" /> |
+| 구문 단위 아래로 이동 | <KeyCombo keys="⌘ ⇧ ↓" /> | <KeyCombo keys="Ctrl ⇧ ↓" /> |
 | 코드 자동 정렬 | <KeyCombo keys="⌘ ⌥ L" /> | <KeyCombo keys="Ctrl Alt L" /> |
 | Import 정리 | <KeyCombo keys="⌃ ⌥ O" /> | <KeyCombo keys="Ctrl Alt O" /> |
 | 대소문자 전환 | <KeyCombo keys="⌘ ⇧ U" /> | <KeyCombo keys="Ctrl ⇧ U" /> |
@@ -211,9 +212,10 @@ V=Variable, C=Constant, M=Method, P=Parameter, F=Field, N=iNline 처럼 앞 글�
 |------|-----|-----------------|
 | VCS 액션 팝업 | <KeyCombo keys="⌃ V" /> | <KeyCombo keys="Alt `" /> |
 | 커밋 (Commit) | <KeyCombo keys="⌘ K" /> | <KeyCombo keys="Ctrl K" /> |
-| 커밋 & 푸시 | <KeyCombo keys="⌘ ⇧ K" /> | <KeyCombo keys="Ctrl ⇧ K" /> |
+| 푸시 (Push) | <KeyCombo keys="⌘ ⇧ K" /> | <KeyCombo keys="Ctrl ⇧ K" /> |
+| 커밋 & 푸시 (커밋 창에서) | <KeyCombo keys="⌘ ⌥ K" /> | <KeyCombo keys="Ctrl Alt K" /> |
 | 업데이트 (Pull) | <KeyCombo keys="⌘ T" /> | <KeyCombo keys="Ctrl T" /> |
-| 변경사항 Diff 보기 | <KeyCombo keys="⌘ D" /> | <KeyCombo keys="Ctrl D" /> |
+| 변경사항 Diff 보기 (Commit, Changes 창에서) | <KeyCombo keys="⌘ D" /> | <KeyCombo keys="Ctrl D" /> |
 
 ---
 
@@ -261,7 +263,7 @@ macOS / Windows 버튼으로 OS도 전환할 수 있으니, 자신이 쓰는 환
 :::success
 <b>정리</b>
 ✔ IntelliJ 단축키는 한꺼번에 외우기보다 패턴을 먼저 이해하는 편이 훨씬 수월하다. <br/>
-✔ 리팩터링은 ⌘+⌥+알파벳, 검색은 ⌘+⇧+알파벳 형태로 규칙이 있어 앞 글자만 기억하면 된다. <br/>
+✔ 리팩터링은 ⌘+⌥+알파벳(Extract Variable ⌘⌥V, Extract Method ⌘⌥M) 형태가 많아서 기능 이름의 앞 글자로 떠올리기 쉽다. <br/>
 ✔ Mac의 ⌘ 은 Windows의 Ctrl 에 대응되는 경우가 많아, 이 한 가지 패턴만 알아도 절반 이상은 유추할 수 있다. <br/>
 ✔ 단축키를 빠르게 익히고 싶다면 Key Promoter X 플러그인을 함께 사용하는 편이 좋다. <br/>
 ✔ 전체 단축키를 한 번에 보고 싶을 때는 Help > Keymap Reference 를 열어 공식 PDF로 확인할 수 있다.

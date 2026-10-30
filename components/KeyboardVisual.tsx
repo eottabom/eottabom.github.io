@@ -104,7 +104,7 @@ const CATEGORIES: Cat[] = [
     { name: '코드 정렬', mac: ['cmd','opt','l'], win: ['ctrl','alt','l'] },
     { name: '주석 토글', mac: ['cmd','slash'], win: ['ctrl','slash'] },
     { name: 'Import 정리', mac: ['ctrl','opt','o'], win: ['ctrl','alt','o'] },
-    { name: '줄 삭제', mac: ['cmd','x'], win: ['ctrl','y'] },
+    { name: '줄 삭제', mac: ['cmd','backspace'], win: ['ctrl','y'] },
   ]},
   { name: '리팩터링', color: '#f59e0b', items: [
     { name: 'Rename', mac: ['shift_l','f6'], win: ['shift','f6'] },
