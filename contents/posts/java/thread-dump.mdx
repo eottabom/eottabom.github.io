@@ -1,6 +1,7 @@
 ---
 title: "Thread Dump 분석과 활용"
 date: "2026-05-25"
+updated: "2026-10-31"
 tags: ["Java", "JVM"]
 summary: "When to capture a Thread Dump, how to read one, and how to diagnose deadlocks, BLOCKED threads, and CPU spikes with real examples."
 description: "Thread Dump 수집 방법(jstack, kill -3, Spring Actuator)부터 스레드 상태 해석, 데드락/BLOCKED/CPU 스파이크 실제 예시까지 단계별로 살펴본다."
@@ -62,13 +63,17 @@ Thread Dump는 **"스레드 문제"** 라는 확신이 없어도 일단 찍어�
 * `http-nio-*`, `executor-*` 계열 스레드가 모두 요청을 처리 중인데 큐가 쌓인다면 스레드 풀 고갈을 의심할 수 있다.
 * 단순히 `WAITING` 스레드가 많다는 이유만으로는 부족하다. idle worker도 정상적으로 `WAITING` 상태일 수 있다.
 * idle worker와 작업 중인 worker는 스택 최상단으로 구분할 수 있다.
-  - **Idle worker**: 스택 최상단이 `ThreadPoolExecutor.getTask` → `LinkedBlockingQueue.take` → `parkNanos` 패턴
+  - **Idle worker**: 스택 최상단이 `Unsafe.park` 이고, 그 아래로 큐에서 작업을 기다리는 `getTask` 가 보이는 패턴. `take()` 로 기다리면 `WAITING`, `poll(timeout)` 으로 기다리면 `TIMED_WAITING` 이다
   - **작업 중인 worker**: 스택 최상단에 애플리케이션 코드(`Controller`, `Service` 등)가 보임
 
 ```bash
 # 작업 중인 톰캣 스레드 수 세기 (com.example을 실제 패키지명으로 변경)
-jstack <pid> | grep -A 30 "http-nio" | grep "com.example" | wc -l
+# 스레드 블록은 빈 줄로 나뉘어 있어서, awk 문단 모드(RS=)로 스레드 단위로 센다
+jstack <pid> | awk -v RS= '/^"http-nio-8080-exec/ && /com\.example/ {n++} END {print n+0}'
 ```
+
+`grep -A 30 ... | grep com.example | wc -l` 처럼 세면 스레드 수가 아니라 `com.example` 이 들어간 스택 프레임 수가 나온다. <br />
+한 스레드의 스택에 애플리케이션 프레임이 여러 줄 있으면 그만큼 부풀려진다.
 
 톰캣의 기본 `max-threads`는 200 인데, 덤프에서 `http-nio-8080-exec` 스레드가 200개 모두 애플리케이션 코드에서 멈춰 있다면 <BlueText>스레드 풀 고갈</BlueText>을 강하게 의심해야 한다.
 
@@ -182,7 +187,7 @@ GUI가 필요할 때 사용한다. 로컬 개발 환경에서 시각적으로 �
 Thread Dump의 각 스레드 블록은 아래 구조다.
 
 ```
-"http-nio-8080-exec-3" #25 daemon prio=5 os_prio=0 tid=0x00007f... nid=0x1a3c waiting for monitor entry [0x...]
+"http-nio-8080-exec-3" #25 [6716] daemon prio=5 os_prio=0 tid=0x00007f... nid=6716 waiting for monitor entry [0x...]
    java.lang.Thread.State: BLOCKED (on object monitor)
         at com.example.OrderService.placeOrder(OrderService.java:42)
         - waiting to lock <0x000000076b3a1d40> (a java.lang.Object)
@@ -193,7 +198,7 @@ Thread Dump의 각 스레드 블록은 아래 구조다.
 읽을 때 확인할 것들
 
 - **스레드 이름**: `http-nio-8080-exec-3`처럼 어떤 스레드 풀인지 바로 파악 가능
-- **nid**: OS 스레드 ID (16진수). CPU 점유 스레드를 top으로 찾은 뒤 여기서 매핑
+- **nid**: OS 스레드 ID. CPU 점유 스레드를 top으로 찾은 뒤 여기서 매핑한다. JDK 17 이하는 `nid=0x2b03` 처럼 16진수, JDK 18 부터는 `nid=11267` 처럼 10진수로 찍힌다 (JDK-8268425)
 - **Thread.State**: 현재 상태
 - **스택 트레이스**: 어느 코드에서 멈췄는지
 - `- locked <0x...>`: 이 스레드가 보유한 락
@@ -303,12 +308,26 @@ CPU 스파이크가 발생했을 때, OS 수준의 스레드 ID와 Thread Dump�
 # 1. CPU 높은 Java 프로세스의 스레드 목록 확인
 top -H -p <pid>
 
-# 2. 높은 CPU를 쓰는 TID를 16진수로 변환
-printf "%x\n" <tid>
+# 2-1. JDK 18 이상: nid 가 10진수라서 TID 를 그대로 검색
+jstack <pid> | grep -A 20 "nid=<tid> "
 
-# 3. jstack에서 해당 nid 검색
-jstack <pid> | grep -A 20 "nid=0x<hex>"
+# 2-2. JDK 17 이하: nid 가 16진수라서 TID 를 변환해서 검색
+printf "%x\n" <tid>
+jstack <pid> | grep -A 20 "nid=0x<hex> "
 ```
+
+같은 프로그램을 JDK 17 과 21 에서 찍어보면 `nid` 표기가 아래처럼 다르다. <br />
+JDK 21 에서 `nid=0x...` 로 검색하면 아무것도 찾지 못한다.
+
+```text
+# JDK 17.0.4
+"main" #1 prio=5 os_prio=31 cpu=1028.16ms elapsed=6.45s tid=0x00007faab281c200 nid=0x2b03 waiting on condition  [0x000000030888d000]
+
+# JDK 21.0.4
+"main" #1 [11267] prio=5 os_prio=31 cpu=1082.51ms elapsed=6.56s tid=0x00007fbb7d009e00 nid=11267 waiting on condition  [0x000000030dbee000]
+```
+
+JDK 21 에서는 스레드 번호 뒤 `[11267]` 에도 같은 OS 스레드 ID 가 10진수로 찍힌다.
 
 CpuSpinExample을 실행하면 CPU-Spinner 스레드가 RUNNABLE 상태로 CPU를 점유한다.
 `top -H`에서 가장 높은 TID가 이 스레드다.
@@ -361,7 +380,7 @@ Thread Dump는 텍스트만으로도 읽을 수 있지만, 스레드 수가 많�
 ✔ RUNNABLE이 많아도 CPU 스파이크로 단정 금지 - 스택 트레이스로 실제 CPU 작업인지 I/O 대기인지 구분 <br />
 ✔ 데드락: 덤프 하단 Found N deadlock 확인 <br />
 ✔ BLOCKED 병목: 같은 락 주소를 기다리는 스레드 수 확인, 그 락을 보유한 스레드가 원인. java.util.concurrent 락은 -l 옵션 필수 <br />
-✔ CPU 스파이크: top -H로 TID를 16진수 변환 후 nid로 매핑 <br />
+✔ CPU 스파이크: top -H로 찾은 TID를 nid로 매핑, JDK 18 이상은 10진수 그대로, JDK 17 이하는 16진수로 변환 <br />
 ✔ 스레드 풀 고갈: 스택 최상단으로 idle/작업 중 구분, 톰캣 http-nio 스레드 200개가 꽉 찼는지 확인 <br />
 ✔ 원인이 보이면 코드나 설정을 바꾸기 전에, 30초 간격으로 한 번 더 찍어 패턴이 반복되는지 확인한다
 :::
