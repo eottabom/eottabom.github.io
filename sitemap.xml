@@ -5,25 +5,25 @@
       <loc>https://eottabom.github.io/</loc>
       <changefreq>daily</changefreq>
       <priority>1.0</priority>
-      <lastmod>2026-10-30</lastmod>
+      <lastmod>2026-10-31</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/</loc>
       <changefreq>daily</changefreq>
       <priority>0.9</priority>
-      <lastmod>2026-10-30</lastmod>
+      <lastmod>2026-10-31</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/book/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-30</lastmod>
+      <lastmod>2026-10-31</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/side-projects/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-30</lastmod>
+      <lastmod>2026-10-31</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/about/</loc>
@@ -274,7 +274,7 @@
       <loc>https://eottabom.github.io/post/k6-stack/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-01-20</lastmod>
+      <lastmod>2026-10-31</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/jpa-determine-entity-is-new/</loc>
