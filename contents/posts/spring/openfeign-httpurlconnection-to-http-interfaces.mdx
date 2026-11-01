@@ -109,12 +109,12 @@ public interface Client {
 
 세 클라이언트를 비교하면 아래와 같다.
 
-| | HC5 (풀 + 상한) | OkHttp (idle 풀) | HttpURLConnection default (풀 없음) |
-|---|---|---|---|
-| 1 | 요청 증가 | 요청 증가 | 요청 증가 |
-| 2 | 풀에서 커넥션 빌림 | 풀에서 idle 커넥션 확인 | 재사용 가능한 idle 커넥션 확인 |
-| 3 | 풀이 꽉 차면 대기 | 없으면 새 TCP 연결 생성 (대기 없음) | 없으면 새 TCP 소켓 생성 |
-| 4 | `maxTotal`, `maxPerRoute` 상한으로 제어됨 | `ConnectionPool` 은 idle 개수만 제한, 동시 연결 상한 없음 | 명시적인 풀 상한/대기열로 제어되지 않음 |
+| 항목 | Apache HC5 | OkHttp | HttpURLConnection (기본값) |
+| --- | --- | --- | --- |
+| 커넥션 보관 방식 | 커넥션 풀 | idle 커넥션 풀 | idle 커넥션 캐시 |
+| 남겨두는 idle 커넥션 | 풀 크기만큼 | `maxIdleConnections` 만큼 | `http.maxConnections`(기본 5)만큼 |
+| 동시 연결 상한 | 있음 (`maxTotal`, `maxPerRoute`) | 없음 | 없음 |
+| idle 커넥션이 없을 때 | 상한 안이면 새로 열고, 꽉 찼으면 대기 | 바로 새 TCP 연결 | 바로 새 TCP 연결 |
 
 동시 연결 수에 상한을 두고 넘치는 요청을 기다리게 하는 것은 HC5뿐이라, 나머지 둘은 트래픽이 커지면 다음과 같은 자원 압박으로 이어질 수 있다.
 
