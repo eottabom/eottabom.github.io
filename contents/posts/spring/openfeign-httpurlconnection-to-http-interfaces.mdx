@@ -104,13 +104,10 @@ public interface Client {
 `Client.Default` 는 요청을 보낼 때마다 JDK 표준의 `java.net.HttpURLConnection` 을 생성한다. <br />
 `HttpURLConnection` 은 JVM 레벨에서 내부적으로 Keep-Alive 캐시(`sun.net.www.http.KeepAliveCache`)를 일부 활용하지만, 우리가 일반적으로 사용하는 커넥션 풀(Connection Pool)과는 근본적인 차이가 있다.
 
-* **좁은 풀 크기**: 같은 목적지 서버에 대해 idle 커넥션을 최대 5개(`http.maxConnections`)까지만 재사용한다.
-* **동시성 제어 부재**: 이 상한은 idle 커넥션 개수만 제한할 뿐, 상한을 넘는 요청을 대기시키는 큐(Backpressure)는 없다.
-* **멀티스레드 동시 요청 시 연결 폭증**: 여러 스레드가 동시에 요청을 보낼 때 유휴(Idle) 커넥션이 없으면 매번 새로운 TCP 소켓을 생성한다.
-* **캐시 상한을 넘긴 요청마다 handshake 비용 발생**: HTTPS 통신인 경우 캐시에서 밀려난 요청마다 TCP 3-way handshake 와 TLS 협상 오버헤드가 누적된다.
+* **idle 커넥션을 최대 5개까지만 남긴다**: 같은 목적지 서버에 대해 반납된 커넥션을 `http.maxConnections`(기본 5)개까지만 캐시해두고 재사용한다.
+* **넘치는 요청을 기다리게 하는 대기열이 없다**: 재사용할 idle 커넥션이 없으면 기다리지 않고 바로 새 TCP 연결을 연다. HTTPS 라면 그때마다 TCP handshake 와 TLS 협상 비용이 다시 든다.
 
-HttpURLConnection 기본 클라이언트에는 Apache HC5 나 OkHttp 같은 커넥션 풀이 없다. <br />
-그래서 동시 요청이 들어오고 재사용 가능한 idle 커넥션이 부족하면, 요청이 풀에서 커넥션을 빌릴 때까지 기다리는 게 아니라 각자 새 TCP 연결을 연다.
+세 클라이언트를 비교하면 아래와 같다.
 
 | | HC5 (풀 + 상한) | OkHttp (idle 풀) | HttpURLConnection default (풀 없음) |
 |---|---|---|---|
@@ -119,10 +116,7 @@ HttpURLConnection 기본 클라이언트에는 Apache HC5 나 OkHttp 같은 커�
 | 3 | 풀이 꽉 차면 대기 | 없으면 새 TCP 연결 생성 (대기 없음) | 없으면 새 TCP 소켓 생성 |
 | 4 | `maxTotal`, `maxPerRoute` 상한으로 제어됨 | `ConnectionPool` 은 idle 개수만 제한, 동시 연결 상한 없음 | 명시적인 풀 상한/대기열로 제어되지 않음 |
 
-세 클라이언트 중 동시 연결 수에 상한을 두고, 넘치는 요청을 기다리게 하는 것은 HC5 뿐이다. <br />
-OkHttp 는 idle 커넥션을 재사용해서 handshake 비용은 줄여주지만, 동시 요청이 몰리면 그만큼 연결이 늘어난다.
-
-그래서 트래픽이 커지면 다음과 같은 자원 압박으로 이어질 수 있다.
+동시 연결 수에 상한을 두고 넘치는 요청을 기다리게 하는 것은 HC5뿐이라, 나머지 둘은 트래픽이 커지면 다음과 같은 자원 압박으로 이어질 수 있다.
 
 * 클라이언트/서버의 file descriptor 사용량 증가
 * ephemeral port 사용량 증가
