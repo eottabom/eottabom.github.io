@@ -75,18 +75,16 @@ istiod는 설정을 배포하고, ztunnel과 waypoint, Istio Gateway는 각 레�
     <img src="/img/post/kubernetes/istio-ambient-mode/ambient-traffic-flow.png" alt="Istio Ambient mode 외부 및 내부 트래픽 흐름" style={{ display: 'inline-block' }} />
 </div>
 
-외부 요청은 Istio Gateway에서 HTTPRoute 규칙을 적용한 뒤 목적지 Service로 전달된다.
+그림의 경로를 트래픽 종류별로 정리하면 아래와 같다.
 
-목적지 워크로드가 Ambient mesh에 포함되어 있으면 inbound 트래픽은 destination ztunnel에서 캡처되고, <br />
-L4 AuthorizationPolicy를 통과한 요청만 애플리케이션 Pod로 전달된다.
+| 트래픽 | 경로 | 적용되는 정책 |
+| --- | --- | --- |
+| 외부 요청 (기본) | Client → Istio Gateway → destination ztunnel → Pod | Gateway의 HTTPRoute(L7 라우팅), destination ztunnel의 L4 AuthorizationPolicy |
+| 외부 요청 (waypoint 사용) | Client → Istio Gateway → waypoint → destination ztunnel → Pod | 위 정책 + waypoint의 L7 정책 |
+| 내부 통신 (waypoint 없음) | Pod → source ztunnel → destination ztunnel → Pod | HBONE(mTLS), L4 정책 |
+| 내부 통신 (waypoint 있음) | Pod → source ztunnel → waypoint → destination ztunnel → Pod | HBONE(mTLS), L4 정책 + waypoint의 L7 정책 |
 
-Istio Gateway에서 시작한 트래픽은 기본적으로 destination waypoint를 사용하지 않는다. <br />
-Ingress 트래픽에도 waypoint를 적용하려면 Service 또는 Namespace에 istio.io/ingress-use-waypoint: true 라벨을 설정한다. <br />
-istiod의 ENABLE_INGRESS_WAYPOINT_ROUTING 플래그도 필요한데, Istio 1.30.1 소스 기준으로 ambient 가 켜져 있으면(PILOT_ENABLE_AMBIENT=true) 기본값이 true 라서 따로 켤 필요는 없다.
-
-내부 서비스 간 통신은 source ztunnel이 outbound 트래픽을 캡처하면서 시작한다. <br />
-목적지에 waypoint가 없으면 source ztunnel에서 destination ztunnel로 HBONE 연결을 만들고,
-waypoint가 있으면 source ztunnel에서 waypoint로 전달해 L7 정책을 적용한 뒤 destination ztunnel로 다시 전달한다.
+Istio Gateway에서 시작한 트래픽은 기본적으로 waypoint를 거치지 않는데, 거치게 하려면 Service나 Namespace에 istio.io/ingress-use-waypoint: true 라벨을 붙이면 된다. istiod의 ENABLE_INGRESS_WAYPOINT_ROUTING 플래그도 필요하지만, Istio 1.30.1 소스 기준으로 ambient가 켜져 있으면(PILOT_ENABLE_AMBIENT=true) 기본값이 true라서 따로 켤 필요는 없다.
 
 ---
 
