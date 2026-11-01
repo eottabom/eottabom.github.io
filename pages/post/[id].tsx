@@ -18,6 +18,7 @@ import KeyboardVisual from "../../components/KeyboardVisual";
 import dynamic from 'next/dynamic';
 import G1GCSimulator from '../../components/G1GCSimulator';
 import CodeBlock from '../../components/CodeBlock';
+import Mermaid from '../../components/Mermaid';
 import PoolLifecycleDiagram from '../../components/PoolLifecycleDiagram';
 import ConnectReadTimeoutSimulator from '../../components/ConnectReadTimeoutSimulator';
 import KeepAliveAlignmentSimulator from '../../components/KeepAliveAlignmentSimulator';
@@ -155,6 +156,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     KeyboardVisual: desktopOnlyComponents.KeyboardVisual,
     G1GCSimulator: desktopOnlyComponents.G1GCSimulator,
     pre: CodeBlock,
+    Mermaid,
     PoolLifecycleDiagram: desktopOnlyComponents.PoolLifecycleDiagram,
     ConnectReadTimeoutSimulator: desktopOnlyComponents.ConnectReadTimeoutSimulator,
     KeepAliveAlignmentSimulator: desktopOnlyComponents.KeepAliveAlignmentSimulator,

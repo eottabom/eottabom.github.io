@@ -15,6 +15,7 @@
     "@giscus/react": "^3.1.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.268.0",
+    "mermaid": "11.17.2",
     "next": "^16.3.8",
     "next-mdx-remote": "6.0.0",
     "prism-themes": "^1.9.0",

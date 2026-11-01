@@ -39,6 +39,38 @@ body {
   display: inline;
 }
 
+/* ```mermaid 블록(components/Mermaid.tsx). 넓은 다이어그램은 이 영역 안에서만 좌우로 스크롤한다. */
+.mermaid-diagram {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.mermaid-diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 좁은 화면에서는 원래 폭보다 줄이지 않고, 그림 영역 안에서 좌우로 스크롤한다. */
+@media (max-width: 640px) {
+  .mermaid-diagram svg {
+    min-width: var(--mermaid-width, auto);
+  }
+}
+
+.mermaid-diagram rect.actor {
+  filter: drop-shadow(1px 2px 2px rgb(15 23 42 / 0.12));
+}
+
+.mermaid-diagram--pending {
+  text-align: left;
+}
+
+.mermaid-diagram__error {
+  font-size: 0.875rem;
+  color: #b91c1c;
+}
+
 .code-block {
   margin: 1.5rem 0;
   border-radius: 0.5rem;
