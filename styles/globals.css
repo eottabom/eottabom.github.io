@@ -241,6 +241,48 @@ pre[class*='language-'] {
   margin-bottom: 0;
 }
 
+/* 표를 테두리가 있는 카드처럼 보이게 한다. 머리글은 옅은 배경, 행 구분선은 연하게. */
+.prose .table-scroll {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+}
+
+.prose .table-scroll thead {
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.prose .table-scroll th {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.prose .table-scroll th,
+.prose .table-scroll td {
+  padding: 0.6rem 0.9rem;
+  /* 한글 단어 중간(유휴 시/간)에서 끊기지 않고 띄어쓰기 단위로 줄을 바꾼다. */
+  word-break: keep-all;
+}
+
+.prose .table-scroll tbody tr {
+  border-bottom-color: #f1f5f9;
+}
+
+.prose .table-scroll tbody tr:last-child {
+  border-bottom: 0;
+}
+
+/* 칸 사이 세로 구분선. 바깥 테두리와 겹치지 않게 첫 칸 왼쪽에는 넣지 않는다. */
+.prose .table-scroll th + th,
+.prose .table-scroll td + td {
+  border-left: 1px solid #e5e7eb;
+}
+
+/* 첫 칸의 설정 이름(code)이 하이픈에서 줄바꿈되어 keepalive- / time 처럼 끊기지 않게 한다. */
+.prose .table-scroll td:first-child code {
+  white-space: nowrap;
+}
+
 /* 좁은 화면에서는 열을 억지로 줄이지 않고, 한 칸이 너무 길어지면 그 안에서만 줄바꿈한다. */
 @media (max-width: 640px) {
   .prose .table-scroll table {
