@@ -82,22 +82,12 @@ public interface Client {
 
 별도의 HTTP 클라이언트(`feign-hc5`, `feign-okhttp` 등)를 지정하지 않으면 Feign 은 기본적으로 `feign.Client.Default` 를 사용한다.
 
-<div style={{ textAlign: 'center' }}>
-
-```text
-[ Feign Client 호출 ]
-         │
-         ▼
-[ feign.Client.Default ]
-         │
-         ▼
-[ java.net.HttpURLConnection ]
-         │
-         ▼ (커넥션 풀 없음: idle 캐시 상한 초과 시 새 TCP 소켓 생성/해제)
-[ Target Server (8090) ]
+```mermaid
+flowchart TD
+    A[Feign Client 호출] --> B[feign.Client.Default]
+    B --> C["java.net.HttpURLConnection<br/>(커넥션 풀 없음)"]
+    C -->|idle 커넥션이 없으면 새 TCP 연결| D["Target Server (8090)"]
 ```
-
-</div>
 
 <br />
 
