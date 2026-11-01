@@ -22,7 +22,7 @@ CPU가 갑자기 치솟거나 애플리케이션이 응답을 멈췄을 때, 가
 
 Heap Dump와 자주 혼동하는데, 둘은 목적이 다르다.
 
-| | Thread Dump | Heap Dump |
+| 구분 | Thread Dump | Heap Dump |
 |---|---|---|
 | 담는 것 | 스레드 상태, 스택 트레이스, 락 관계 | 힙 메모리 전체 객체 |
 | 크기 | 수 KB ~ 수십 KB | 수백 MB ~ GB |
@@ -113,6 +113,18 @@ CPU 스파이크 여부는 top -H + nid 매핑으로 판단한다.
 
 ## Thread Dump 수집 방법
 
+수집 방법은 여러 가지인데, 상황별로 고르면 아래와 같다.
+
+| 방법 | 언제 쓰나 | 명령 |
+| --- | --- | --- |
+| jcmd | 기본으로 쓰는 방법, JDK 8 트러블슈팅 가이드부터 jstack 대신 권장 | `jcmd <pid> Thread.print -l` |
+| jstack | jcmd 와 같은 결과, 익숙하다면 그대로 써도 됨 | `jstack -l <pid>` |
+| kill -3 | JDK 도구가 없는 컨테이너, 결과는 컨테이너 로그에 남음 | `kill -3 <pid>` |
+| Spring Actuator | 서버에 접속하지 않고 원격으로 | `GET /actuator/threaddump` |
+| VisualVM, JMC | 로컬에서 화면으로 보고 싶을 때 | GUI |
+
+`java.util.concurrent` 락을 쓴다면 jcmd 와 jstack 모두 `-l` 을 붙여야 락 보유 정보까지 나온다. 방법별 자세한 내용은 아래와 같다.
+
 ### jstack
 
 가장 기본적인 방법이다. JDK에 기본 포함돼 있다.
@@ -131,7 +143,7 @@ jstack <pid> > thread-dump-$(date +%Y%m%d%H%M%S).txt
 
 ### jcmd
 
-JDK 9부터 Oracle이 공식 권장하는 방법이고, 컨테이너 환경에서도 안정적으로 동작하면서, Java 21 이상에서는 가상 스레드 전용 옵션도 지원한다.
+JDK 7에 추가됐고 [JDK 8 트러블슈팅 가이드](https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/tooldescr016.html)부터 jstack 대신 쓰라고 권장하는 방법으로, 컨테이너 환경에서도 안정적으로 동작하고 JDK 19부터는 가상 스레드까지 담는 `Thread.dump_to_file`도 지원한다.
 
 ```bash
 jcmd <pid> Thread.print                     # jstack과 동일
@@ -186,7 +198,7 @@ GUI가 필요할 때 사용한다. 로컬 개발 환경에서 시각적으로 �
 
 Thread Dump의 각 스레드 블록은 아래 구조다.
 
-```
+```text
 "http-nio-8080-exec-3" #25 [6716] daemon prio=5 os_prio=0 tid=0x00007f... nid=6716 waiting for monitor entry [0x...]
    java.lang.Thread.State: BLOCKED (on object monitor)
         at com.example.OrderService.placeOrder(OrderService.java:42)
@@ -240,7 +252,7 @@ Thread threadB = new Thread(() -> {
 
 Thread Dump 하단에 아래 블록이 자동으로 나타난다.
 
-```
+```text
 Found one Java-level deadlock:
 =============================
 "Thread-A":
@@ -271,8 +283,8 @@ Found 1 deadlock.
 
 한 스레드가 `synchronized` 블록을 오래 점유하면, 나머지 스레드는 전부 BLOCKED 상태로 쌓인다.
 
-```
-"Blocked-Thread-1" #14 prio=5 os_prio=0 tid=0x... nid=0x... waiting for monitor entry [0x...]
+```text
+"Blocked-Thread-1" #14 [...] prio=5 os_prio=0 tid=0x... nid=... waiting for monitor entry [0x...]
    java.lang.Thread.State: BLOCKED (on object monitor)
         at com.eottabom.letmecode.example.threaddump.BlockedThreadExample.lambda$main$1(BlockedThreadExample.java:36)
         - waiting to lock <0x000000076b3a1d40> (a java.lang.Object)
@@ -332,8 +344,8 @@ JDK 21 에서는 스레드 번호 뒤 `[11267]` 에도 같은 OS 스레드 ID �
 CpuSpinExample을 실행하면 CPU-Spinner 스레드가 RUNNABLE 상태로 CPU를 점유한다.
 `top -H`에서 가장 높은 TID가 이 스레드다.
 
-```
-"CPU-Spinner" #13 prio=5 os_prio=0 tid=0x... nid=0x1b2f runnable [0x...]
+```text
+"CPU-Spinner" #13 [6959] prio=5 os_prio=0 tid=0x... nid=6959 runnable [0x...]
    java.lang.Thread.State: RUNNABLE
         at com.eottabom.letmecode.example.threaddump.CpuSpinExample.lambda$main$0(CpuSpinExample.java:25)
 ```
