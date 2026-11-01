@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Sat, 31 Oct 2026 09:46:25 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 01 Nov 2026 05:06:18 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>CORS 이해하기 - SOP부터 Preflight, 요청/응답 헤더, 에러 메시지까지</title>
+      <link>https://eottabom.github.io/post/cors-sop-preflight-headers/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/cors-sop-preflight-headers/</guid>
+      <description>CORS를 SOP부터 다시 정리한다. Simple Request와 Preflight(OPTIONS)의 차이, 브라우저가 보내는 요청 헤더와 서버가 돌려주는 응답 헤더, Expose-Headers, credentials, Max-Age, Vary 같은 디테일을 Spring Boot 4.1과 Chrome으로 직접 확인한 결과로 살펴본다.</description>
+      <pubDate>Sun, 01 Nov 2026 00:00:00 GMT</pubDate>
+      <category>Spring</category>
+      <category>Study</category>
+    </item>
     <item>
       <title>Gradle Version Catalog로 의존성 버전 한 곳에서 관리하기</title>
       <link>https://eottabom.github.io/post/gradle-version-catalog/</link>
@@ -178,14 +187,6 @@
       <description>Envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름, 로드밸런싱, Connection 관리, xDS 에 대해서 빠르게 알아보자.</description>
       <pubDate>Tue, 21 Oct 2025 00:00:00 GMT</pubDate>
       <category>Envoy</category>
-    </item>
-    <item>
-      <title>오픈소스 서비스 모니터링 툴, Uptime Kuma 를 사용해보자.</title>
-      <link>https://eottabom.github.io/post/uptime-kuma-open-source-uptime-monitoring-tool/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/uptime-kuma-open-source-uptime-monitoring-tool/</guid>
-      <description>웹, 서버 상태를 쉽게 모니터링 할 수 있는 오픈소스 툴인 Uptime Kuma 를 이용해보자.</description>
-      <pubDate>Mon, 18 Aug 2025 00:00:00 GMT</pubDate>
-      <category>Etc</category>
     </item>
   </channel>
 </rss>
