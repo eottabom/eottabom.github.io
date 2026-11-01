@@ -20,7 +20,10 @@ const ACTOR_PALETTE: ReadonlyArray<readonly [string, string]> = [
 // mermaid 테마로는 참여자별 색을 줄 수 없어서, 그려진 SVG 에서 등장 순서(actor0, actor1 ...)대로 색을 입힌다.
 // 위쪽, 아래쪽 상자는 같은 name 이라 같은 색이 된다.
 const colorizeActors = (svg: string): string => {
-  const doc = new DOMParser().parseFromString(svg, 'image/svg+xml');
+  // 라벨에 <br> 같은 HTML 이 섞이면 XML 로는 읽히지 않아서, HTML 로 읽고 svg 요소만 꺼낸다.
+  const root = new DOMParser().parseFromString(svg, 'text/html').querySelector('svg');
+  if (root == null) return svg;
+  const doc = root;
   const order = new Map<string, number>();
   doc.querySelectorAll('line.actor-line').forEach((line) => {
     const name = line.getAttribute('name');
@@ -36,13 +39,24 @@ const colorizeActors = (svg: string): string => {
     rect.setAttribute('rx', '6');
     rect.setAttribute('ry', '6');
   });
+  // 흐름도(flowchart)의 상자도 등장 순서대로 같은 색 규칙을 쓴다.
+  doc.querySelectorAll('g.node').forEach((node, index) => {
+    const shape = node.querySelector('rect, polygon, circle, ellipse');
+    if (shape == null) return;
+    const [fill, stroke] = ACTOR_PALETTE[index % ACTOR_PALETTE.length];
+    shape.setAttribute('style', `fill: ${fill}; stroke: ${stroke}; stroke-width: 2px;`);
+    if (shape.tagName === 'rect') {
+      shape.setAttribute('rx', '6');
+      shape.setAttribute('ry', '6');
+    }
+  });
+
   // 모바일에서 화면 폭에 맞춰 통째로 줄어들지 않도록 원래 폭을 CSS 변수로 넘긴다 (globals.css 의 .mermaid-diagram svg).
-  const root = doc.documentElement;
   const naturalWidth = Number(root.getAttribute('viewBox')?.split(/\s+/)[2]);
   if (naturalWidth > 0) {
     root.setAttribute('style', `${root.getAttribute('style') ?? ''} --mermaid-width: ${Math.ceil(naturalWidth)}px;`);
   }
-  return new XMLSerializer().serializeToString(root);
+  return root.outerHTML;
 };
 
 // mermaid 라이브러리는 크기가 커서, 이 컴포넌트가 화면에 나올 때만 브라우저에서 불러온다.
@@ -61,6 +75,9 @@ export default function Mermaid({ chart, 'data-src': dataSrc }: MermaidProps) {
         mermaid.initialize({
           startOnLoad: false,
           securityLevel: 'strict',
+          // HTML 라벨은 글꼴이 바뀌면 크기 계산이 어긋나 글자가 잘려서, SVG 텍스트로 그린다.
+          htmlLabels: false,
+          flowchart: { htmlLabels: false },
           // 참여자 색은 colorizeActors 에서 따로 입히고, 여기서는 선, 글자, 메모 색만 정한다.
           theme: 'base',
           themeVariables: {
@@ -82,6 +99,8 @@ export default function Mermaid({ chart, 'data-src': dataSrc }: MermaidProps) {
         });
         initialized = true;
       }
+      // 웹 글꼴이 늦게 적용되면 글자 폭을 잘못 재서 상자 밖으로 잘리므로, 글꼴 로딩을 기다린 뒤 그린다.
+      await document.fonts.ready;
       const result = await mermaid.render(renderId, chart);
       if (!cancelled) setSvg(colorizeActors(result.svg));
     };

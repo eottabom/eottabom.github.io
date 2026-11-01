@@ -49,6 +49,8 @@ body {
 .mermaid-diagram svg {
   max-width: 100%;
   height: auto;
+  /* Tailwind 기본 스타일이 svg 를 block 으로 만들어서 text-align 대신 margin 으로 가운데 정렬한다. */
+  margin: 0 auto;
 }
 
 /* 좁은 화면에서는 원래 폭보다 줄이지 않고, 그림 영역 안에서 좌우로 스크롤한다. */
@@ -56,6 +58,14 @@ body {
   .mermaid-diagram svg {
     min-width: var(--mermaid-width, auto);
   }
+}
+
+/* 흐름도 화살표 라벨. SVG 텍스트에는 배경 사각형이 없어서, 글자 둘레에 흰 테두리를 둘러 지나가는 선을 가린다. */
+.mermaid-diagram .edgeLabel text {
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 6px;
+  stroke-linejoin: round;
 }
 
 .mermaid-diagram rect.actor {
