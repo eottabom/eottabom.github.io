@@ -24,7 +24,7 @@ self.__BUILD_MANIFEST = {
     "static/chunks/1wvujo9t5u2ih.js"
   ],
   "/post/[id]": [
-    "static/chunks/0miv-mprxh7b-.js"
+    "static/chunks/1gfcn9d1cqrx3.js"
   ],
   "/projects": [
     "static/chunks/0p4zbzua6jeoa.js"
