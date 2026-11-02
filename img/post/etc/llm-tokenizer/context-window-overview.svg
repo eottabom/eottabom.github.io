@@ -40,8 +40,8 @@
   <text x="544" y="84" text-anchor="middle" font-size="16" font-weight="700" fill="#cbd5e1">+</text>
 
   <!-- Labels -->
-  <text x="298" y="140" text-anchor="middle" font-size="11" fill="#64748b">입력 토큰 (Input) — 상대적으로 저렴</text>
-  <text x="636" y="140" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="600">출력 토큰 — 2~4x 비쌈</text>
+  <text x="298" y="140" text-anchor="middle" font-size="11" fill="#64748b">입력 토큰 (Input), 상대적으로 저렴</text>
+  <text x="636" y="140" text-anchor="middle" font-size="11" fill="#dc2626" font-weight="600">출력 토큰, 4~8x 비쌈</text>
 
   <!-- Bracket lines -->
   <line x1="34" y1="122" x2="542" y2="122" stroke="#64748b" stroke-width="1.5"/>

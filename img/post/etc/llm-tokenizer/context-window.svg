@@ -82,14 +82,14 @@
   <line x1="55" y1="300" x2="426" y2="300" stroke="#64748b" stroke-width="1.5"/>
   <line x1="55" y1="296" x2="55" y2="304" stroke="#64748b" stroke-width="1.5"/>
   <line x1="426" y1="296" x2="426" y2="304" stroke="#64748b" stroke-width="1.5"/>
-  <text x="240" y="316" text-anchor="middle" font-size="11" font-weight="600" fill="#64748b">입력 토큰 (Input) — 상대적으로 저렴</text>
+  <text x="240" y="316" text-anchor="middle" font-size="11" font-weight="600" fill="#64748b">입력 토큰 (Input), 상대적으로 저렴</text>
 
   <!-- Bracket: Output tokens -->
   <line x1="433" y1="300" x2="478" y2="300" stroke="#dc2626" stroke-width="1.5"/>
   <line x1="433" y1="296" x2="433" y2="304" stroke="#dc2626" stroke-width="1.5"/>
   <line x1="478" y1="296" x2="478" y2="304" stroke="#dc2626" stroke-width="1.5"/>
   <text x="455" y="316" text-anchor="middle" font-size="10" font-weight="600" fill="#dc2626">출력</text>
-  <text x="455" y="330" text-anchor="middle" font-size="9" fill="#dc2626">2~4x 비쌈</text>
+  <text x="455" y="330" text-anchor="middle" font-size="9" fill="#dc2626">4~8x 비쌈</text>
 
   <!-- Bottom notes -->
   <g font-size="11" fill="#64748b">

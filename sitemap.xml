@@ -82,13 +82,13 @@
       <loc>https://eottabom.github.io/post/mongodb-skip-to-range-query/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-03-08</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/mysql-timestamp-vs-datetime-y2k38/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-31</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/mysql-validation-errors/</loc>
@@ -136,7 +136,7 @@
       <loc>https://eottabom.github.io/post/git-complete-guide/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-03-27</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/in-memory/</loc>
@@ -160,7 +160,7 @@
       <loc>https://eottabom.github.io/post/llm-tokenizer-bpe-deep-dive/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-31</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/tipuesearch-검색기능/</loc>
@@ -202,7 +202,7 @@
       <loc>https://eottabom.github.io/post/g1gc-overview-and-tuning/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-04-09</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/gradle-version-catalog/</loc>
@@ -226,7 +226,7 @@
       <loc>https://eottabom.github.io/post/kubernetes-resources-jvm-gc-ergonomics/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-10</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/lombok-process/</loc>
@@ -262,7 +262,7 @@
       <loc>https://eottabom.github.io/post/istio-ambient-mode-with-gateway-api/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-31</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/kubernetes-qos/</loc>
@@ -274,13 +274,13 @@
       <loc>https://eottabom.github.io/post/k6-stack/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-31</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/cors-sop-preflight-headers/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-11-01</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/jpa-determine-entity-is-new/</loc>
@@ -292,13 +292,13 @@
       <loc>https://eottabom.github.io/post/openfeign-httpurlconnection-to-http-interfaces/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-10-31</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/redis-unknownhostexception-dns-cache/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-05-06</lastmod>
+      <lastmod>2026-11-02</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/timeout-settings-guide/</loc>
