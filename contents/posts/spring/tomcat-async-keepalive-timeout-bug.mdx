@@ -1,7 +1,7 @@
 ---
 title: "Tomcat Async Request 이후 keep-alive timeout이 60초로 닫히던 이유"
 date: "2026-03-22"
-updated: "2026-03-27"
+updated: "2026-11-02"
 tags: ["Spring", "Tomcat"]
 summary: "Tracing why an HTTP keep-alive connection closed after exactly 60 seconds even though keepAliveTimeout was set to 100 seconds, and how it led to Tomcat Bug 69748."
 description: "Spring Boot Embedded Tomcat 에서 async request 이후 keepAliveTimeout 이 적용되지 않아 간헐적 502 가 발생하던 현상을 Tomcat Bug 69748 과 함께 정리한다."
@@ -74,7 +74,7 @@ server.tomcat.keep-alive-timeout=100s
 
 ### 2. ALB 확인
 
-ALB idle timeout 은 90초였는데 연결 종료는 60초에 발생했으니, 숫자만 봐도 ALB 가 원인일 가능성은 낮았다. 다만 이것만으로 확신하기는 어려웠고, 이후 패킷을 뜨고 나서 확실하게 제외할 수 있었다.
+ALB idle timeout 은 90초였는데 연결 종료는 60초에 발생했으니, 숫자만 봐도 ALB 가 원인일 가능성은 낮았다. 그래도 이것만으로 확신하기는 어려웠고, 이후 패킷을 뜨고 나서 확실하게 제외할 수 있었다.
 
 이런 종류의 문제는 "LB 뒤에 있으니까 LB 문제겠지" 라고 생각하면 오래 헤매기 쉬운데, 이번에는 종료 시점이 너무 정확해서 오히려 애플리케이션 서버 설정값을 먼저 의심하는 편이 맞았다.
 
@@ -217,13 +217,21 @@ socketWrapper.setReadTimeout(getConnectionTimeout());
 
 ### 2. 첫 요청 파싱 구간
 
-다음으로 본 지점은 Http11InputBuffer.parseRequestLine() 인데, 첫 요청에서는 keptAlive = false 이므로 connection timeout 기준으로 동작한다.
+다음으로 본 지점은 Http11InputBuffer.parseRequestLine() 인데, keep-alive 로 다음 요청을 기다릴 때(keptAlive = true)만 keepAliveTimeout 을 걸고, 요청의 첫 바이트가 들어오면 connectionTimeout 으로 되돌린다.
 
 ```java
-if (!keptAlive) {
-    wrapper.setReadTimeout(connectionTimeout);
+if (keptAlive) {
+    // Haven't read any request data yet so use the keep-alive timeout.
+    wrapper.setReadTimeout(keepAliveTimeout);
 }
+if (!fill(false)) {
+    return false;
+}
+// At least one byte of the request has been received. Switch to the socket timeout.
+wrapper.setReadTimeout(connectionTimeout);
 ```
+
+첫 요청에서는 keptAlive = false 라서 keepAliveTimeout 을 거는 분기를 타지 않고, connection timeout 기준으로 동작한다.
 
 여기까지도 이상은 없고, 첫 요청이므로 readTimeout 은 여전히 60초다.
 

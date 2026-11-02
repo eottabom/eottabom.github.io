@@ -1,6 +1,7 @@
 ---
 title: "URL 쿼리스트링에 허용되지 않는 문자를 넣으면 어떻게 될까 (RFC 7230, RFC 3986)"
 date: "2026-07-21"
+updated: "2026-11-02"
 tags: ["Spring", "Tomcat", "Java"]
 summary: "What happens when a URL query string contains a character not allowed by RFC 3986, and how Tomcat handles it."
 description: "URL 쿼리스트링에 RFC 3986 에서 허용하지 않는 문자를 인코딩 없이 전송하면 Tomcat 이 400 Bad Request 를 반환한다. 두 명세에서 허용 문자를 정의하는 방식을 살펴보고, FE encodeURIComponent 인코딩과 Tomcat relaxedQueryChars 설정을 정리한다."
@@ -80,7 +81,7 @@ Tomcat 에러 메시지 문구는 여전히 "RFC-7230 and RFC-3986" 으로 남�
 ### 2) RFC 3986 - "어떤 문자가" 허용되는지 / query 의 허용 문자를 정의
 
 request-target 의 틀은 RFC-7230 이 정하지만, 그 안 query 의 **문자 규칙**은 [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986) 을 그대로 참조하기 때문에,
-에러 메시자가 두 RFC 를 동시에 가리킨다.
+에러 메시지가 두 RFC 를 동시에 가리킨다.
 
 [RFC 3986 Section 2.2 Reserved Characters](https://datatracker.ietf.org/doc/html/rfc3986#section-2.2) 에서는 예약 문자를 아래처럼 정의한다.
 
@@ -121,9 +122,9 @@ pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
 
 :::note
 RFC-2396 에서는 | 를 **unwise** 문자로 분류했었다.
-unwise = { } | \ ^ [ ] `
-URL 에 넣을 수는 있지만 쓰지 않는 게 좋다는 뜻으로, 금지가 아닌 비권장이었다.
-RFC-3986 에서 unwise 분류가 사라지고 대신 허용 목록 자체에서 제외됐다. 즉 반드시 인코딩해야 하는 문자가 됐다.
+unwise = \{ \} | \ ^ [ ] `
+unwise 는 URI 문법에서 제외된(excluded) 문자에 속해서, URI 에 쓰려면 반드시 escape 해야 한다고 규정돼 있었다.
+RFC-3986 에서는 unwise 분류가 없어지고 [ ] 는 gen-delims 로 편입됐는데, 나머지 | \{ \} \ ^ 등은 허용 문자 집합에 없으므로 여전히 퍼센트 인코딩해야 한다.
 :::
 
 ---
@@ -134,8 +135,7 @@ RFC-3986 에서 unwise 분류가 사라지고 대신 허용 목록 자체에서 
 Tomcat 은 `org.apache.tomcat.util.http.parser.HttpParser` 가 관리하는 크기 256짜리 boolean 배열로 각 문자를 검사한다.
 
 :::note
-비트마스크는 여러 개의 true/false 값을 비트 단위로 저장해두고 빠르게 확인하는 방식이다. <br />
-여기서는 특정 문자가 request-target 에 들어와도 되는지 미리 표시해둔 표에 가깝다고 보면 된다.
+문자 코드(0~255)를 인덱스로 하는 boolean[256] 룩업 테이블인데, 특정 문자가 request-target 에 들어와도 되는지 미리 표시해둔 표라고 보면 된다.
 :::
 
 
@@ -168,7 +168,7 @@ if (IS_CONTROL[i] || i == ' ' || i == '\"' || i == '#' || i == '<' ||
 따라서, 허용되지 않는 문자는 파싱 단계에서 요청 자체를 거절하고 400 을 반환한다.
 이 검사는 헤더 파싱보다도 앞, `HttpServletRequest` 가 만들어지기 전 단계여서 Spring 의 어떤 필터, 인터셉터, `@ControllerAdvice` 도 이 400 을 가로챌 수 없다.
 
-예시에서 query string 에서 사용한 `|` (0x7C) 는 처음부터 true 여서, 파싱 순간 바로 걸리게 된다.
+query 부분(? 이후)은 먼저 `IS_QUERY_RELAXED`(pchar, `/`, `?`)로 검사하는데, 예시에서 사용한 `|` (0x7C) 는 여기에 없어서 파싱 순간 바로 거절된다.
 
 ---
 
@@ -241,8 +241,8 @@ public class TomcatCustomConfig {
 }
 ```
 
-relaxedQueryChars 는 내부적으로 지정한 문자를 `IS_NOT_REQUEST_TARGET` 표에서 false 로 되돌린다.
-단, 열 수 있는 문자는 `IS_RELAXABLE` (`<>[\]^{|}`) 로 제한되며, `#` 나 파싱 자체를 깨는 문자는 넣어도 허용되지 않는다.
+relaxedQueryChars 는 내부적으로 지정한 문자를 `IS_QUERY_RELAXED` 에 true 로 추가하고, `IS_NOT_REQUEST_TARGET` 에서는 false 로 되돌린다.
+단, 열 수 있는 문자는 `IS_RELAXABLE` (`` " < > [ \ ] ^ ` { | } ``) 로 제한되며, `#` 나 파싱 자체를 깨는 문자는 넣어도 허용되지 않는다.
 
 :::warning
 relaxedQueryChars 는 RFC 표준을 우회하는 설정이기 때문에, 필요한 문자만 최소한으로 허용해야 한다.
@@ -253,7 +253,7 @@ relaxedQueryChars 는 RFC 표준을 우회하는 설정이기 때문에, 필요�
 :::success
 <b>정리</b>
 ✔ RFC 7230 은 "무엇을" 검사하는지(request-target)를, RFC 3986 은 "어떤 문자가" 허용되는지(URI 문자 규칙)를 각각 정의한다. 에러가 두 RFC 를 동시에 가리키는 이유다. <br />
-✔ query raw 허용 문자는 unreserved + sub-delims + `: @ / ?` 뿐이고, `|` 를 포함한 나머지와 비 ASCII 는 반드시 퍼센트 인코딩해야 한다. <br />
+✔ query raw 허용 문자는 unreserved + sub-delims + : @ / ? 뿐이고, | 를 포함한 나머지와 비 ASCII 는 반드시 퍼센트 인코딩해야 한다. <br />
 ✔ Tomcat 은 HttpParser 의 boolean 배열로 각 바이트를 검사하며, 커넥터 레벨에서 400 을 반환하므로 Spring 레이어로 올라오지 않는다. <br />
 ✔ 가장 표준적인 해결은 클라이언트에서 query 값을 인코딩하는 것이고, 서버에서 열어야 한다면 relaxedQueryChars 로 필요한 문자만 최소한으로 허용한다.
 :::

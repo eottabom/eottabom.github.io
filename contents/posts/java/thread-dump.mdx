@@ -1,7 +1,7 @@
 ---
 title: "Thread Dump 분석과 활용"
 date: "2026-05-25"
-updated: "2026-10-31"
+updated: "2026-11-02"
 tags: ["Java", "JVM"]
 summary: "When to capture a Thread Dump, how to read one, and how to diagnose deadlocks, BLOCKED threads, and CPU spikes with real examples."
 description: "Thread Dump 수집 방법(jstack, kill -3, Spring Actuator)부터 스레드 상태 해석, 데드락/BLOCKED/CPU 스파이크 실제 예시까지 단계별로 살펴본다."
@@ -25,7 +25,7 @@ Heap Dump와 자주 혼동하는데, 둘은 목적이 다르다.
 | 구분 | Thread Dump | Heap Dump |
 |---|---|---|
 | 담는 것 | 스레드 상태, 스택 트레이스, 락 관계 | 힙 메모리 전체 객체 |
-| 크기 | 수 KB ~ 수십 KB | 수백 MB ~ GB |
+| 크기 | 수십 KB ~ 수 MB | 수백 MB ~ GB |
 | 목적 | 응답 지연, 데드락, CPU 스파이크 분석 | OutOfMemoryError, 메모리 누수 분석 |
 | 수집 부담 | 거의 없음 | 애플리케이션 일시 중단 |
 
@@ -36,7 +36,7 @@ Heap Dump와 자주 혼동하는데, 둘은 목적이 다르다.
 
 ## 언제 Thread Dump를 찍어야 하는가?
 
-Thread Dump는 **"스레드 문제"** 라는 확신이 없어도 일단 찍어보는 것을 좋을 수 있다.
+Thread Dump는 **"스레드 문제"** 라는 확신이 없어도 일단 찍어보는 것이 좋을 수 있다.
 
 이유는 상대적으로 수집 비용이 낮고, 원인이 보이면 빠르게 다음 행동으로 넘어갈 수 있다.
 
@@ -99,7 +99,7 @@ jstack <pid> | awk -v RS= '/^"http-nio-8080-exec/ && /com\.example/ {n++} END {p
 
 :::warning
 RUNNABLE이 많다고 곧장 CPU 스파이크로 단정하면 안 된다.
-JVM의 RUNNABLE은 OS의 Running 상태와 다르다. SocketInputStream.socketRead0처럼 DB 응답 대기, 외부 API 호출 대기 등 native I/O 블로킹 상태도 RUNNABLE로 표시된다.
+JVM의 RUNNABLE은 OS의 Running 상태와 다르다. SocketInputStream.socketRead0(JDK 13 이상은 NioSocketImpl.read)처럼 DB 응답 대기, 외부 API 호출 대기 등 native I/O 블로킹 상태도 RUNNABLE로 표시된다.
 스택 트레이스를 확인해 실제로 CPU를 소모하는 루프인지, I/O를 기다리는 중인지 구분해야 한다.
 CPU 스파이크 여부는 top -H + nid 매핑으로 판단한다.
 :::
@@ -290,19 +290,19 @@ Found 1 deadlock.
         - waiting to lock <0x000000076b3a1d40> (a java.lang.Object)
 ```
 
-같은 락 주소(`0x000000076b3a1d40`)를 기다리는 스레드가 여러 개라면, 해당 주소를 `locked`로 보유한 스레드 찾야하는데, 바로 그 스레드가 병목이다.
+같은 락 주소(`0x000000076b3a1d40`)를 기다리는 스레드가 여러 개라면, 해당 주소를 `locked`로 보유한 스레드를 찾아야 하는데, 바로 그 스레드가 병목이다.
 
 ```bash
 # 특정 락을 기다리는 스레드 수
 grep 'waiting to lock <0x000000076b3a1d40>' dump.txt | wc -l
 
 # 그 락을 보유한 스레드 찾기
-grep -B 30 'locked <0x000000076b3a1d40>' dump.txt | grep '^"'
+awk -v RS= '/- locked <0x000000076b3a1d40>/' dump.txt | head -1
 ```
 
 :::tip
 ReentrantLock, ReadWriteLock 등 java.util.concurrent 락은 위 패턴으로 잡히지 않는다.
-이 경우 jcmd &lt;pid&gt; Thread.print -l로 수집해야 락 보유 정보가 덤프에 포함된다.
+기다리는 쪽은 parking to wait for &lt;0x…&gt; (a java.util.concurrent.locks.ReentrantLock$NonfairSync)로 찍히고, 보유한 쪽은 jcmd &lt;pid&gt; Thread.print -l로 수집해야 나오는 Locked ownable synchronizers 섹션에서 같은 주소로 찾는다.
 :::
 
 ```bash
@@ -357,16 +357,15 @@ RUNNABLE이지만 I/O나 락 대기 없이 루프를 도는 패턴이다.
 
 ## Virtual Threads (가상 스레드) 환경에서의 주의사항
 
-Java 21 LTS에서 가상 스레드가 정식 릴리즈됐는데, `jstack`과 `jcmd Thread.print`는 carrier 스레드만 출력한다.
-unmounted 상태의 가상 스레드는 덤프에 나타나지 않는다.
+Java 21 LTS에서 가상 스레드가 정식 릴리즈됐는데, `jstack`과 `jcmd Thread.print`가 만드는 기존 형식의 덤프에는 가상 스레드가 아예 나오지 않고 carrier 같은 플랫폼 스레드만 나온다.
 
-가상 스레드를 사용하는 환경이라면 아래 명령으로 JSON 형식의 전체 덤프를 수집해야 한다.
+가상 스레드를 사용하는 환경이라면 아래 명령으로 가상 스레드까지 담긴 덤프를 수집해야 하는데, 형식은 text(기본)와 json 중에 고를 수 있다.
 
 ```bash
 jcmd <pid> Thread.dump_to_file -format=json /tmp/thread-dump.json
 ```
 
-이 옵션은 JDK 21 이상에서만 지원된다.
+이 명령은 JDK 19부터 쓸 수 있는데, JDK 21 기준으로는 이 형식에 락 정보가 없어서 데드락이나 락 경합을 볼 때는 `jcmd <pid> Thread.print -l`도 함께 수집한다(JDK 25부터는 락 정보가 추가됐다).
 `spring.threads.virtual.enabled=true`로 가상 스레드를 활성화한 Spring Boot 3.2+ 환경이라면 이 방식이 필수다.
 
 

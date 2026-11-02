@@ -271,6 +271,7 @@ provider.name은 istiod ConfigMap의 extensionProviders에 등록한 이름과 �
 :::warning
 AuthorizationPolicy 의 paths: ["/api"] 는 /api 와 정확히 일치하는 경로만 매칭한다. 이 데모의 authz HTTPRoute 는 경로 타입이 Exact 라서 문제가 없지만, 앞의 Demo 1 처럼 PathPrefix 로 라우팅하면서 이 정책을 그대로 쓰면 /api/orders 같은 하위 경로는 ext_authz 를 거치지 않고 통과한다. 하위 경로까지 막으려면 paths: ["/api", "/api/*"] 처럼 함께 적어야 한다.
 :::
+
 `switch-authz-to-istio.sh`는 다음 순서로 전환을 처리한다.
 
 1. authz-server 이미지를 빌드하고 kind 클러스터에 로드한다.

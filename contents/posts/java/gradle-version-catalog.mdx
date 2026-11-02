@@ -1,6 +1,7 @@
 ---
 title: "Gradle Version Catalog로 의존성 버전 한 곳에서 관리하기"
 date: "2026-10-24"
+updated: "2026-11-02"
 tags: ["Java", "Gradle"]
 summary: "Gradle Version Catalog keeps dependency and plugin versions in one TOML file. Covers the libs.versions.toml structure, multi-module and cross-project sharing, and what the catalog does not do."
 description: "Gradle Version Catalog로 의존성과 플러그인 버전을 libs.versions.toml 한 곳에 모으는 방법을 정리한다. 기본 구조와 접근자 이름 규칙, 멀티 모듈과 여러 프로젝트에서 공유하는 방법, Dependabot 연동과 마이그레이션까지 Gradle 9.4로 직접 확인한 결과를 바탕으로 살펴본다."
@@ -63,12 +64,15 @@ implementation libs.okhttp
 [versions]
 jackson = "2.15.0"
 spring-boot = "4.0.7"
+spring-cloud = "2025.1.2"
+checkstyle = "10.21.4"
 
 [libraries]
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 commons_lang3 = "org.apache.commons:commons-lang3:3.14.0"
 guavaCore = { group = "com.google.guava", name = "guava", version = "33.0.0-jre" }
+spring-cloud-dependencies = { module = "org.springframework.cloud:spring-cloud-dependencies", version.ref = "spring-cloud" }
 
 [bundles]
 jackson = ["jackson-databind", "jackson-datatype-jsr310"]
