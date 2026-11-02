@@ -1,7 +1,7 @@
 ---
 title: "Demo로 이해하는 Istio Ambient mode (Gateway API + ext_authz)"
 date: "2026-06-23"
-updated: "2026-10-31"
+updated: "2026-11-02"
 tags: ["kubernetes", "Istio", "Service Mesh", "Spring Cloud"]
 summary: "Explore Istio Ambient mode and verify how Gateway API and ext_authz can replace an application-layer reverse proxy through a local demo."
 description: "Istio Ambient mode의 아키텍처와 트래픽 흐름을 알아보고, 기존 역방향 프록시 구조를 Istio Gateway(HTTPRoute)와 AuthorizationPolicy(ext_authz)로 전환하는 과정을 kind 기반 로컬 데모로 직접 검증한다."
@@ -349,7 +349,7 @@ AS-IS와 TO-BE 모두 `x-authz-user: alice`, `x-authz-result: allow` 헤더가 �
 * TO-BE: 요청을 받은 Istio Gateway(Envoy)의 HTTP Connection Manager 가 기본 옵션(`generate_request_id`)으로 UUID 를 만든다.
 
 이 순서가 중요한데, Envoy 는 요청을 받자마자 ID 를 먼저 만들고 그 다음에 ext_authz 필터를 호출한다. <br />
-Envoy 를 따로 띄워서 ext_authz(HTTP) 서버와 업스트림이 받은 헤더를 찍어보면 아래와 같다.
+Envoy 를 따로 띄워서(ext_authz HTTP 서비스의 allowed_headers 에 x-request-id 를 추가) 인가 서버와 업스트림이 받은 헤더를 찍어보면 아래와 같다.
 
 | 클라이언트 요청 | ext_authz 서버가 받은 x-request-id | 업스트림이 받은 x-request-id |
 | --- | --- | --- |

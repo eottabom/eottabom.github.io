@@ -1,7 +1,7 @@
 ---
 title: "MySQL TIMESTAMP vs DATETIME, Y2K38 문제: 언제 컬럼을 바꿔야 할까"
 date: "2026-03-21"
-updated: "2026-10-31"
+updated: "2026-11-02"
 tags: ["Database"]
 summary: "MySQL TIMESTAMP vs DATETIME, Y2K38, and when to migrate time columns"
 description: "MySQL TIMESTAMP의 2038년 한계(Y2K38), DATETIME과의 차이, Spring Boot/JPA 테스트 방법, 운영 DB 마이그레이션 전략까지 실무 기준으로 정리한다."
@@ -9,7 +9,7 @@ description: "MySQL TIMESTAMP의 2038년 한계(Y2K38), DATETIME과의 차이, S
 
 :::info
 created_at, updated_at 같은 시간 컬럼을 만들 때 관성적으로 TIMESTAMP를 선택하는 경우가 많다. <br />
-하지만 MySQL TIMESTAMP는 **2038-01-19 03:14:07 UTC** 까지만 표현할 수 있으므로, 컬럼의 도메인 의미를 따지지 않으면 미래 예약/만료 기능에서 실제 장애로 이어질 수 있다. <br />
+하지만 MySQL TIMESTAMP는 **2038-01-19 03\:14\:07 UTC** 까지만 표현할 수 있으므로, 컬럼의 도메인 의미를 따지지 않으면 미래 예약/만료 기능에서 실제 장애로 이어질 수 있다. <br />
 이번 글에서는 Y2K38 문제와 TIMESTAMP, DATETIME 차이, 그리고 운영 DB 에서 어떻게 바꾸면 좋을지에 대해서 알아보자.
 :::
 
@@ -60,8 +60,8 @@ MySQL의 TIMESTAMP도 이 제한을 그대로 가진다.
 <RedText>핵심은 컬럼 이름이 아니라, 그 컬럼이 실제로 미래 시간을 담을 수 있는지다.</RedText>
 
 :::note
-참고로 MySQL 공식 문서 기준 TIMESTAMP 범위는 UTC 기준 1970-01-01 00:00:01 부터 2038-01-19 03\:14\:07.499999 까지다. <br />
-반면 DATETIME은 1000-01-01 00:00:00 부터 9999-12-31 23\:59\:59.499999 까지 표현할 수 있다.
+참고로 MySQL 공식 문서 기준 TIMESTAMP 범위는 UTC 기준 1970-01-01 00\:00\:01 부터 2038-01-19 03\:14\:07.499999 까지다. <br />
+반면 DATETIME은 1000-01-01 00\:00\:00 부터 9999-12-31 23\:59\:59.499999 까지 표현할 수 있다.
 :::
 
 ---
@@ -189,7 +189,7 @@ Java 진영에서는 보통 아래처럼 매핑해서 사용한다.
 * Instant ↔ TIMESTAMP
 * LocalDateTime ↔ DATETIME
 
-`ddl-auto` 로 Hibernate 가 테이블을 만들게 하면 이야기가 달라지는데, Spring Boot 4.0(Hibernate 7.2) 기준으로 확인해보면 Instant 도 `timestamp(6)` 이 아니라 `datetime(6)` 컬럼으로 만들어진다. <br />
+`ddl-auto` 로 Hibernate 가 테이블을 만들게 하면 이야기가 달라지는데, Spring Boot 4.0(Hibernate 7.2)과 4.1(Hibernate 7.4)에서 확인해보면 Instant 도 `timestamp(6)` 이 아니라 `datetime(6)` 컬럼으로 만들어진다. <br />
 즉, Y2K38 문제는 Hibernate 가 만든 컬럼이 아니라 <b>직접 TIMESTAMP 로 선언해둔 기존 스키마</b>에서 생긴다.
 
 하지만 중요한 것은 타입 이름보다도, **JDBC 드라이버와 Hibernate 설정이 실제로 어떤 방식으로 저장/조회하는지 통합 테스트로 검증하는 것**이다. <br />
@@ -202,6 +202,16 @@ Java 진영에서는 보통 아래처럼 매핑해서 사용한다.
 여기서 주의할 점이 있는데, `@DataJpaTest` 는 기본적으로 DataSource 를 임베디드 DB(H2)로 바꿔치기한다. <br />
 H2 는 `MODE=MySQL` 로 띄워도 TIMESTAMP 범위를 넘는 값을 그대로 저장하기 때문에, H2 로 돌리면 "2038년을 넘으면 실패한다"는 테스트가 오히려 실패한다. <br />
 그래서 `@AutoConfigureTestDatabase(replace = NONE)` 로 바꿔치기를 끄고, Testcontainers 로 실제 MySQL 을 붙여서 확인해야 한다.
+
+또 이 테스트는 `spring.jpa.hibernate.ddl-auto=none` 으로 두고, 예제의 schema.sql 로 TIMESTAMP 컬럼을 직접 만든 상태를 전제로 하는데, 앞에서 본 것처럼 ddl-auto 로 만들면 `datetime(6)` 이 되어 2038년을 넘어도 저장되기 때문이다.
+
+```sql
+CREATE TABLE time_test (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    ts_col TIMESTAMP NULL,
+    dt_col DATETIME NULL
+);
+```
 
 ```java
 import java.time.Instant;
@@ -271,13 +281,15 @@ class MysqlTimestampIntegrationTests {
 }
 ```
 
-위 코드의 import 경로는 Spring Boot 4 기준이다. Boot 3.x 에서는 `org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest`, `org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase` 를 쓴다.
+위 코드의 import 경로는 Spring Boot 4 기준이다. Boot 3.x 에서는 `org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest`, `org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase` 를 쓴다. <br />
+Testcontainers 는 1.21.x 기준이고, 2.x 에서는 아티팩트가 `testcontainers-mysql` 로 바뀌면서 `org.testcontainers.mysql.MySQLContainer` 가 새로 생겼다.
 
 MySQL 8.4 에서 세 테스트 모두 통과했는데, 예외가 나는 것은 기본 `sql_mode` 에 `STRICT_TRANS_TABLES` 가 들어 있기 때문이다. <br />
 strict 모드를 끈 환경에서는 같은 INSERT 가 실패하지 않고, 경고만 남긴 채 `0000-00-00 00:00:00` 으로 저장된다.
 
 ```sql
 SET sql_mode = '';
+SET time_zone = '+00:00';
 INSERT INTO t(ts) VALUES ('2038-01-19 03:14:08');
 -- Warning 1264: Out of range value for column 'ts' at row 1
 -- 저장된 값: 0000-00-00 00:00:00

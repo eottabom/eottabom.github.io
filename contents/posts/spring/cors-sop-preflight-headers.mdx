@@ -1,6 +1,7 @@
 ---
 title: "CORS 이해하기 - SOP부터 Preflight, 요청/응답 헤더, 에러 메시지까지"
 date: "2026-11-01"
+updated: "2026-11-02"
 tags: ["Spring", "Study"]
 summary: "CORS is a browser mechanism for relaxing the Same-Origin Policy, not a server-side security layer. Covers simple vs preflighted requests, request and response CORS headers, Spring configuration, and how to map Chrome error messages to the missing header."
 description: "CORS를 SOP부터 다시 정리한다. Simple Request와 Preflight(OPTIONS)의 차이, 브라우저가 보내는 요청 헤더와 서버가 돌려주는 응답 헤더, Expose-Headers, credentials, Max-Age, Vary 같은 디테일을 Spring Boot 4.1과 Chrome으로 직접 확인한 결과로 살펴본다."
@@ -81,7 +82,7 @@ ARRIVED GET /api/none/items origin=http://localhost:5173 status=200
 
 서버는 할 일을 다 했고, 응답도 브라우저까지 도착했다. <br />
 브라우저가 응답에 `Access-Control-Allow-Origin` 헤더가 없는 것을 보고 <RedText>스크립트에 응답을 넘겨주지 않은 것</RedText>이다. <br />
-그래서 CORS 에러는 서버 로그에는 아무 흔적이 없는 경우가 많고, 원인은 항상 응답 헤더에서 찾아야 한다.
+그래서 CORS 에러는 서버 로그에 정상 처리된 요청으로만 찍혀서 에러 흔적이 없는 경우가 많고, 원인은 항상 응답 헤더에서 찾아야 한다.
 
 ---
 
@@ -93,7 +94,7 @@ CORS에 쓰이는 헤더는 누가 붙이느냐에 따라 두 종류로 나뉘�
 
 | 헤더 | 언제 | 의미 |
 | --- | --- | --- |
-| Origin | 모든 cross-origin 요청 | 이 요청을 보낸 페이지의 출처 |
+| Origin | cross-origin fetch, XHR 요청과 같은 출처라도 GET, HEAD 가 아닌 요청 | 이 요청을 보낸 페이지의 출처 |
 | Access-Control-Request-Method | preflight(OPTIONS) | 본 요청에서 쓸 메서드 |
 | Access-Control-Request-Headers | preflight(OPTIONS) | 본 요청에 붙일 헤더 목록 |
 
@@ -107,7 +108,7 @@ CORS에 쓰이는 헤더는 누가 붙이느냐에 따라 두 종류로 나뉘�
 | 헤더 | 단계 | 의미 |
 | --- | --- | --- |
 | Access-Control-Allow-Origin | preflight, 본 요청 | 이 응답을 읽어도 되는 출처 (하나 또는 `*`) |
-| Access-Control-Allow-Credentials | preflight, 본 요청 | 쿠키, Authorization 같은 인증 정보가 붙은 요청을 허용하는지 |
+| Access-Control-Allow-Credentials | preflight, 본 요청 | 쿠키, TLS 클라이언트 인증서, 브라우저가 관리하는 HTTP 인증 정보가 붙은 요청을 허용하는지, 스크립트가 직접 붙인 Authorization 헤더는 Allow-Headers 대상이다 |
 | Access-Control-Allow-Methods | preflight | 본 요청에 허용하는 메서드 |
 | Access-Control-Allow-Headers | preflight | 본 요청에 허용하는 요청 헤더 |
 | Access-Control-Max-Age | preflight | preflight 결과를 캐시해도 되는 시간(초) |
@@ -115,8 +116,7 @@ CORS에 쓰이는 헤더는 누가 붙이느냐에 따라 두 종류로 나뉘�
 | Vary: Origin | preflight, 본 요청 | 출처에 따라 응답이 달라진다는 캐시용 신호 (CORS 전용 헤더는 아니다) |
 
 요청 헤더와 응답 헤더는 짝을 이룬다. <br />
-브라우저가 Access-Control-Request-Method로 "PUT을 쓰고 싶다"고 물으면 서버는 Access-Control-Allow-Methods로 답하고, <br />
-Access-Control-Request-Headers로 물은 헤더는 Access-Control-Allow-Headers로 답하는 식이다.
+브라우저가 Access-Control-Request-Method로 "PUT을 쓰고 싶다"고 물으면 서버는 Access-Control-Allow-Methods로 답하고, Access-Control-Request-Headers로 물은 헤더는 Access-Control-Allow-Headers로 답하는 식이다.
 
 ---
 
@@ -260,6 +260,9 @@ public class CorsConfig implements WebMvcConfigurer {
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
+		registry.addMapping("/api/basic/**")
+				.allowedOrigins("http://localhost:5173"); // 나머지는 기본값
+
 		registry.addMapping("/api/expose/**")
 				.allowedOrigins("http://localhost:5173")
 				.allowedMethods("GET", "POST", "PUT")
@@ -279,6 +282,9 @@ public class CorsConfig implements WebMvcConfigurer {
 | exposedHeaders | Access-Control-Expose-Headers | 없음 |
 | allowCredentials | Access-Control-Allow-Credentials | 붙이지 않음 |
 | maxAge | Access-Control-Max-Age | 1800초 |
+
+이 기본값은 `addCorsMappings`와 `@CrossOrigin`에만 적용된다. <br />
+`CorsConfigurationSource` 빈에서 `new CorsConfiguration()`을 직접 만들면 기본값이 없어서 메서드는 GET, HEAD만 허용되고 Max-Age도 붙지 않으므로, 출처, 메서드, 헤더, maxAge를 모두 명시해야 한다.
 
 ### Spring은 허용하지 않은 요청을 403으로 거절한다
 
@@ -337,7 +343,8 @@ SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 | 없음 | 401, WWW-Authenticate만 있고 CORS 헤더 없음 | 본 요청 안 감, No 'Access-Control-Allow-Origin' 에러 |
 | cors(Customizer.withDefaults()) | 200, Access-Control-Allow-Origin, Allow-Headers: authorization | 본 요청 200 |
 
-`http.cors(Customizer.withDefaults())`를 켜면 Security가 필터 단계에서 CORS를 먼저 처리하는데, 별도의 `CorsConfigurationSource` 빈이 없으면 `addCorsMappings`에 적어둔 설정을 그대로 가져다 쓴다. <br />
+`http.cors(Customizer.withDefaults())`를 켜면 Security가 필터 단계에서 CORS를 먼저 처리하는데, `corsConfigurationSource`나 `corsFilter`라는 이름의 빈이 없으면 `addCorsMappings`에 적어둔 설정을 그대로 가져다 쓴다. <br />
+반대로 `UrlBasedCorsConfigurationSource` 빈을 등록해두면 Security가 `cors()`를 자동으로 켠다. <br />
 `http.cors()`가 없을 때는 요청을 기록하는 필터에도 OPTIONS가 찍히지 않았는데, Security 필터에서 이미 끝난 요청이기 때문이다.
 
 ---
@@ -436,7 +443,7 @@ Fetch 명세는 Access-Control-Allow-Headers의 `*`가 `Authorization`을 포함
 그런데 중간의 CDN이나 프록시 캐시는 기본적으로 URL만 보고 응답을 캐시하기 때문에, `a.example.com`에 대한 응답(`Access-Control-Allow-Origin: https://a.example.com`)이 캐시되면 `b.example.com`의 요청에도 그 응답이 나가서 CORS 에러가 나거나, 반대로 허용하면 안 되는 출처에 허용 응답이 나갈 수 있다.
 
 Vary: Origin은 캐시에 <b>"이 응답은 Origin 값마다 따로 캐시하라"</b>고 알려주는 헤더다. <br />
-preflight 응답도 마찬가지인데, 한 출처에 대한 preflight 응답이 캐시되어 다른 출처에 나가면 그 출처의 preflight가 깨진다. <br />
+preflight(OPTIONS) 응답은 HTTP 캐시 대상이 아니고 브라우저의 preflight 캐시도 출처별로 따로 저장되기 때문에, Vary: Origin 이 실제로 문제가 되는 것은 본 요청 응답이다. <br />
 Spring은 위 curl 결과처럼 preflight와 본 요청 응답 모두에 Vary: Origin, Access-Control-Request-Method, Access-Control-Request-Headers를 자동으로 붙여주는데, Nginx나 게이트웨이에서 헤더를 직접 붙이는 경우에는 빠뜨리기 쉬우니 같이 넣어야 한다.
 
 ### 5) Max-Age가 짧으면 요청마다 OPTIONS가 한 번 더 나간다
@@ -466,7 +473,7 @@ Network 탭에서 보면 Max-Age가 0일 때는 요청마다 preflight가 붙고
 값을 크게 줘도 브라우저마다 상한이 있어서 MDN 기준으로 Chromium은 2시간(7200초), Firefox는 24시간(86400초)까지만 캐시한다.
 
 :::tip
-Spring의 기본 maxAge는 1800초(30분)라서 따로 건드리지 않아도 preflight가 매번 나가지는 않는다. 
+addCorsMappings 기준으로 Spring의 기본 maxAge는 1800초(30분)라서 따로 건드리지 않아도 preflight가 매번 나가지는 않는다. 
 Nginx나 게이트웨이에서 직접 헤더를 붙일 때 Max-Age를 빠뜨리지 않았는지 확인해보자.
 :::
 
@@ -523,7 +530,7 @@ CORS를 보안 기능으로 오해하면 설정을 잘못 판단하게 되는데
 ✔ 응답 헤더(Access-Control-Allow 계열, Expose-Headers, Max-Age)는 서버가 붙인다<br />
 ✔ JSON, PUT/DELETE, safelist에 없는 헤더(Authorization 포함) 중 하나만 써도 preflight(OPTIONS)가 먼저 나가고, 실패하면 본 요청은 가지 않는다<br />
 ✔ credentials를 쓰면 와일드카드(*)는 Allow-Origin, Allow-Methods, Allow-Headers 어디에서도 동작하지 않는다<br />
-✔ Spring Security를 쓴다면 http.cors()를 켜야 preflight가 인증 필터에 막히지 않는다
+✔ Spring Security와 addCorsMappings를 같이 쓴다면 http.cors()를 켜야 preflight가 인증 필터에 막히지 않는다
 :::
 
 헤더를 하나하나 외우기보다 <b>"preflight에서 묻고 답하는 헤더"</b>와 <b>"본 요청 응답에서 읽기를 허락하는 헤더"</b>로 묶어서 보면 훨씬 덜 헷갈린다. <br />

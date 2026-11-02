@@ -1,6 +1,7 @@
 ---
 title: "G1GC 에 대해서 알아보자 - 동작 원리와 선택 기준"
 date: "2026-04-09"
+updated: "2026-11-02"
 tags: ["Java", "JVM"]
 summary: "How G1GC works, why heap size matters, and what to check before tuning pause-time options. A practical guide to G1GC behavior and selection criteria."
 description: "G1GC의 동작 원리부터 선택 기준까지 정리한다. Region 기반 회수 구조, pause time 특성, 큰 Heap에서의 장점, 그리고 옵션보다 먼저 봐야 할 판단 기준을 함께 살펴본다."
@@ -45,7 +46,7 @@ G1GC는 Old 영역을 한 번에 다 정리하지 않고, Mixed GC로 조금씩 
 이게 G1GC의 핵심인데, **"가장 빠른 GC"가 아니라 "pause time을 일정 수준으로 관리할 수 있는 GC"** 이다.
 
 추가적으로 아래와 같은 이유 때문에 사용한다.
-- JDK 9부터 기본값
+- JDK 9부터 server-class 환경(CPU 2개 이상, 메모리 1792MB 이상)의 기본값이고, 그보다 작은 컨테이너에서는 Serial이 선택된다
 - Region 기반이라 큰 Heap에서 유연함
 - evacuation/compaction으로 단편화 적음
 
@@ -53,8 +54,7 @@ G1GC는 Old 영역을 한 번에 다 정리하지 않고, Mixed GC로 조금씩 
 
 ## Heap을 Region으로 나눈다는 것은?
 
-기존의 GC는 Eden, Survivor, Old를 고정된 큰 영역으로 봤었다면, <br />
-G1GC는 Heap 전체를 동일 크기의 Region으로 나누고, 각 Region이 시점에 따라 Eden, Survivor, Old, Humongous 역할을 한다.
+기존의 GC는 Eden, Survivor, Old를 고정된 큰 영역으로 봤었다면, G1GC는 Heap 전체를 동일 크기의 Region으로 나누고, 각 Region이 시점에 따라 Eden, Survivor, Old, Humongous 역할을 한다.
 
 **"이 메모리는 영원히 Eden"이 아니라 "지금 이 Region이 Eden 역할을 하고 있다"는 뜻이다.**
 
@@ -92,7 +92,7 @@ Eden이 어떻게 차고, Young GC는 언제 트리거되고, Survivor에서 Old
 **시나리오**
 - Object Size를 1.5 MB로 올리면 빨간색(Humongous)이 많아진다. Humongous 영역이 늘수록 GC 효율이 떨어지는 것을 관찰해보자.
 - Speed를 10으로 올리면 GC가 자주 발생한다. 할당 속도가 회수 속도를 따라잡지 못하면 Full GC 위험이 높아진다.
-- Survivor(노란색)가 3번 이상 GC를 견디면 Old로 승격된다. Young GC의 생존 객체가 많으면 Old 영역이 빠르게 차간다.
+- Survivor(노란색)가 3번 이상 GC를 견디면 Old로 승격된다(시뮬레이터 설정이고, 실제 JVM은 기본 최대 15번이며 동적으로 조정된다). Young GC의 생존 객체가 많으면 Old 영역이 빠르게 차간다.
 - Object Size와 Speed를 동시에 크게 올리면 메모리 압박이 심해져서 GC가 계속 트리거되는 상황을 경험할 수 있다.
 
 <br />
@@ -116,8 +116,7 @@ Eden이 어떻게 차고, Young GC는 언제 트리거되고, Survivor에서 Old
 * 큰 배열, 버퍼가 자주 생기면 이 영역이 늘어나고 GC 효율이 떨어진다.
 
 :::warning
-Heap 사용률이 낮은데도 pause time 이 길거나 Full GC가 반복되는 상황이라면, <br />
-Heap 크기만 볼 것이 아니라 <b>Humongous allocation 패턴</b>도 확인해야 한다. <br />
+Heap 사용률이 낮은데도 pause time 이 길거나 Full GC가 반복되는 상황이라면, Heap 크기만 볼 것이 아니라 <b>Humongous allocation 패턴</b>도 확인해야 한다. <br />
 ex) Region이 2MB인데 5MB 배열을 계속 할당하면 Humongous Region만 늘어난다.
 :::
 
@@ -223,7 +222,7 @@ G1GC의 가장 유명한 옵션은 `-XX:MaxGCPauseMillis`다.
 
 ## Humongous Allocation 주의
 
-Region 크기의 50% 이상 큰 객체는 Humongous로 할당되고, 이들은 Young GC 대상이 아니므로 회수 효율이 떨어진다.
+Region 크기의 50% 이상 큰 객체는 Humongous로 할당되어 이동(evacuation)되지 않고 연속된 Region을 차지한다. 참조가 없는 primitive 배열(JDK 8u40 이후)과 참조 배열(JDK 26 이후)은 Young GC에서 바로 회수되지만, 그렇지 않으면 Concurrent Mark 이후나 Full GC에서야 회수된다.
 
 **자주 보는 예시:**
 - 대용량 JSON 파싱 (`byte[]` 로드)
@@ -251,7 +250,7 @@ GC 로그는 많은 정보를 담아 처음엔 어렵지만, 몇 가지 포인�
 **Mixed GC 연속성과 효율**
 * Concurrent Mark 후 Mixed GC가 여러 번 이어지는데, 너무 길거나 회수 효율이 낮으면 Old의 live object 비율이 높다는 뜻이다.
 
-**Evacuation 실패 (To-space exhausted)**
+**Evacuation 실패 (JDK 17까지 To-space exhausted, JDK 21부터 Evacuation Failure 로 표시)**
 * evacuation 공간이 부족하면 G1GC가 의도한 방식으로 동작하지 못한다.
 * Full GC 위험이 커지므로 메모리 headroom 확보가 우선이다.
 
@@ -268,7 +267,7 @@ G1GC 옵션이 많지만 처음부터 튜닝을 할 필요는 없고, 기본값�
 
 **`-XX:+UseG1GC`**
 * 명시적으로 G1GC를 사용한다.
-* 최신 JDK에서는 기본값이지만, 옵션을 명확히 남기는 게 운영에는 좋다.
+* 최신 JDK에서는 기본값이지만 작은 컨테이너에서는 Serial이 선택되므로, 옵션을 명확히 남기는 게 운영에는 좋다.
 
 **`-XX:MaxGCPauseMillis`**
 * pause 목표값이다.
@@ -298,10 +297,10 @@ GC 문제로 보여도 실제 원인은 컨테이너 메모리 제한, CPU throt
 ## G1GC가 정말 필요한지 생각해보기
 
 G1GC는 **"큰 Heap"** 기준이고,
-Heap이 충분히 크면(보통 4GB 이상) Old 영역이 유의미한 크기가 되고, Mixed GC로 선택적으로 정리할 여지가 생긴다.
+Heap이 충분히 크면(개인 경험상 4GB 이상) Old 영역이 유의미한 크기가 되고, Mixed GC로 선택적으로 정리할 여지가 생긴다.
 
-반대로, Heap이 작으면? Region도 적고, Old도 작고, 결국 Young + Full GC처럼 동작한다. <br />
-런타임 중에 Region을 동적으로 관리하고 메타 정보를 추적하지만, 그 비용만 남고 이득은 없다.
+반대로 Heap이 작아도 G1은 Concurrent Mark와 Mixed GC를 그대로 수행하는데(512MB여도 Region이 512개다), Old 영역 자체가 작아서 선택적으로 회수해서 얻는 이점은 줄어든다. <br />
+Region을 관리하고 메타 정보를 추적하는 비용은 그대로 들기 때문에, 작은 Heap에서는 그 비용에 비해 얻는 것이 적을 수 있다.
 
 **꼭 맞는 경우**
 - Heap이 4GB 이상으로 충분하다
@@ -310,13 +309,13 @@ Heap이 충분히 크면(보통 4GB 이상) Old 영역이 유의미한 크기가
 - CMS 같은 레거시에서 벗어나야 한다
 
 **안 맞는 경우**
-- 초저지연(마이크로초 단위)이 필요하다 → ZGC 보자
-- Heap이 1GB 미만이다 → 그냥 Parallel GC나 Serial GC 써야 한다
+- GC pause를 1ms 미만으로 유지해야 한다 → ZGC 보자
+- Heap이 작고 pause 요구가 없다 → Parallel GC나 Serial GC도 검토한다
 - 큰 객체를 많이 할당한다 → Humongous Region 문제
 - evacuation 공간을 확보하기 어렵다 → 메모리가 진짜 부족한 것
 
-Heap이 작으면 G1GC를 설정해도 Region 기반으로 선택적으로 회수할 여지가 크지 않다.
-결국 추적 비용만 늘고 얻는 이점은 제한적일 수 있으므로, 이런 경우에는 더 단순한 GC가 오히려 낫다.
+Heap이 작을수록 G1의 상대적 이점은 줄어든다. <br />
+공식 가이드는 데이터셋이 약 100MB 이하이거나 단일 CPU면 Serial, pause 요구가 없고 처리량이 우선이면 Parallel을 권장한다.
 
 
 ---
@@ -328,13 +327,13 @@ GC는 목표가 명확해야 선택된다. 처리량인가? Pause time인가? �
 | GC | 목표 | 특징 | 추천 |
 |--|--|--|--|
 | Parallel GC | 처리량 | STW가 길어도 총량이 좋음. 구조 단순함 | 배치 작업, 오프라인 처리 |
-| G1GC | 균형 | Pause를 예측 가능하게. Heap 4GB+ 필요 | 웹 서비스, API 서버 |
+| G1GC | 균형 | Pause를 예측 가능하게. 큰 Heap에서 이점이 큼 | 웹 서비스, API 서버 |
 | ZGC | 초저지연 | Pause 거의 없음. 메모리 많이 소비 | 금융, 실시간 시스템 |
-| CMS | (레거시) | 옛날 방식. 현재는 교육용 | 없음 |
+| CMS | (제거됨) | JDK 9에서 deprecated, JDK 14에서 제거(JEP 363) | 없음 |
 
 - Heap이 작고(1GB 미만) 처리량만 중요 → Parallel GC
 - Heap이 충분(4GB+)하고 응답 안정성 중요 → G1GC
-- 응답 시간이 마이크로초 단위 → ZGC 검토
+- GC pause를 1ms 미만으로 유지해야 함 → ZGC 검토
 
 ---
 
@@ -359,7 +358,7 @@ GC는 목표가 명확해야 선택된다. 처리량인가? Pause time인가? �
 * G1 튜닝 가이드 (JDK 8) - <a href="https://docs.oracle.com/javase/8/docs/technotes/guides/vm/gctuning/g1_gc_tuning.html">Oracle - Garbage First Garbage Collector Tuning</a>
 * G1 튜닝 가이드 (JDK 25) - <a href="https://docs.oracle.com/en/java/javase/25/gctuning/garbage-first-garbage-collector-tuning.html">Oracle - Garbage-First Garbage Collector Tuning (JDK 25)</a>
 * G1 튜닝 가이드 (JDK 26) - <a href="https://docs.oracle.com/en/java/javase/26/gctuning/garbage-first-garbage-collector-tuning.html">Oracle - Garbage-First Garbage Collector Tuning (JDK 26)</a>
-* Java GC 전체 가이드 - <a href="https://docs.oracle.com/en/java/">Oracle - Java HotSpot VM Garbage Collection Tuning Guide</a>
+* Java GC 전체 가이드 - <a href="https://docs.oracle.com/en/java/javase/25/gctuning/">Oracle - Java HotSpot VM Garbage Collection Tuning Guide</a>
 
 **동작 구조**
 

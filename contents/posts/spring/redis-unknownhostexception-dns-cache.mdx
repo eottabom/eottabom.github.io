@@ -1,6 +1,7 @@
 ---
 title: "Redis UnknownHostException 이 간헐적으로 발생할 때 확인할 DNS resolver 설정"
 date: "2026-05-06"
+updated: "2026-11-02"
 tags: ["Spring", "Redis", "Java"]
 summary: "Why UnknownHostException appeared intermittently in a Spring Boot MVC Redis Lettuce application even though Redis itself was running normally."
 description: "Spring Boot MVC Redis Lettuce 환경에서 UnknownHostException 이 간헐적으로 발생한 이유를 Redis 연결 재사용, 재연결, DNS resolver 설정 관점에서 정리한다."
@@ -98,7 +99,8 @@ Java 의 `InetAddress` 는 hostname 해석 결과를 cache 한다.
 
 :::note
 networkaddress.cache.ttl, networkaddress.cache.negative.ttl 은 Java security property 이다. <br />
-JDK 와 실행 환경에 따라 적용 방식이 다를 수 있으므로, 단순히 -Dnetworkaddress.cache.ttl=... 로 넣었다고 실제 적용됐다고 가정하면 안 된다.
+JDK 와 실행 환경에 따라 적용 방식이 다를 수 있으므로, 단순히 -Dnetworkaddress.cache.ttl=... 로 넣었다고 실제 적용됐다고 가정하면 안 된다. <br />
+-D 로 주려면 sun.net.inetaddr.ttl, sun.net.inetaddr.negative.ttl 을 쓰고, 그 외에는 $JAVA_HOME/conf/security/java.security 파일이나 애플리케이션 시작 시 Security.setProperty 로 설정한다.
 :::
 
 ---
@@ -129,7 +131,7 @@ Spring Data Redis 문서 기준으로 `LettuceConnectionFactory` 는 기본적�
 
 그래서 "같은 Redis host 로 대부분의 요청은 정상인데 가끔만 실패한다" 는 현상이 가능해진다. 이미 살아 있는 연결은 문제가 없지만, 재연결이나 새 연결이 필요할 때는 hostname 해석에 다시 의존하기 때문이다.
 
-UnknownHostException 자체는 DNS lookup 실패다. 다만 그 lookup 이 매 요청마다 발생하지 않기 때문에 장애도 매번 보이지 않았던 것이다.
+UnknownHostException 자체는 DNS lookup 실패다. 그런데 그 lookup 이 매 요청마다 발생하지 않기 때문에 장애도 매번 보이지 않았던 것이다.
 
 ---
 
@@ -361,6 +363,16 @@ RedisClient redisClient = RedisClient.create(clientResources, redisUri);
 
 `DefaultAddressResolverGroup.INSTANCE` 는 Netty 가 제공하는 JVM resolver 래퍼다. 이 설정을 사용하면 DNS 조회가 JVM 의 `InetAddress` 를 통해 이루어지고, `networkaddress.cache.ttl` 과 `networkaddress.cache.negative.ttl` 로 캐시를 제어할 수 있다.
 
+Spring Boot 에서 자동 구성된 `LettuceConnectionFactory` 를 쓰고 있다면, `RedisClient` 를 직접 만들어서는 이 설정이 적용되지 않는다. <br />
+이때는 아래처럼 `ClientResourcesBuilderCustomizer` 를 빈으로 등록하면, Boot 가 만드는 `ClientResources` 에 같은 resolver 가 들어간다.
+
+```java
+@Bean
+ClientResourcesBuilderCustomizer jvmDnsResolver() {
+    return (builder) -> builder.addressResolverGroup(DefaultAddressResolverGroup.INSTANCE);
+}
+```
+
 :::warning
 JVM resolver 는 비동기가 아니라 blocking 방식이다. <br />
 Netty 의 비동기 DNS 처리가 필요한 환경이라면 resolver 교체가 항상 더 나은 선택은 아닐 수 있다.
@@ -442,7 +454,7 @@ logging.level.io.netty.resolver.dns=DEBUG
 ✔ Redis 서버는 정상인데 일부 요청에서만 hostname 을 못 찾는다면, Lettuce 가 어떤 DNS resolver 를 쓰는지 먼저 확인하는 게 좋다.
 ✔ 기본 Netty resolver 는 JVM DNS cache 설정을 타지 않고 자체 TTL/cache 흐름을 사용한다.
 ✔ JVM resolver 로 바꾸면 networkaddress.cache.ttl, networkaddress.cache.negative.ttl 기준으로 DNS cache 를 관리할 수 있다.
-✔ Kubernetes 환경에서는 ndots:5 와 search domain 때문에 불필요한 DNS lookup 이 늘어날 수 있으므로 FQDN 사용이나 dnsConfig 조정도 같이 봐야 한다.
+✔ Kubernetes 환경에서는 ndots\:5 와 search domain 때문에 불필요한 DNS lookup 이 늘어날 수 있으므로 FQDN 사용이나 dnsConfig 조정도 같이 봐야 한다.
 ✔ DNS 실패 이후 command 를 queue 에 쌓을지 바로 거절할지는 Lettuce disconnectedBehavior 로 조정할 수 있다.
 ✔ Redis, Lettuce, JVM, DNS 를 따로 보기보다 resolver 설정에 따른 DNS lookup 과 cache 정책을 같이 봐야 한다.
 :::
@@ -452,7 +464,7 @@ logging.level.io.netty.resolver.dns=DEBUG
 ## Reference
 
 * [Oracle Java SE 21 - InetAddress Caching](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/InetAddress.html)
-* [Oracle Java SE 12 - Networking Properties, Address Cache](https://docs.oracle.com/en/java/javase/12/docs/api/java.base/java/net/doc-files/net-properties.html)
+* [Oracle Java SE 21 - Networking Properties, Address Cache](https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/doc-files/net-properties.html)
 * [Lettuce Reference Guide - Client Options](https://redis.github.io/lettuce/advanced-usage/client-options/)
 * [Spring Data Redis - LettuceConnectionFactory API](https://docs.spring.io/spring-data/data-redis/docs/current/api/org/springframework/data/redis/connection/lettuce/LettuceConnectionFactory.html)
 * [Netty - DefaultAddressResolverGroup](https://netty.io/4.1/api/io/netty/resolver/DefaultAddressResolverGroup.html)

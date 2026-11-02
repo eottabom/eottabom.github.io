@@ -22,7 +22,7 @@
   <!-- conflict block rebase -->
   <rect x="420" y="115" width="280" height="90" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="1"/>
   <text x="430" y="136" fill="#dc2626" font-family="monospace" font-size="12">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</text>
-  <text x="430" y="156" fill="#1e40af" font-weight="600" font-size="12">main 브랜치 코드 (기준점)</text>
+  <text x="430" y="156" fill="#1e40af" font-weight="600" font-size="12">main + 다시 적용된 내 커밋 (기준점)</text>
   <text x="430" y="172" fill="#64748b" font-family="monospace" font-size="12">=======</text>
   <text x="430" y="192" fill="#b45309" font-weight="600" font-size="12">feature 커밋 코드 (다시 적용 중)</text>
   <!-- labels -->

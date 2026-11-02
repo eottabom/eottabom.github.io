@@ -1,7 +1,7 @@
 ---
 title: "Quick Start - k6 (with InfluxDB + Grafana)"
 date: "2026-01-20"
-updated: "2026-10-31"
+updated: "2026-11-02"
 tags: ["load-test"]
 summary: "Build a reproducible load testing environment with k6, InfluxDB, and Grafana using Docker for reliable performance comparison"
 description: "Docker 기반으로 k6 부하 테스트 스택을 구성하고, 대시보드 자동화와 메트릭 영속화를 통해 반복 가능한 성능 테스트 환경을 구축해보자."
@@ -136,7 +136,8 @@ services:
         done
 
         grep -v '^--' /scripts/init.influxql | grep -v '^$$' | while read -r q; do
-          curl -sSf -XPOST http://influxdb:8086/query --data-urlencode "q=$$q" >/dev/null
+          curl -sSf -XPOST http://influxdb:8086/query --data-urlencode "q=$$q"
+          echo
         done
 
   grafana:
@@ -203,7 +204,8 @@ volumes:
 
 이미지 버전은 글을 쓴 시점(InfluxDB 1.8, Grafana 10.4.3, k6 0.49.0)으로 고정해두었다.
 
-InfluxDB 에 보존 정책을 만드는 쿼리는 GET 으로 보내도 실행은 되는데, InfluxDB 1.8 이 "POST 로 보내라"는 경고를 돌려주기 때문에 POST(-XPOST)로 보내고, -sSf 를 붙여서 쿼리가 실패하면 에러가 컨테이너 로그에 남게 했다.
+InfluxDB 에 보존 정책을 만드는 쿼리는 GET 으로 보내도 실행은 되는데, InfluxDB 1.8 이 "POST 로 보내라"는 경고를 돌려주기 때문에 POST(-XPOST)로 보냈다. <br />
+-sSf 는 문법 오류처럼 HTTP 400 으로 오는 실패만 잡는데, 없는 DB 를 가리키는 것 같은 실행 오류는 HTTP 200 응답의 error 필드로 오기 때문에 응답 본문도 그대로 출력해서 둘 다 컨테이너 로그에 남게 했다.
 
 init.influxql 에는 아래와 같이 7일 보존 정책을 만드는 쿼리 한 줄만 들어 있다.
 
@@ -215,7 +217,7 @@ CREATE RETENTION POLICY "rp_7d" ON "k6" DURATION 7d REPLICATION 1 DEFAULT
 
 :::warning
 14801 대시보드의 Error Rate 패널은 Singlestat Math(blackmirror1-singlestat-math-panel) 플러그인을 쓰는데, 이 플러그인이 없으면 패널에 "Panel plugin not found" 가 뜬다. 그래서 GF_INSTALL_PLUGINS 로 플러그인을 함께 설치한다.
-Angular 기반 플러그인이라 Grafana 10.x 에서만 동작하고, Angular 지원이 기본으로 꺼진 Grafana 11 이후에서는 설치해도 동작하지 않는다. Grafana 를 올린다면 Error Rate 패널을 stat 패널로 바꾼 대시보드 JSON 을 따로 두는 편이 낫다.
+Angular 기반 플러그인이라 Grafana 10.x 에서만 기본으로 동작하는데, Grafana 11 은 Angular 지원이 기본으로 꺼져 있어서 angular_support_enabled=true 로 다시 켜야 하고, 12 부터는 완전히 제거돼 동작하지 않는다. Grafana 를 올린다면 Error Rate 패널을 stat 패널로 바꾼 대시보드 JSON 을 따로 두는 편이 낫다.
 :::
 
 <br/>

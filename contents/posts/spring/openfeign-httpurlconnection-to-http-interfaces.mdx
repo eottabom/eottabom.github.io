@@ -1,7 +1,7 @@
 ---
 title: "OpenFeign 기본값의 함정 - 커넥션 풀 없는 HttpURLConnection과 Spring HTTP Interfaces 마이그레이션"
 date: "2026-08-29"
-updated: "2026-10-31"
+updated: "2026-11-02"
 tags: ["Spring", "Java"]
 summary: "OpenFeign's default client silently runs on connection-pool-less HttpURLConnection - how to spot it and migrate to Spring 6 HTTP Interfaces (HttpServiceProxyFactory)."
 description: "별다른 설정 없이 OpenFeign 을 쓰면 커넥션 풀이 없는 HttpURLConnection 이 기본 클라이언트로 동작한다는 함정을 데모로 검증하고, Apache HttpClient5/OkHttp 적용 및 Spring 6 HTTP Interfaces(HttpServiceProxyFactory)로의 마이그레이션 방법을 정리한다."
@@ -229,7 +229,7 @@ OkHttp 의 `Dispatcher`(maxRequests, maxRequestsPerHost)도 비동기 `enqueue()
 과거 마이크로서비스 아키텍처의 부흥을 이끌었던 Netflix OSS 스택(Ribbon, Hystrix, Zuul 1 등)은 대부분 EOL(End-of-Life) 또는 유지보수 단계로 접어들었다. Feign 도 예외는 아니어서, 오픈소스 커뮤니티로 이관된 이후 기능의 대대적인 혁신보다는 기존 스펙 유지를 중심으로 운영되어 왔다.
 
 여기에 더해 Spring Cloud 진영에서도 OpenFeign 은 신규 기능 개발이 중단되고 보안 패치 및 최소한의 버그 수정만 이뤄지는 **Maintenance 모드(Feature-complete)** 로 공식 전환되었다. <br />
-Spring Cloud 팀은 [Spring Cloud 2022.0.0 릴리즈 공지](https://spring.io/blog/2022/12/16/spring-cloud-2022-0-0-codename-kilburn-has-been-released#spring-cloud-openfeign-feature-complete-announcement)를 통해 다음과 같이 밝히고 있다.
+Spring Cloud 팀은 [Spring Cloud 2022.0.0 릴리즈 공지](https://spring.io/blog/2022/12/16/spring-cloud-2022-0-0-codename-kilburn-has-been-released#spring-cloud-openfeign-feature-complete-announcement)에서 이를 발표했고, [Spring Cloud OpenFeign README](https://github.com/spring-cloud/spring-cloud-openfeign/blob/main/README.adoc)에는 다음과 같이 안내되어 있다.
 
 > We're now treating the Spring Cloud OpenFeign project as feature-complete. We are only going to be adding bugfixes and possibly merging some small community feature PRs. We suggest migrating over to Spring HTTP Service Clients instead.
 
@@ -240,16 +240,16 @@ Spring Cloud 팀은 [Spring Cloud 2022.0.0 릴리즈 공지](https://spring.io/b
 Spring 진영은 외부 라이브러리(Netflix Feign)에 의존하던 선언적 HTTP 클라이언트 생태계를 코어 프레임워크 레벨로 통합했다.
 
 * **Spring Framework 6.0**: 선언적 클라이언트 명세인 **HTTP Interfaces (@HttpExchange, @GetExchange, @PostExchange 등)** 가 코어로 도입되었다.
-* **Spring Boot 3.2**: 동기식 선언적 호출을 위한 가볍고 직관적인 **RestClient** 가 정식 추가되었다.
+* **Spring Framework 6.1 (Spring Boot 3.2)**: 동기식 선언적 호출을 위한 가볍고 직관적인 **RestClient** 가 정식 추가되었다.
 
-이를 통해 무거운 `spring-cloud-starter-openfeign` 의존성 없이도, `spring-boot-starter-web` 기본 환경 위에서 `HttpServiceProxyFactory` 를 통해 강력한 선언적 HTTP 클라이언트를 구성할 수 있게 되었다.
+이를 통해 무거운 `spring-cloud-starter-openfeign` 의존성 없이도, `spring-boot-starter-web`(Boot 4 는 `spring-boot-starter-webmvc`) 기본 환경 위에서 `HttpServiceProxyFactory` 를 통해 강력한 선언적 HTTP 클라이언트를 구성할 수 있게 되었다.
 
 | 비교 항목 | OpenFeign | Spring HTTP Interfaces |
 |---|---|---|
 | **소속** | Netflix OSS 기반 / Spring Cloud | Spring Framework Core 표준 |
 | **유지보수 상태** | Maintenance 모드 (Feature-complete) | 최신 버전 활발히 지원 및 발전 중 |
 | **하부 클라이언트 선택** | Feign 전용 어댑터 필요 (feign-hc5 등) | RestClient, WebClient, RestTemplate 자유롭게 결합 |
-| **의존성** | Spring Cloud OpenFeign 사용 시 `spring-cloud-starter-openfeign` 필요 | Spring Web (`spring-boot-starter-web`)에서 사용 가능 |
+| **의존성** | Spring Cloud OpenFeign 사용 시 `spring-cloud-starter-openfeign` 필요 | Spring MVC 스타터만 있으면 사용 가능 |
 | **어노테이션 표준** | `@FeignClient`, `@RequestLine`, `@GetMapping` | `@HttpExchange`, `@GetExchange`, `@PostExchange` |
 
 :::note
@@ -520,9 +520,9 @@ OkHttp 와 `default` 모드에는 이런 대기 지점이 없어서, 동시 요�
 |---|---|---|
 | 인터페이스 선언 | `@FeignClient` / `@RequestLine` | `@HttpExchange`, `@GetExchange`, `@PostExchange`, `@PutExchange`, `@DeleteExchange` |
 | 파라미터 바인딩 | Spring MVC 어노테이션 사용 | 동일 (`@RequestParam`, `@PathVariable`, `@RequestBody`, `@RequestHeader` 그대로) |
-| 에러 핸들링 | `ErrorDecoder` | `RestClient.Builder.defaultStatusHandler()` 또는 `@ExceptionHandler` |
+| 에러 핸들링 | `ErrorDecoder` | `RestClient.Builder.defaultStatusHandler()` 또는 호출 단위 `.onStatus()` |
 | 인터셉터 (Auth / Tracing) | `RequestInterceptor` | `RestClient` 의 `ClientHttpRequestInterceptor` |
-| 타임아웃 / 풀 튜닝 | Feign 설정 프로퍼티 | `HttpComponentsClientHttpRequestFactory`(`ConnectionConfig`, `SocketConfig`) + `PoolingHttpClientConnectionManager` |
+| 타임아웃 / 풀 튜닝 | Feign 설정 프로퍼티 | `PoolingHttpClientConnectionManager`(`ConnectionConfig`, `SocketConfig`) + `HttpComponentsClientHttpRequestFactory` |
 
 <br/><br/>
 

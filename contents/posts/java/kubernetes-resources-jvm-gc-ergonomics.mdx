@@ -1,6 +1,7 @@
 ---
 title: "Pod 리소스를 줄였더니 GC가 바뀌었다 - JDK 21 ergonomics를 OTel과 Prometheus로 확인하기"
 date: "2026-10-10"
+updated: "2026-11-02"
 tags: ["Java", "JVM", "kubernetes"]
 summary: "Lowering a Pod's CPU and memory limits can silently switch the JVM from G1 to Serial GC. See the switch in OpenTelemetry and Prometheus metrics, and what it does to GC time and response latency."
 description: "JDK 21에서 Pod의 CPU, 메모리 limit을 줄이면 JVM ergonomics에 의해 G1GC가 Serial GC로 바뀔 수 있다. 실제 Kubernetes Pod에서 GC가 바뀌는 순간을 OpenTelemetry와 Prometheus 지표로 확인하고, GC가 바뀌었을 때 GC 시간과 응답 시간이 어떻게 달라지는지 살펴본다."
@@ -39,7 +40,7 @@ JVM 옵션을 변경하지 않았는데, 재배포 후 JVM 지표를 보면 아�
 
 | 지표 | 변경 전 (limits cpu 8, mem 4Gi) | 변경 후 (limits cpu 1, mem 1Gi) |
 | --- | --- | --- |
-| `jvm_gc_name` | G1 Young Generation | <RedText>Copy, MarkSweepCompact</RedText> |
+| `jvm_gc_name` | G1 Young Generation, G1 Concurrent GC | <RedText>Copy, MarkSweepCompact</RedText> |
 | `jvm_cpu_count` | 8 | 1 |
 | 최대 Heap (`jvm_memory_limit_bytes`) | 1024MiB | 247.5MiB |
 
@@ -63,7 +64,7 @@ JVM은 GC 종류나 Heap 크기를 따로 지정하지 않으면 실행 환경�
 | --- | --- |
 | `UseContainerSupport` 기본 활성화 (cgroup v1) | JDK 10, 8u191 ([JDK-8146115](https://bugs.openjdk.org/browse/JDK-8146115)) |
 | cgroup v2 인식 | JDK 15, 11.0.16, 8u372 ([JDK-8230305](https://bugs.openjdk.org/browse/JDK-8230305)) |
-| CPU shares(requests)를 CPU 수 계산에서 제외 | 11.0.17, 17.0.5, 18.0.2 |
+| CPU shares(requests)를 CPU 수 계산에서 제외 | JDK 19, 11.0.17, 17.0.5, 18.0.2 ([JDK-8281181](https://bugs.openjdk.org/browse/JDK-8281181)) |
 
 최근 Kubernetes 노드는 대부분 cgroup v2라서, 이보다 오래된 JDK는 limits 대신 노드 전체의 CPU와 메모리로 기본값을 정한다. <br />
 `-XX:-UseContainerSupport`로 컨테이너 인식을 꺼도 같은 일이 생기는데, limits cpu 1, mem 1Gi Pod에서 켜고 끈 결과를 비교하면 아래와 같다.
@@ -292,7 +293,7 @@ kubectl set resources deploy/app \
 | 확인할 것 | PromQL | 변경 전 (limits cpu 8, mem 4Gi) | 변경 후 (limits cpu 1, mem 1Gi) |
 | --- | --- | --- | --- |
 | JVM이 인식한 CPU | `jvm_cpu_count` | 8 | 1 |
-| GC 종류 | `jvm_gc_duration_seconds_count`의 `jvm_gc_name` | G1 Young Generation | Copy, MarkSweepCompact |
+| GC 종류 | `jvm_gc_duration_seconds_count`의 `jvm_gc_name` | G1 Young Generation, G1 Concurrent GC | Copy, MarkSweepCompact |
 | 최대 Heap | `jvm_memory_limit_bytes{jvm_memory_type="heap"}` | 1024MiB | 247.5MiB |
 | GC에 쓴 시간 비율 | `rate(jvm_gc_duration_seconds_sum[5m])` | 0.66% | <RedText>5.87%</RedText> |
 | GC 1회 평균 시간 | `rate(..._sum[5m]) / rate(..._count[5m])` | 9.1ms | <RedText>91ms</RedText> |
@@ -431,7 +432,7 @@ GC(141) Pause Young (Allocation Failure) 213M->213M(247M)   0.112ms
 GC(142) Pause Full  (Allocation Failure) 213M->153M(247M) 183.427ms
 ```
 
-이 애플리케이션은 최근 피드 2,000건을 캐시하고 있어서 살아남는 객체가 계속 Old 영역으로 올라가는데, Young GC가 메모리를 하나도 회수하지 못하고(213M → 213M) 끝난 직후 <b>Heap 전체를 멈추고 정리하는 Full GC</b>가 이어진다. <br />
+이 애플리케이션은 최근 피드 2,000건을 캐시하고 있어서 살아남는 객체가 계속 Old 영역으로 올라가는데, Old 영역에 승격할 공간이 부족해 Young GC가 사실상 수행되지 않고(213M → 213M, 0.1ms) 바로 <b>Heap 전체를 멈추고 정리하는 Full GC</b>가 이어진다. <br />
 측정 구간(3분)만 놓고 보면 3회 모두 Young GC 다음에는 예외 없이 Full GC가 이어졌고(1회차 기준 59번 중 59번), 256MiB Heap에서 한 번에 180~255ms가 걸렸다. <br />
 G1은 concurrent marking과 Mixed GC로 Old 영역을 나눠서 정리하기 때문에 이번 실험(300 RPS, 3분 x 3회)에서는 Full GC가 한 번도 발생하지 않았는데, 생존 객체가 더 많거나 할당 속도가 더 빠르면 G1도 Full GC가 날 수 있다.
 
@@ -488,8 +489,8 @@ CPU limit 1은 100ms마다 CPU 시간 100ms를 쓸 수 있다는 뜻이라서, �
 | 300 RPS | 2.0ms | 136ms | 405ms | 74건 | 39건 |
 | 400 RPS | 33ms | 230ms | 3.4초 | 337건 | 68건 |
 
-300 RPS인 리소스 변경 전후 실험에서 서버 지표(OTel)의 p99.9는 약 105ms였는데, 클라이언트(k6)의 max는 405ms까지 나온다. <br />
-GC pause가 어느 시점에 걸리느냐에 따라 서버 지표에 반영되는 정도가 다르기 때문이다.
+300 RPS인 리소스 변경 전후 실험에서 워밍업 이후 서버 지표(OTel)의 p99.9는 약 105ms였고, 클라이언트(k6)의 max는 405ms까지 나왔다. <br />
+k6 값은 워밍업 구간을 포함하고 그 구간에는 서버 p99.9도 400ms대였기 때문에 이 차이를 모두 계측 전 대기로 볼 수는 없는데, GC pause가 어느 시점에 걸리느냐에 따라 서버 지표에 반영되는 정도가 다른 것은 맞다.
 
 - 요청을 <b>처리하는 도중</b>에 STW pause가 걸리면, 그 시간은 http.server.request.duration에 그대로 포함된다
 - 요청이 <b>계측이 시작되기 전</b>에 커넥션 accept 대기열이나 Tomcat 작업 큐에서 기다리는 동안 pause가 걸리면, 그 대기 시간은 서버 지표에 잡히지 않는다

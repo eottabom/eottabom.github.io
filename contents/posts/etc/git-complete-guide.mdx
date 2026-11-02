@@ -1,6 +1,7 @@
 ---
 title: "Git 정리 - 기본 개념부터 Merge, Rebase, Cherry-pick, 충돌 해결까지"
 date: "2026-03-27"
+updated: "2026-11-02"
 tags: ["Study"]
 summary: "A concise Git guide covering the three areas of Git, merge, rebase, cherry-pick, and conflict resolution."
 description: "Git의 3가지 공간과 Fast-Forward, 3-Way Merge, Cherry-pick, Rebase, 충돌 해결 흐름을 한 번에 정리한다."
@@ -238,14 +239,15 @@ Rebase 는 먼저 기준점을 `main` 으로 옮긴 뒤, 내 커밋을 하나씩
 
 | 구분 | 가리키는 코드 |
 |------|---------------|
-| 현재 기준 코드 | 최신 `main` 브랜치 쪽 코드 |
-| 다시 적용 중인 코드 | 내 브랜치의 개별 커밋 |
+| 현재 기준 코드 (HEAD, ours) | 최신 `main` 과 지금까지 다시 적용된 내 커밋 |
+| 다시 적용 중인 코드 (theirs) | 지금 적용 중인 내 커밋 |
 
 즉, Rebase 충돌에서는 "현재 기준은 `main` 이고, 내 커밋을 그 위에 다시 얹는 중"이라고 이해하는 편이 안전하다.
 
 :::warning
 에디터에 따라 Current Change, Incoming Change, ours, theirs 라벨이 다르게 보일 수 있다.
 라벨 이름만 믿기보다, 지금 내가 merge 중인지 rebase 중인지 먼저 확인해야 한다.
+rebase 중에는 git checkout --ours 가 main 쪽, --theirs 가 내 커밋을 가리켜서 merge 와 반대다.
 :::
 
 ---

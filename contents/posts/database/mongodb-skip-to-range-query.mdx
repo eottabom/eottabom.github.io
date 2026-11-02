@@ -1,13 +1,14 @@
 ---
 title: "MongoDB Pagination 성능 개선 - skip + limit 에서 Range Query"
 date: "2026-03-08"
+updated: "2026-11-02"
 tags: ["Database"]
 summary: "MongoDB skip 기반 pagination의 성능 한계와 Range Query(cursor) 방식으로의 전환"
 description: "MongoDB에서 skip 기반 deep paging의 성능 문제를 분석하고, _id 기반 Range Query로 개선하는 방법을 벤치마크와 함께 정리한다."
 ---
 
 :::info
-대량 데이터를 순차 조회하는 기능에서 `skip + limit` 기반 pagination 을 하게 되면 성능이 급격히 떨어지고 Database 의 CPU 증가하는 문제가 생길 수 있다. <br />
+대량 데이터를 순차 조회하는 기능에서 skip + limit 기반 pagination 을 하게 되면 성능이 급격히 떨어지고 Database 의 CPU 증가하는 문제가 생길 수 있다. <br />
 왜 느린지, 무엇으로 바꿨는지, 그리고 로컬에서 바로 재현하는 방법까지 정리한다.
 :::
 
@@ -37,25 +38,24 @@ Range queries can use indexes to avoid scanning large numbers of documents, prov
 
 ---
 
-### 왜 MongoDB 에서 더 치명적인가?
+### RDBMS 의 OFFSET 과 무엇이 다를까?
 
-RDBMS(MySQL, PostgreSQL 등)에서도 `OFFSET` 기반 pagination은 성능 문제가 있지만,
-MongoDB 에서는 <RedText>그 영향이 더 크게 체감</RedText>될 수 있다.
+RDBMS(MySQL, PostgreSQL 등)의 `OFFSET` 기반 pagination도 같은 성능 문제가 있는데,
+MongoDB 의 Sharded Cluster 에서는 <RedText>그 영향이 더 크게 체감</RedText>될 수 있다.
 
-**1) 인덱스 구조의 차이**
-- RDBMS 의 B-Tree 인덱스는 행(row) 단위로 고정 크기에 가까운 구조라 skip 비용이 상대적으로 예측 가능하고, 내부 최적화가 잘 되어 있다.
+**1) 앞의 데이터를 읽고 버리는 구조는 같다**
+- RDBMS 의 `OFFSET` 도 앞의 행을 모두 읽고 버리는 구조라 본질적인 한계는 같다.
 - MongoDB 도 B-Tree 인덱스를 사용하지만, `skip` 시 <BlueText>인덱스 엔트리를 하나씩 순회하며 건너뛰어야</BlueText> 하고, offset 위치로 직접 점프하는 기능이 없다.
 
-**2) Pagination 방식의 차이**
-- RDBMS 는 같은 커넥션 안에서 서버 사이드 커서를 유지하여 이전 위치에서 이어서 읽는 것이 가능하다.
-- MongoDB 는 pagination 시 <BlueText>매 요청마다 새로운 쿼리를 실행</BlueText>하므로, `skip` 호출 시 매번 처음부터 인덱스를 순회하게 된다.
+**2) 요청마다 처음부터 다시 읽는다**
+- RDBMS 든 MongoDB 든 HTTP 요청 단위 페이지네이션은 <BlueText>매 요청마다 새로운 쿼리를 실행</BlueText>하므로, `skip`/`OFFSET` 은 매번 처음부터 인덱스를 순회하게 된다.
 
 **3) 분산 환경 (Sharding)**
 - Sharded Cluster 환경에서 `skip`은 각 샤드에서 결과를 모은 뒤 `mongos`에서 정렬하고 건너뛰므로, <RedText>샤드 수에 비례하여 비용이 증가</RedText>한다.
 - RDBMS 의 단일 노드 기반 `OFFSET`과 비교하면 분산 환경에서의 오버헤드가 훨씬 크다.
 
 :::warning
-특히 Sharded Cluster 에서 deep paging 을 수행하면, 각 샤드에서 `skip + limit` 만큼의 문서를 모두 `mongos`로 전송한 뒤 병합하므로, 네트워크와 메모리 비용이 급격히 증가한다.
+특히 Sharded Cluster 에서 deep paging 을 수행하면, 각 샤드에서 skip + limit 만큼의 문서를 모두 mongos로 전송한 뒤 병합하므로, 네트워크와 메모리 비용이 급격히 증가한다.
 :::
 
 ---
@@ -65,21 +65,22 @@ MongoDB 에서는 <RedText>그 영향이 더 크게 체감</RedText>될 수 있�
 Spring Data MongoDB에서 `PageRequest.of(page, size)`를 사용하면, 내부적으로 `offset = page * size`가 계산되고 이 값이 MongoDB의 `skip`으로 그대로 전달된다.
 
 ```java
-// AbstractPageRequest.java
+// AbstractPageRequest.java (spring-data-commons)
 public long getOffset() {
-    return (long) page * (long) size;
+    return (long) pageNumber * (long) pageSize;
 }
 ```
 
 ```java
-// Query.java
+// Query.java (spring-data-mongodb)
 public Query with(Pageable pageable) {
-    if (pageable.isUnpaged()) {
-        return this;
+
+    if (pageable.isPaged()) {
+        this.limit = pageable.toLimit();
+        this.skip = pageable.getOffset();
     }
-    this.limit = pageable.getPageSize();
-    this.skip = pageable.getOffset();
-    return this;
+
+    return with(pageable.getSort());
 }
 ```
 
@@ -197,29 +198,23 @@ page    skip      asIsMs  toBeMs  improvement
 300     150000    46      0       100.00%
 ```
 
-<BlueText>skip이 커질수록 실행 시간이 선형 증가하지만, Range Query는 항상 일정하다.</BlueText>
+<BlueText>skip이 커질수록 실행 시간이 선형 증가하지만, Range Query는 항상 일정하다.</BlueText> <br />
+toBeMs 의 0 은 explain 의 executionTimeMillis 가 ms 단위 정수라서 1ms 미만이 0 으로 찍힌 것이고, improvement 의 100% 도 그 때문에 나온 숫자다.
 
-#### 실 서비스 환경 비교 (Spring Boot + Docker)
+#### Spring Boot 애플리케이션 경유 측정 (로컬 Docker)
 
-`SEED=1 TOTAL_DOCS=20000 PAGE_SIZE=500 PAGES=0,1,10,20` 기준 결과:
+`SEED=1 REPEAT=11 TOTAL_DOCS=20000 PAGE_SIZE=500 PAGES=0,1,10,20` 기준 결과:
 
 ```text
 page    skip    asIsMs  toBeStepMs  improvement(step)
-0       0       2.505   28.033      -1018.978%
-1       500     5.703   7.907       -38.640%
-10      5000    4.608   2.830       38.590%
-20      10000   6.234   2.753       55.833%
+0       0       1.833   2.537       -38.360%
+1       500     2.003   2.448       -22.178%
+10      5000    3.669   2.075       43.453%
+20      10000   5.226   2.058       60.624%
 ```
 
-:::warning
-소규모(2만 건)에서는 cursor 방식이 오히려 느릴 수 있다. <br/>
-page 0 에서 cursor 가 느린 이유는 skip=0 인 경우 skip 방식과 동일한 동작이지만, cursor 방식은 0페이지부터 순차 조회하므로 connection pool 초기화, JIT 워밍업 등의 비용이 첫 요청에 포함되기 때문이다. <br/>
-대용량(`TOTAL_DOCS=1000000`)에서 재측정하면 deep paging 구간에서 확연한 차이가 나타난다.
-:::
-
-:::note
-`toBeCumMs`는 0페이지부터 해당 페이지까지 누적 시간이므로, 단일 페이지 비교는 `toBeStepMs` 기준으로 보는 것이 맞다.
-:::
+두 방식을 3회씩 미리 실행해서 워밍업한 뒤, 페이지마다 11번 재서 중앙값을 냈고, 3번 반복해도 비슷한 결과가 나왔다. <br />
+page 0, 1 은 두 방식의 쿼리가 사실상 같아서 1ms 안쪽 차이는 측정 오차 수준이고, skip 이 커질수록 AS-IS 만 느려져서 page 20 에서는 cursor 가 약 2.5배 빠르다.
 
 :::tip
 <a href="https://github.com/eottabom/let-me-code/tree/main/mongodb-pagination">벤치마크 예제 코드 보러가기 (클릭)</a>
@@ -243,9 +238,9 @@ page 0 에서 cursor 가 느린 이유는 skip=0 인 경우 skip 방식과 동�
 
 :::success
 <b>정리</b>
-✔ MongoDB 의 `skip` 기반 deep paging 은 스캔 비용 때문에 빠르게 한계에 도달한다. <br/>
-✔ MongoDB 는 stateless 커서, 가변 문서 크기, Sharding 환경 등의 특성으로 RDBMS 보다 skip 의 성능 영향이 더 크다. <br/>
-✔ `_id`(또는 복합 커서 키) 기반 Range Query 로 전환하면 페이지가 깊어져도 성능을 안정적으로 유지할 수 있다. <br/>
+✔ MongoDB 의 skip 기반 deep paging 은 스캔 비용 때문에 빠르게 한계에 도달한다. <br/>
+✔ RDBMS 의 OFFSET 도 같은 한계가 있고, MongoDB 는 Sharded Cluster 에서 skip 비용이 mongos 와 shard 사이에서 증폭된다. <br/>
+✔ _id(또는 복합 커서 키) 기반 Range Query 로 전환하면 페이지가 깊어져도 성능을 안정적으로 유지할 수 있다. <br/>
 ✔ 엑셀/CSV 전체 다운로드, 무한 스크롤, 배치 처리 시나리오와 같이 전체 데이터를 조회해야하는 경우 효과가 크다.
 :::
 
