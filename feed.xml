@@ -6,7 +6,7 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Sun, 01 Nov 2026 05:48:14 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 02 Nov 2026 09:39:03 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
     <item>
@@ -134,7 +134,7 @@
       <title>Claude Code Cheat Sheet 정리 - 자주 쓰는 단축키, Slash Command, MCP 빠르게 익히기</title>
       <link>https://eottabom.github.io/post/claude-code-cheat-sheet-guide/</link>
       <guid isPermaLink="true">https://eottabom.github.io/post/claude-code-cheat-sheet-guide/</guid>
-      <description>Claude Code v2.1.83 기준으로 꼭 먼저 익힐 단축키, Slash Command, MCP, Agent, CLI 사용 흐름을 한국어로 정리한다.</description>
+      <description>Claude Code v2.1.314 기준으로 꼭 먼저 익힐 단축키, Slash Command, MCP, Agent, CLI 사용 흐름을 한국어로 정리한다.</description>
       <pubDate>Sat, 28 Mar 2026 00:00:00 GMT</pubDate>
       <category>Etc</category>
       <category>AI</category>
