@@ -258,8 +258,8 @@ pre[class*='language-'] {
 }
 
 .prose .table-scroll thead {
-  background-color: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: #f5f5f4;
+  border-bottom: 1px solid #e7e5e4;
 }
 
 .prose .table-scroll th {
