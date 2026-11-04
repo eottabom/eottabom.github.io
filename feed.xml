@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Wed, 04 Nov 2026 10:15:51 GMT</lastBuildDate>
+    <lastBuildDate>Wed, 04 Nov 2026 10:27:05 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Kubernetes Probe 이해하기 - Liveness, Readiness, Startup</title>
+      <link>https://eottabom.github.io/post/kubernetes-probes/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/kubernetes-probes/</guid>
+      <description>Liveness, Readiness, Startup Probe의 동작을 쿠버네티스, Spring Boot 공식 문서 기준으로 정리하고, kind 클러스터에서 실패 시 재시작과 트래픽 변화를 직접 확인한다. 설정 값, HTTP/TCP/Exec/gRPC 차이, Actuator가 만드는 엔드포인트, 잘못된 설정으로 생기는 장애까지 다룬다.</description>
+      <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
+      <category>kubernetes</category>
+      <category>Spring</category>
+    </item>
     <item>
       <title>CORS 이해하기 - SOP부터 Preflight, 요청/응답 헤더, 에러 메시지까지</title>
       <link>https://eottabom.github.io/post/cors-sop-preflight-headers/</link>
@@ -179,14 +188,6 @@
       <description>Docker 기반으로 k6 부하 테스트 스택을 구성하고, 대시보드 자동화와 메트릭 영속화를 통해 반복 가능한 성능 테스트 환경을 구축해보자.</description>
       <pubDate>Tue, 20 Jan 2026 00:00:00 GMT</pubDate>
       <category>load-test</category>
-    </item>
-    <item>
-      <title>빠르게 이해하는 Envoy 컴포넌트 구조</title>
-      <link>https://eottabom.github.io/post/quick-start-envoy/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/quick-start-envoy/</guid>
-      <description>Envoy 의 주요 컴포넌트 구조와 트래픽 처리 흐름, 로드밸런싱, Connection 관리, xDS 에 대해서 빠르게 알아보자.</description>
-      <pubDate>Tue, 21 Oct 2025 00:00:00 GMT</pubDate>
-      <category>Envoy</category>
     </item>
   </channel>
 </rss>

@@ -265,6 +265,12 @@
       <lastmod>2026-11-02</lastmod>
     </url>
     <url>
+      <loc>https://eottabom.github.io/post/kubernetes-probes/</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+      <lastmod>2026-11-04</lastmod>
+    </url>
+    <url>
       <loc>https://eottabom.github.io/post/kubernetes-qos/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
