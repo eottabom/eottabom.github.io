@@ -103,6 +103,9 @@ const typeStyles: Record<
   },
 };
 
+// 패널 본문을 줄 단위로 나눌 때 안으로 들어가 풀어내는 블록 태그. 이 밖의 요소는 한 덩어리로 줄에 넣는다.
+const LINE_CONTAINERS = new Set(['p', 'div', 'ul', 'ol', 'li']);
+
 function extractLines(children: ReactNode): ReactNode[][] {
   const result: ReactNode[][] = [];
   let line: ReactNode[] = [];
@@ -137,10 +140,13 @@ function extractLines(children: ReactNode): ReactNode[][] {
           target: '_blank',
           rel: 'noopener noreferrer',
         }));
-      } else if (type === 'code' || type === 'b' || type === 'newline') {
-        line.push(node);
-      } else {
+      } else if (typeof type === 'string' && LINE_CONTAINERS.has(type)) {
         walk(props.children);
+      } else if (type === React.Fragment) {
+        walk(props.children);
+      } else {
+        // 굵게(strong), 밑줄(u), 링크, BlueText 같은 글자 꾸밈은 벗기지 않고 그대로 둔다.
+        line.push(node);
       }
     } else if (typeof node === 'number') {
       line.push(node);
