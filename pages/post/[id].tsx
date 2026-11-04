@@ -8,6 +8,7 @@ import Header from '../../components/Header';
 import Seo from '../../components/Seo';
 import Panel from '../../components/Panel';
 import { BlueText, RedText, GreenText } from '../../components/Highlight';
+import Cite from '../../components/Cite';
 import { useTocObserver } from '../../lib/useTocObserver';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -145,6 +146,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     tip: (props: any) => <Panel type="tip" {...props} />,
     neutral: (props: any) => <Panel type="neutral" {...props} />,
     quote: (props: any) => <Panel type="quote" {...props} />,
+    cite: Cite,
     BlueText,
     RedText,
     GreenText,
