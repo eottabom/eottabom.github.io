@@ -13,6 +13,7 @@ import {
   Pencil,
   Plus,
   Trash2,
+  Underline,
 } from 'lucide-react';
 
 // 개발 서버 전용 글 화면 편집기.
@@ -68,6 +69,7 @@ const BLOCKS: { label: string; text: string; select: string }[] = [
     select: '/img/post/경로.png',
   },
   { label: '구분선', text: '---', select: '' },
+  { label: '출처 인용', text: ':::cite\n원문\n\n번역\n\n[출처 - 제목](https://)\n:::', select: '원문' },
 ];
 
 function displayElement(el: HTMLElement): HTMLElement {
@@ -322,6 +324,9 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     } else if (mod && key === 'b') {
       e.preventDefault();
       wrap('**', '**', '굵게');
+    } else if (mod && key === 'u') {
+      e.preventDefault();
+      wrap('<u>', '</u>', '밑줄');
     } else if (mod && key === 'e') {
       e.preventDefault();
       wrap('`', '`', 'code');
@@ -437,6 +442,9 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
             <button type="button" className={tool} onMouseDown={keepSelection} onClick={() => wrap('**', '**', '굵게')} title="굵게 (⌘B)">
               <Bold size={13} /> 굵게
             </button>
+            <button type="button" className={tool} onMouseDown={keepSelection} onClick={() => wrap('<u>', '</u>', '밑줄')} title="밑줄 (⌘U)">
+              <Underline size={13} /> 밑줄
+            </button>
             <button type="button" className={tool} onMouseDown={keepSelection} onClick={() => wrap('`', '`', 'code')} title="코드 (⌘E)">
               <Code size={13} /> 코드
             </button>
@@ -458,7 +466,8 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
                 <button
                   key={c.tag}
                   type="button"
-                  className={`${menuItem} font-semibold ${c.className}`}
+                  // menuItem 의 회색 글자색이 생성된 CSS 에서 text-blue-600 보다 뒤에 있어 파랑을 덮으므로, 색상 항목은 글자색을 빼고 쓴다.
+                  className={`${menuItem.replace('text-gray-700', '')} font-semibold ${c.className}`}
                   onMouseDown={keepSelection}
                   onClick={() => wrap(`<${c.tag}>`, `</${c.tag}>`, '텍스트')}
                 >
