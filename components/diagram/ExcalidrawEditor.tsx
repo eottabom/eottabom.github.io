@@ -2,7 +2,7 @@ import { ComponentProps, useCallback, useEffect, useRef, useState } from 'react'
 import { Check, Save } from 'lucide-react';
 import { Excalidraw, exportToSvg, loadFromBlob } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
-import DiagramFrame, { Box, frameButton } from './DiagramFrame';
+import DiagramFrame, { Box, frameButton, useDiagramFile } from './DiagramFrame';
 
 // 개발 서버 전용 Excalidraw 편집 창. 그리기 메뉴에서 열 때만 불러온다(DevEditor 의 dynamic import).
 // 저장하면 Excalidraw 원본(scene)이 함께 들어 있는 SVG(.excalidraw.svg)를 dev-image API 로 쓴다.
@@ -24,6 +24,7 @@ export default function ExcalidrawEditor({ path, anchor, isNew, onClose, onSaved
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving'>(isNew ? 'ready' : 'loading');
   const [error, setError] = useState('');
+  const file = useDiagramFile(path, isNew);
 
   // 기존 그림은 SVG 안에 들어 있는 원본을 꺼내 초기 데이터로 쓴다.
   const [initialData] = useState(() =>
@@ -47,7 +48,7 @@ export default function ExcalidrawEditor({ path, anchor, isNew, onClose, onSaved
   const save = useCallback(
     async (exit: boolean) => {
       const api = apiRef.current;
-      if (!api || status !== 'ready') return;
+      if (!api || status !== 'ready' || file.nameError) return;
       setStatus('saving');
       setError('');
       try {
@@ -60,13 +61,14 @@ export default function ExcalidrawEditor({ path, anchor, isNew, onClose, onSaved
         const res = await fetch(API, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path, svg: svg.outerHTML }),
+          body: JSON.stringify({ path: file.path, svg: svg.outerHTML, create: file.editable }),
         });
         if (!res.ok) {
           const { message } = await res.json().catch(() => ({ message: '저장하지 못했습니다.' }));
           throw new Error(message);
         }
-        onSaved(path);
+        file.markCreated();
+        onSaved(file.path);
         if (exit) onClose();
       } catch (e) {
         setError((e as Error).message);
@@ -74,7 +76,7 @@ export default function ExcalidrawEditor({ path, anchor, isNew, onClose, onSaved
         setStatus('ready');
       }
     },
-    [path, status, onClose, onSaved],
+    [file, status, onClose, onSaved],
   );
 
   // Excalidraw 안에서 ⌘S / Ctrl+S 를 누르면 브라우저 저장 대신 이 파일로 저장한다.
@@ -96,18 +98,18 @@ export default function ExcalidrawEditor({ path, anchor, isNew, onClose, onSaved
   return (
     <DiagramFrame
       name="Excalidraw"
-      path={path}
+      file={file}
       anchor={anchor}
       busy={status !== 'ready'}
-      status={status === 'loading' ? '불러오는 중' : status === 'saving' ? '저장 중' : isNew ? '새 그림' : '편집 중'}
+      status={status === 'loading' ? '불러오는 중' : status === 'saving' ? '저장 중' : file.editable ? '새 그림' : '편집 중'}
       error={error}
       onClose={onClose}
       actions={
         <>
-          <button type="button" onClick={() => save(false)} className={frameButton} disabled={status !== 'ready'}>
+          <button type="button" onClick={() => save(false)} className={`${frameButton} disabled:opacity-40`} disabled={status !== 'ready' || Boolean(file.nameError)}>
             <Save size={13} /> 저장
           </button>
-          <button type="button" onClick={() => save(true)} className={frameButton} disabled={status !== 'ready'}>
+          <button type="button" onClick={() => save(true)} className={`${frameButton} disabled:opacity-40`} disabled={status !== 'ready' || Boolean(file.nameError)}>
             <Check size={13} /> 저장 후 닫기
           </button>
         </>

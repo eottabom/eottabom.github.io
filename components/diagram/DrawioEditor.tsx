@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import DiagramFrame, { Box } from './DiagramFrame';
+import DiagramFrame, { Box, useDiagramFile } from './DiagramFrame';
 
 // 개발 서버 전용 draw.io 편집 창.
 // embed.diagrams.net 을 iframe 으로 띄우고 postMessage(JSON 프로토콜)로 주고받는다.
@@ -36,16 +36,20 @@ export default function DrawioEditor({ path, anchor, isNew, onClose, onSaved }: 
   const exitAfterSave = useRef(false);
   const [status, setStatus] = useState<'loading' | 'ready' | 'saving'>('loading');
   const [error, setError] = useState('');
+  const file = useDiagramFile(path, isNew);
+  // draw.io 메시지 처리기는 한 번만 등록하므로, 저장할 때는 지금 입력된 이름을 ref 로 읽는다.
+  const fileRef = useRef(file);
+  fileRef.current = file;
 
   useEffect(() => {
     const send = (message: Record<string, unknown>) =>
       frameRef.current?.contentWindow?.postMessage(JSON.stringify(message), ORIGIN);
 
-    const write = async (svg: string) => {
+    const write = async (svg: string, target: string, create: boolean) => {
       const res = await fetch(API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ path, svg }),
+        body: JSON.stringify({ path: target, svg, create }),
       });
       if (!res.ok) {
         const { message } = await res.json().catch(() => ({ message: '저장하지 못했습니다.' }));
@@ -67,14 +71,21 @@ export default function DrawioEditor({ path, anchor, isNew, onClose, onSaved }: 
         send({ action: 'load', xml, title: path.split('/').pop(), autosave: 0 });
         setStatus('ready');
       } else if (msg.event === 'save') {
+        if (fileRef.current.nameError) {
+          send({ action: 'status', message: fileRef.current.nameError });
+          return;
+        }
         exitAfterSave.current = Boolean(msg.exit);
         setStatus('saving');
         send({ action: 'export', format: 'xmlsvg', spinKey: 'saving' });
       } else if (msg.event === 'export') {
         try {
-          await write(decodeSvgDataUri(msg.data));
+          const { path: target, editable, markCreated } = fileRef.current;
+          await write(decodeSvgDataUri(msg.data), target, editable);
+          markCreated();
+          setError('');
           send({ action: 'status', message: '저장했습니다.', modified: false });
-          onSaved(path);
+          onSaved(target);
           if (exitAfterSave.current) onClose();
         } catch (e) {
           setError((e as Error).message);
@@ -93,10 +104,10 @@ export default function DrawioEditor({ path, anchor, isNew, onClose, onSaved }: 
   return (
     <DiagramFrame
       name="draw.io"
-      path={path}
+      file={file}
       anchor={anchor}
       busy={status !== 'ready'}
-      status={status === 'loading' ? '불러오는 중' : status === 'saving' ? '저장 중' : isNew ? '새 그림' : '편집 중'}
+      status={status === 'loading' ? '불러오는 중' : status === 'saving' ? '저장 중' : file.editable ? '새 그림' : '편집 중'}
       error={error}
       onClose={onClose}
     >

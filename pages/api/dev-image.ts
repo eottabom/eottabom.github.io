@@ -7,7 +7,7 @@ import { getAllMdxFiles } from '../../lib/posts';
 // 정적 export 빌드에서는 API 라우트가 빠지고, 개발 서버가 아니면 404 를 돌려준다.
 //   GET  ?id&kind=dir   : 글의 그림을 둘 기본 폴더 (/img/post/<카테고리>/<글 id>)
 //   GET  ?path          : 그림 SVG 원문
-//   POST { path, svg }  : 그림 SVG 저장 (없으면 폴더까지 만든다)
+//   POST { path, svg, create } : 그림 SVG 저장 (없으면 폴더까지 만든다). create 면 같은 이름의 파일이 있을 때 덮어쓰지 않는다.
 //   DELETE { path }     : 그림 SVG 삭제. contents 아래 다른 글이 아직 쓰고 있으면 지우지 않는다.
 
 const IMAGE_ROOT = path.join(process.cwd(), 'public', 'img', 'post');
@@ -58,9 +58,12 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     if (req.method === 'POST') {
-      const { path: publicPath, svg } = req.body ?? {};
+      const { path: publicPath, svg, create } = req.body ?? {};
       const file = resolveImage(publicPath);
       if (typeof svg !== 'string' || !svg.includes('<svg')) throw new Error('SVG 내용이 아닙니다.');
+      if (create && fs.existsSync(file)) {
+        return res.status(409).json({ message: '같은 이름의 그림이 있습니다. 다른 이름을 써 주세요.' });
+      }
       fs.mkdirSync(path.dirname(file), { recursive: true });
       fs.writeFileSync(file, svg, 'utf8');
       return res.status(200).json({ path: publicPath });
