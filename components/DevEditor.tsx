@@ -343,7 +343,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
   const keepSelection = (e: React.MouseEvent) => e.preventDefault();
 
   const dropdown = (name: Exclude<Menu, null>, label: React.ReactNode, items: React.ReactNode) => (
-    <div className="relative">
+    <div className="relative flex">
       <button type="button" className={tool} onMouseDown={keepSelection} onClick={() => setMenu(menu === name ? null : name)}>
         {label}
         <ChevronDown size={12} />
