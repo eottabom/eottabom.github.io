@@ -16,6 +16,7 @@ import {
   Plus,
   Trash2,
   Underline,
+  Upload,
 } from 'lucide-react';
 import DrawioEditor from './diagram/DrawioEditor';
 
@@ -36,6 +37,16 @@ type Diagram = { path: string; kind: DiagramKind; isNew: boolean; anchor: { top:
 const STORAGE_KEY = 'dev-editor-enabled';
 const API = '/api/dev-edit/';
 const IMAGE_API = '/api/dev-image/';
+// API 본문 한도는 20MB 인데 base64 로 보내면 1/3 쯤 커지므로 15MB 까지만 받는다.
+const MAX_UPLOAD_BYTES = 15 * 1024 * 1024;
+const UPLOAD_ACCEPT = '.png,.jpg,.jpeg,.gif,.webp,.svg';
+const MIME_EXTENSIONS: Record<string, string> = {
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/gif': 'gif',
+  'image/webp': 'webp',
+  'image/svg+xml': 'svg',
+};
 
 const LINE_TYPES = [
   { label: '본문', prefix: '' },
@@ -121,6 +132,8 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [diagram, setDiagram] = useState<Diagram | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -326,6 +339,50 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     const at = prefix.length + (select ? block.indexOf(select) : block.length);
     replaceRange(s, e, `${prefix}${block}${suffix}`, [at, at + select.length]);
     setMenu(null);
+  };
+
+  // 이미지를 글의 기본 그림 폴더에 올리고 커서 위치에 이미지 블록을 넣는다. 이름은 API 가 정리해서 정한다.
+  // 붙여넣은 캡처처럼 이름이 없으면 확장자만 보내서 image-<시각> 이름을 받는다.
+  const uploadImages = async (files: File[]) => {
+    setMenu(null);
+    setError('');
+    setUploading(true);
+    const paths: string[] = [];
+    try {
+      for (const file of files) {
+        if (file.size > MAX_UPLOAD_BYTES) throw new Error(`${file.name} 은 15MB 를 넘어서 올릴 수 없습니다.`);
+        const pasted = !file.name || file.name === 'image.png';
+        const name = pasted ? `.${MIME_EXTENSIONS[file.type] ?? 'png'}` : file.name;
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error(`${file.name} 을 읽지 못했습니다.`));
+          reader.readAsDataURL(file);
+        });
+        const res = await fetch(IMAGE_API, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: postId, name, data: dataUrl.slice(dataUrl.indexOf(',') + 1) }),
+        });
+        const body = await res.json().catch(() => ({ message: '이미지를 올리지 못했습니다.' }));
+        if (!res.ok) throw new Error(body.message);
+        paths.push(body.path);
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUploading(false);
+      // 여러 장이면 다 올린 뒤 한 번에 넣는다. 이어서 붙여넣을 수 있게 커서는 넣은 블록 뒤에 둔다.
+      if (paths.length > 0) insertBlock(paths.map(imageBlock).join('\n\n'), '');
+    }
+  };
+
+  // 편집창에 이미지를 붙여넣으면 글자 대신 이미지로 올린다.
+  const onPaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const images = Array.from(e.clipboardData.files).filter((file) => file.type.startsWith('image/'));
+    if (images.length === 0) return;
+    e.preventDefault();
+    uploadImages(images);
   };
 
   // 새 그림은 글의 기본 그림 폴더에 만들고, 저장하면 편집 중인 블록에 이미지 블록을 넣는다.
@@ -614,15 +671,38 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
                 <button type="button" className={menuItem} onMouseDown={keepSelection} onClick={() => newDiagram('excalidraw')}>
                   Excalidraw 새 그림
                 </button>
+                <button
+                  type="button"
+                  className={`${menuItem} inline-flex items-center gap-1.5 border-t border-gray-100`}
+                  onMouseDown={keepSelection}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload size={12} /> 이미지 업로드
+                </button>
               </>,
             )}
-            <span className="ml-auto text-[11px] text-gray-400">⌘Enter 저장, Esc 취소</span>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={UPLOAD_ACCEPT}
+              multiple
+              hidden
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                e.target.value = '';
+                if (files.length > 0) uploadImages(files);
+              }}
+            />
+            <span className="ml-auto text-[11px] text-gray-400">
+              {uploading ? '이미지 올리는 중' : '⌘Enter 저장, Esc 취소, 이미지 붙여넣기 가능'}
+            </span>
           </div>
           <textarea
             ref={textareaRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={onKeyDown}
+            onPaste={onPaste}
             onFocus={() => setMenu(null)}
             placeholder={editing.insert ? '새 블록 내용을 입력하세요. 위 삽입 메뉴로 코드 블록, 패널, 탭, 표를 넣을 수 있습니다.' : ''}
             spellCheck={false}
