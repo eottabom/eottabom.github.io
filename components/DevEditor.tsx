@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import {
   Bold,
@@ -18,6 +19,9 @@ import {
 } from 'lucide-react';
 import DrawioEditor from './diagram/DrawioEditor';
 
+// Excalidraw 는 크기가 커서 그리기 메뉴로 처음 열 때 불러온다.
+const ExcalidrawEditor = dynamic(() => import('./diagram/ExcalidrawEditor'), { ssr: false });
+
 // 개발 서버 전용 글 화면 편집기.
 // 본문 블록에 마우스를 올리면 테두리와 버튼이 나오고, 연필(또는 더블클릭)로 그 블록을, + 로 그 아래에 새 블록을 편집한다.
 // 블록 위치는 lib/remarkSourceRange.ts 가 남긴 data-src, 저장은 pages/api/dev-edit.ts 가 맡는다.
@@ -26,7 +30,8 @@ type Box = { top: number; left: number; width: number; height: number };
 type Editing = { start: number; end: number; original: string; box: Box; insert: boolean };
 type Meta = { title: string; date: string; updated: string; tags: string[]; summary: string; description: string };
 type Menu = 'type' | 'color' | 'insert' | 'draw' | null;
-type Diagram = { path: string; isNew: boolean; anchor: { top: number; left: number; width: number } };
+type DiagramKind = 'drawio' | 'excalidraw';
+type Diagram = { path: string; kind: DiagramKind; isNew: boolean; anchor: { top: number; left: number; width: number } };
 
 const STORAGE_KEY = 'dev-editor-enabled';
 const API = '/api/dev-edit/';
@@ -84,10 +89,12 @@ function displayElement(el: HTMLElement): HTMLElement {
 const imageBlock = (src: string) =>
   `<div style={{ textAlign: 'center' }}>\n    <img src="${src}" alt="그림 설명" style={{ display: 'inline-block' }} />\n</div>`;
 
-// draw.io 로 다시 편집할 수 있는 그림인지. 캐시를 피하려고 붙인 쿼리는 떼고 본다.
-const drawioSrc = (el: Element | null): string | null => {
+// draw.io, Excalidraw 로 다시 편집할 수 있는 그림인지. 캐시를 피하려고 붙인 쿼리는 떼고 본다.
+const diagramOf = (el: Element | null): { path: string; kind: DiagramKind } | null => {
   const src = el instanceof HTMLImageElement ? el.getAttribute('src')?.split('?')[0] : null;
-  return src && src.endsWith('.drawio.svg') ? src : null;
+  if (src?.endsWith('.drawio.svg')) return { path: src, kind: 'drawio' };
+  if (src?.endsWith('.excalidraw.svg')) return { path: src, kind: 'excalidraw' };
+  return null;
 };
 
 function boxOf(el: HTMLElement): Box {
@@ -321,8 +328,8 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     setMenu(null);
   };
 
-  // 새 draw.io 그림은 글의 기본 그림 폴더에 만들고, 저장하면 편집 중인 블록에 이미지 블록을 넣는다.
-  const newDiagram = async () => {
+  // 새 그림은 글의 기본 그림 폴더에 만들고, 저장하면 편집 중인 블록에 이미지 블록을 넣는다.
+  const newDiagram = async (kind: DiagramKind) => {
     setMenu(null);
     const res = await fetch(`${IMAGE_API}?id=${encodeURIComponent(postId)}&kind=dir`);
     if (!res.ok) return setError('그림 폴더를 정하지 못했습니다.');
@@ -330,7 +337,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     const stamp = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
     // 새 그림은 블록 편집창 자리에 띄운다.
     const anchor = editing ? { top: editorTop, left: editing.box.left - 12, width: editing.box.width + 24 } : articleAnchor(0);
-    setDiagram({ path: `${dir}/diagram-${stamp}.drawio.svg`, isNew: true, anchor });
+    setDiagram({ path: `${dir}/diagram-${stamp}.${kind}.svg`, kind, isNew: true, anchor });
   };
 
   // 그림 편집 창은 본문 폭에 맞춘다.
@@ -361,7 +368,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
       if (diagramRef.current?.isNew) pendingImage.current = path;
       // 화면의 같은 그림은 캐시를 피해서 다시 불러온다.
       document.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
-        if (drawioSrc(img) === path) img.src = `${path}?v=${Date.now()}`;
+        if (diagramOf(img)?.path === path) img.src = `${path}?v=${Date.now()}`;
       });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -428,8 +435,8 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     </div>
   );
 
-  // 마우스를 올린 블록 안에 draw.io 그림이 있으면 그 경로.
-  const hoveredDrawio = hovered ? drawioSrc(hovered.querySelector('img')) : null;
+  // 마우스를 올린 블록 안에 다시 편집할 수 있는 그림이 있으면 그 경로와 종류.
+  const hoveredDiagram = hovered ? diagramOf(hovered.querySelector('img')) : null;
 
   const editorTop = editing ? (editing.insert ? editing.box.top + editing.box.height + 12 : editing.box.top - 8) : 0;
 
@@ -458,7 +465,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
         )}
       </div>
 
-      {enabled && !editing && !meta && hovered && hoverBox && (
+      {enabled && !editing && !meta && !diagram && hovered && hoverBox && (
         <div
           className="pointer-events-none absolute z-40 rounded-md ring-2 ring-blue-400/60"
           style={{ top: hoverBox.top - 4, left: hoverBox.left - 6, width: hoverBox.width + 12, height: hoverBox.height + 8 }}
@@ -473,13 +480,13 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
             >
               <Pencil size={13} />
             </button>
-            {hoveredDrawio && (
+            {hoveredDiagram && (
               <button
                 type="button"
-                onClick={() => setDiagram({ path: hoveredDrawio, isNew: false, anchor: articleAnchor(hoverBox.top) })}
+                onClick={() => setDiagram({ ...hoveredDiagram, isNew: false, anchor: articleAnchor(hoverBox.top) })}
                 className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow hover:bg-blue-50"
                 aria-label="그림 편집"
-                title="draw.io 로 이 그림 편집"
+                title={`${hoveredDiagram.kind === 'drawio' ? 'draw.io' : 'Excalidraw'} 로 이 그림 편집`}
               >
                 <PenTool size={13} />
               </button>
@@ -600,9 +607,14 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
               <>
                 <PenTool size={13} /> 그리기
               </>,
-              <button type="button" className={menuItem} onMouseDown={keepSelection} onClick={newDiagram}>
-                draw.io 새 그림
-              </button>,
+              <>
+                <button type="button" className={menuItem} onMouseDown={keepSelection} onClick={() => newDiagram('drawio')}>
+                  draw.io 새 그림
+                </button>
+                <button type="button" className={menuItem} onMouseDown={keepSelection} onClick={() => newDiagram('excalidraw')}>
+                  Excalidraw 새 그림
+                </button>
+              </>,
             )}
             <span className="ml-auto text-[11px] text-gray-400">⌘Enter 저장, Esc 취소</span>
           </div>
@@ -724,8 +736,11 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
         </div>
       )}
 
-      {diagram && (
+      {diagram?.kind === 'drawio' && (
         <DrawioEditor path={diagram.path} anchor={diagram.anchor} isNew={diagram.isNew} onClose={closeDiagram} onSaved={onDiagramSaved} />
+      )}
+      {diagram?.kind === 'excalidraw' && (
+        <ExcalidrawEditor path={diagram.path} anchor={diagram.anchor} isNew={diagram.isNew} onClose={closeDiagram} onSaved={onDiagramSaved} />
       )}
     </>,
     document.body,
