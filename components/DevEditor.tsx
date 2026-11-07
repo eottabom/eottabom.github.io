@@ -10,11 +10,13 @@ import {
   Link as LinkIcon,
   Loader2,
   Palette,
+  PenTool,
   Pencil,
   Plus,
   Trash2,
   Underline,
 } from 'lucide-react';
+import DrawioEditor from './diagram/DrawioEditor';
 
 // 개발 서버 전용 글 화면 편집기.
 // 본문 블록에 마우스를 올리면 테두리와 버튼이 나오고, 연필(또는 더블클릭)로 그 블록을, + 로 그 아래에 새 블록을 편집한다.
@@ -23,10 +25,12 @@ import {
 type Box = { top: number; left: number; width: number; height: number };
 type Editing = { start: number; end: number; original: string; box: Box; insert: boolean };
 type Meta = { title: string; date: string; updated: string; tags: string[]; summary: string; description: string };
-type Menu = 'type' | 'color' | 'insert' | null;
+type Menu = 'type' | 'color' | 'insert' | 'draw' | null;
+type Diagram = { path: string; isNew: boolean; anchor: { top: number; left: number; width: number } };
 
 const STORAGE_KEY = 'dev-editor-enabled';
 const API = '/api/dev-edit/';
+const IMAGE_API = '/api/dev-image/';
 
 const LINE_TYPES = [
   { label: '본문', prefix: '' },
@@ -76,6 +80,16 @@ function displayElement(el: HTMLElement): HTMLElement {
   return (el.closest('.code-block') as HTMLElement) ?? (el.closest('.table-scroll') as HTMLElement) ?? el;
 }
 
+// 그림 블록 템플릿. 기존 이미지 블록과 같은 모양으로 넣는다.
+const imageBlock = (src: string) =>
+  `<div style={{ textAlign: 'center' }}>\n    <img src="${src}" alt="그림 설명" style={{ display: 'inline-block' }} />\n</div>`;
+
+// draw.io 로 다시 편집할 수 있는 그림인지. 캐시를 피하려고 붙인 쿼리는 떼고 본다.
+const drawioSrc = (el: Element | null): string | null => {
+  const src = el instanceof HTMLImageElement ? el.getAttribute('src')?.split('?')[0] : null;
+  return src && src.endsWith('.drawio.svg') ? src : null;
+};
+
 function boxOf(el: HTMLElement): Box {
   const r = displayElement(el).getBoundingClientRect();
   return { top: r.top + window.scrollY, left: r.left + window.scrollX, width: r.width, height: r.height };
@@ -99,6 +113,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
   const [meta, setMeta] = useState<Meta | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [diagram, setDiagram] = useState<Diagram | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -231,10 +246,11 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
       if (!res.ok) {
         const { message } = await res.json().catch(() => ({ message: '저장하지 못했습니다.' }));
         setError(message);
-        return;
+        return false;
       }
       await router.replace(router.asPath, undefined, { scroll: false });
       reset();
+      return true;
     } finally {
       setSaving(false);
     }
@@ -246,10 +262,23 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     post({ start: editing.start, end: editing.end, original: editing.original, text });
   };
 
-  const remove = () => {
+  // 블록 안의 draw.io, Excalidraw 그림 경로. 블록을 지울 때 그림 파일도 함께 지운다.
+  const blockImages = editing ? editing.original.match(/\/img\/post\/[^"'\s)]+\.(?:drawio|excalidraw)\.svg/g) ?? [] : [];
+
+  const remove = async () => {
     if (!editing || editing.insert) return;
     if (!confirmDelete) return setConfirmDelete(true);
-    post({ start: editing.start, end: editing.end, original: editing.original, text: '' });
+    const images = blockImages;
+    const removed = await post({ start: editing.start, end: editing.end, original: editing.original, text: '' });
+    if (!removed) return;
+    // 블록을 지운 뒤에 파일을 지운다. 다른 글이 같은 그림을 쓰면 API 가 파일을 남긴다.
+    for (const src of images) {
+      await fetch(IMAGE_API, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: src }),
+      });
+    }
   };
 
   // textarea 내용을 바꾼다. execCommand 로 넣어야 되돌리기(⌘Z)가 동작한다.
@@ -291,6 +320,53 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     replaceRange(s, e, `${prefix}${block}${suffix}`, [at, at + select.length]);
     setMenu(null);
   };
+
+  // 새 draw.io 그림은 글의 기본 그림 폴더에 만들고, 저장하면 편집 중인 블록에 이미지 블록을 넣는다.
+  const newDiagram = async () => {
+    setMenu(null);
+    const res = await fetch(`${IMAGE_API}?id=${encodeURIComponent(postId)}&kind=dir`);
+    if (!res.ok) return setError('그림 폴더를 정하지 못했습니다.');
+    const { dir } = await res.json();
+    const stamp = new Date().toISOString().replace(/\D/g, '').slice(0, 14);
+    // 새 그림은 블록 편집창 자리에 띄운다.
+    const anchor = editing ? { top: editorTop, left: editing.box.left - 12, width: editing.box.width + 24 } : articleAnchor(0);
+    setDiagram({ path: `${dir}/diagram-${stamp}.drawio.svg`, isNew: true, anchor });
+  };
+
+  // 그림 편집 창은 본문 폭에 맞춘다.
+  const articleAnchor = (top: number) => {
+    const article = document.querySelector<HTMLElement>(containerSelector);
+    const box = article ? boxOf(article) : { left: 16, width: window.innerWidth - 32 };
+    return { top, left: box.left, width: box.width };
+  };
+
+  const closeDiagram = useCallback(() => setDiagram(null), []);
+  const diagramRef = useRef<Diagram | null>(null);
+  diagramRef.current = diagram;
+
+  // 새 그림을 저장하면 넣을 이미지 경로를 기억해 두었다가, 그림 창이 닫혀 블록 편집창이 다시 보일 때 넣는다.
+  // 그림 창이 떠 있는 동안 편집창은 숨겨져 있어서 그 안의 입력창에 바로 글자를 넣을 수 없다.
+  const pendingImage = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (diagram || !pendingImage.current) return;
+    const src = pendingImage.current;
+    pendingImage.current = null;
+    requestAnimationFrame(() => insertBlock(imageBlock(src), '그림 설명'));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [diagram]);
+
+  const onDiagramSaved = useCallback(
+    (path: string) => {
+      if (diagramRef.current?.isNew) pendingImage.current = path;
+      // 화면의 같은 그림은 캐시를 피해서 다시 불러온다.
+      document.querySelectorAll<HTMLImageElement>('img').forEach((img) => {
+        if (drawioSrc(img) === path) img.src = `${path}?v=${Date.now()}`;
+      });
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   // 선택한 줄들의 종류(제목, 목록, 본문)를 바꾼다.
   const setLineType = (prefix: string) => {
@@ -352,6 +428,9 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     </div>
   );
 
+  // 마우스를 올린 블록 안에 draw.io 그림이 있으면 그 경로.
+  const hoveredDrawio = hovered ? drawioSrc(hovered.querySelector('img')) : null;
+
   const editorTop = editing ? (editing.insert ? editing.box.top + editing.box.height + 12 : editing.box.top - 8) : 0;
 
   return createPortal(
@@ -394,6 +473,17 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
             >
               <Pencil size={13} />
             </button>
+            {hoveredDrawio && (
+              <button
+                type="button"
+                onClick={() => setDiagram({ path: hoveredDrawio, isNew: false, anchor: articleAnchor(hoverBox.top) })}
+                className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-blue-200 bg-white text-blue-600 shadow hover:bg-blue-50"
+                aria-label="그림 편집"
+                title="draw.io 로 이 그림 편집"
+              >
+                <PenTool size={13} />
+              </button>
+            )}
             <button
               type="button"
               onClick={() => open(hovered, true)}
@@ -425,7 +515,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
 
       {editing && (
         <div
-          className="absolute z-50 rounded-lg border border-blue-300 bg-white shadow-xl"
+          className={`absolute z-50 rounded-lg border border-blue-300 bg-white shadow-xl ${diagram ? 'invisible' : ''}`}
           style={{ top: editorTop, left: editing.box.left - 12, width: editing.box.width + 24 }}
         >
           <div className="flex flex-wrap items-center gap-0.5 border-b border-gray-100 px-2 py-1.5">
@@ -505,6 +595,15 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
                 ))}
               </>,
             )}
+            {dropdown(
+              'draw',
+              <>
+                <PenTool size={13} /> 그리기
+              </>,
+              <button type="button" className={menuItem} onMouseDown={keepSelection} onClick={newDiagram}>
+                draw.io 새 그림
+              </button>,
+            )}
             <span className="ml-auto text-[11px] text-gray-400">⌘Enter 저장, Esc 취소</span>
           </div>
           <textarea
@@ -527,7 +626,11 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
                 }`}
               >
                 <Trash2 size={12} />
-                {confirmDelete ? '한 번 더 누르면 삭제' : '블록 삭제'}
+                {confirmDelete
+                  ? blockImages.length > 0
+                    ? '한 번 더 누르면 블록과 그림 파일 삭제'
+                    : '한 번 더 누르면 삭제'
+                  : '블록 삭제'}
               </button>
             )}
             {error && <span className="text-xs text-red-600">{error}</span>}
@@ -619,6 +722,10 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
             </div>
           </form>
         </div>
+      )}
+
+      {diagram && (
+        <DrawioEditor path={diagram.path} anchor={diagram.anchor} isNew={diagram.isNew} onClose={closeDiagram} onSaved={onDiagramSaved} />
       )}
     </>,
     document.body,
