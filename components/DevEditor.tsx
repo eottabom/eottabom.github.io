@@ -128,6 +128,8 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
   const [text, setText] = useState('');
   const [menu, setMenu] = useState<Menu>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // 파일이 든 블록을 지울 때 띄우는 확인 모달. keptBy 가 있으면 다른 곳에서 쓰여서 파일을 남긴다.
+  const [deleteFiles, setDeleteFiles] = useState<{ path: string; keptBy: string }[] | null>(null);
   const [meta, setMeta] = useState<Meta | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -156,6 +158,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     setMeta(null);
     setMenu(null);
     setConfirmDelete(false);
+    setDeleteFiles(null);
     setError('');
   };
 
@@ -282,16 +285,37 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
     post({ start: editing.start, end: editing.end, original: editing.original, text });
   };
 
-  // 블록 안의 draw.io, Excalidraw 그림 경로. 블록을 지울 때 그림 파일도 함께 지운다.
-  const blockImages = editing ? editing.original.match(/\/img\/post\/[^"'\s)]+\.(?:drawio|excalidraw)\.svg/g) ?? [] : [];
+  // 블록 안의 그림, 이미지 경로. 블록을 지울 때 파일도 함께 지운다.
+  const blockImages = editing ? editing.original.match(/\/img\/post\/[^"'\s)]+\.(?:png|jpe?g|gif|webp|svg)/gi) ?? [] : [];
 
+  // 파일이 든 블록은 모달로 어떤 파일이 지워지고 남는지 먼저 보여 준다. 파일이 없으면 버튼을 한 번 더 눌러 지운다.
   const remove = async () => {
     if (!editing || editing.insert) return;
-    if (!confirmDelete) return setConfirmDelete(true);
-    const images = blockImages;
+    if (blockImages.length === 0) {
+      if (!confirmDelete) return setConfirmDelete(true);
+      return removeBlock(false);
+    }
+    const files = await Promise.all(
+      Array.from(new Set(blockImages)).map(async (src) => {
+        const res = await fetch(`${IMAGE_API}?kind=refs&id=${encodeURIComponent(postId)}&path=${encodeURIComponent(src)}`);
+        if (!res.ok) return { path: src, keptBy: '쓰는 곳을 확인하지 못해 남깁니다' };
+        const { inPost, others } = await res.json();
+        const inBlock = editing.original.split(src).length - 1;
+        if (others.length > 0) return { path: src, keptBy: `${others.join(', ')} 에서 써서 남깁니다` };
+        if (inPost > inBlock) return { path: src, keptBy: '이 글의 다른 블록에서 써서 남깁니다' };
+        return { path: src, keptBy: '' };
+      }),
+    );
+    setDeleteFiles(files);
+  };
+
+  const removeBlock = async (withFiles: boolean) => {
+    if (!editing) return;
+    const images = withFiles ? (deleteFiles ?? []).filter((f) => !f.keptBy).map((f) => f.path) : [];
+    setDeleteFiles(null);
     const removed = await post({ start: editing.start, end: editing.end, original: editing.original, text: '' });
     if (!removed) return;
-    // 블록을 지운 뒤에 파일을 지운다. 다른 글이 같은 그림을 쓰면 API 가 파일을 남긴다.
+    // 블록을 지운 뒤에 파일을 지운다. 그사이 다른 글이 같은 파일을 쓰게 됐으면 API 가 파일을 남긴다.
     for (const src of images) {
       await fetch(IMAGE_API, {
         method: 'DELETE',
@@ -718,11 +742,7 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
                 }`}
               >
                 <Trash2 size={12} />
-                {confirmDelete
-                  ? blockImages.length > 0
-                    ? '한 번 더 누르면 블록과 그림 파일 삭제'
-                    : '한 번 더 누르면 삭제'
-                  : '블록 삭제'}
+                {confirmDelete ? '한 번 더 누르면 삭제' : '블록 삭제'}
               </button>
             )}
             {error && <span className="text-xs text-red-600">{error}</span>}
@@ -738,6 +758,65 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
               {saving && <Loader2 size={12} className="animate-spin" />}
               {editing.insert ? '추가' : '저장'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {editing && deleteFiles && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/30 p-4"
+          onMouseDown={(e) => e.target === e.currentTarget && setDeleteFiles(null)}
+        >
+          <div
+            role="dialog"
+            aria-label="블록과 파일 삭제"
+            tabIndex={-1}
+            ref={(el) => el?.focus()}
+            onKeyDown={(e) => e.key === 'Escape' && setDeleteFiles(null)}
+            className="w-full max-w-xl space-y-3 rounded-xl bg-white p-5 shadow-2xl outline-none"
+          >
+            <h2 className="text-base font-semibold text-gray-900">블록과 파일 삭제</h2>
+            <p className="text-sm leading-6 text-gray-600">
+              이 블록에 아래 파일이 들어 있습니다. 파일까지 지우면 휴지통으로 가지 않고 바로 지워집니다.
+            </p>
+            <ul className="space-y-1.5 rounded-md bg-gray-50 p-3">
+              {deleteFiles.map((f) => (
+                <li key={f.path} className="flex items-start gap-2 text-xs">
+                  {f.keptBy ? (
+                    <FileText size={13} className="mt-0.5 shrink-0 text-gray-400" />
+                  ) : (
+                    <Trash2 size={13} className="mt-0.5 shrink-0 text-red-500" />
+                  )}
+                  <span className="min-w-0">
+                    <code className="break-all text-gray-800">{f.path}</code>
+                    {f.keptBy && <span className="block text-gray-500">{f.keptBy}</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setDeleteFiles(null)}
+                className="ml-auto rounded px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={() => removeBlock(false)}
+                className="rounded border border-gray-300 px-3 py-1.5 text-xs text-gray-700 hover:bg-gray-50"
+              >
+                블록만 삭제 (파일 유지)
+              </button>
+              <button
+                type="button"
+                onClick={() => removeBlock(true)}
+                className="inline-flex items-center gap-1 rounded bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+              >
+                <Trash2 size={12} /> 블록과 파일 삭제
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -7,9 +7,10 @@ import { getAllMdxFiles } from '../../lib/posts';
 // 정적 export 빌드에서는 API 라우트가 빠지고, 개발 서버가 아니면 404 를 돌려준다.
 //   GET  ?id&kind=dir   : 글의 그림을 둘 기본 폴더 (/img/post/<카테고리>/<글 id>)
 //   GET  ?path          : 그림 SVG 원문
+//   GET  ?path&id&kind=refs : 이 파일을 쓰는 다른 글 목록과, 이 글(id) 안에서 쓰는 횟수
 //   POST { path, svg, create } : 그림 SVG 저장 (없으면 폴더까지 만든다). create 면 같은 이름의 파일이 있을 때 덮어쓰지 않는다.
 //   PUT  { id, name, data } : 이미지 업로드. 글의 기본 폴더에 정리한 이름으로 저장하고, 같은 이름이 있으면 -2, -3 을 붙인다.
-//   DELETE { path }     : 그림 삭제. contents 아래 다른 글이 아직 쓰고 있으면 지우지 않는다.
+//   DELETE { path }     : 그림, 이미지 삭제. contents 아래 다른 글이 아직 쓰고 있으면 지우지 않는다.
 
 const IMAGE_ROOT = path.join(process.cwd(), 'public', 'img', 'post');
 const EDITABLE_SUFFIXES = ['.drawio.svg', '.excalidraw.svg'];
@@ -31,15 +32,18 @@ function resolveImage(publicPath: unknown, suffixes = EDITABLE_SUFFIXES): string
   return file;
 }
 
-// contents 아래 원문 파일 중 이 그림 경로를 쓰는 파일을 찾는다.
-function findReferences(publicPath: string, dir = path.join(process.cwd(), 'contents')): string[] {
+// contents 아래 원문 파일 중 이 그림 경로를 쓰는 파일과 쓰는 횟수를 찾는다.
+function countReferences(publicPath: string, dir = path.join(process.cwd(), 'contents')): { file: string; count: number }[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) return findReferences(publicPath, full);
+    if (entry.isDirectory()) return countReferences(publicPath, full);
     if (!/\.(mdx?|json)$/.test(entry.name)) return [];
-    return fs.readFileSync(full, 'utf8').includes(publicPath) ? [path.relative(process.cwd(), full)] : [];
+    const count = fs.readFileSync(full, 'utf8').split(publicPath).length - 1;
+    return count > 0 ? [{ file: path.relative(process.cwd(), full), count }] : [];
   });
 }
+
+const findReferences = (publicPath: string): string[] => countReferences(publicPath).map(({ file }) => file);
 
 function postImageDir(id: string): string {
   const file = getAllMdxFiles().find((f) => path.basename(f, '.mdx') === id);
@@ -68,6 +72,15 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
     if (req.method === 'GET') {
       if (req.query.kind === 'dir') return res.status(200).json({ dir: postImageDir(String(req.query.id)) });
+      if (req.query.kind === 'refs') {
+        const publicPath = String(req.query.path);
+        resolveImage(publicPath, UPLOAD_SUFFIXES);
+        const postFile = `${String(req.query.id)}.mdx`;
+        const references = countReferences(publicPath);
+        const inPost = references.find(({ file }) => path.basename(file) === postFile)?.count ?? 0;
+        const others = references.filter(({ file }) => path.basename(file) !== postFile).map(({ file }) => file);
+        return res.status(200).json({ inPost, others });
+      }
       const file = resolveImage(req.query.path);
       if (!fs.existsSync(file)) return res.status(404).json({ message: '그림 파일이 없습니다.' });
       res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
@@ -103,7 +116,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (req.method === 'DELETE') {
       const { path: publicPath } = req.body ?? {};
-      const file = resolveImage(publicPath);
+      const file = resolveImage(publicPath, UPLOAD_SUFFIXES);
       const references = findReferences(publicPath);
       if (references.length > 0) {
         return res.status(409).json({ message: `${references.join(', ')} 에서 쓰는 그림이라 파일은 남겼습니다.` });
