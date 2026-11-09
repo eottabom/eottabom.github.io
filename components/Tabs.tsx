@@ -17,7 +17,7 @@ export function Tabs({children, defaultIndex = 0, 'data-src': dataSrc }: {
             <div
                 role="tablist"
                 aria-label="Tabs"
-                className="inline-flex max-w-full overflow-x-auto rounded-t-lg border border-b-0 border-gray-200"
+                className="inline-flex max-w-full overflow-x-auto overflow-y-hidden rounded-t-lg border border-b-0 border-gray-200"
             >
                 {tabList.map((tab, i) => {
                     const isActive = i === active;
