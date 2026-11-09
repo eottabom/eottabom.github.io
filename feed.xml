@@ -6,7 +6,7 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Mon, 09 Nov 2026 09:59:21 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Nov 2026 12:34:29 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
     <item>
@@ -14,7 +14,7 @@
       <link>https://eottabom.github.io/post/spring-boot-when-ready/</link>
       <guid isPermaLink="true">https://eottabom.github.io/post/spring-boot-when-ready/</guid>
       <description>Spring Boot 4.1 의 SpringApplication.run() 을 따라가며 Started 와 Ready 가 무엇이 끝난 시점인지 정리하고, Ready 뒤 첫 요청에 남는 커넥션 풀, 클래스 로딩, JIT 컴파일 비용을 직접 측정해 본다.</description>
-      <pubDate>Sat, 07 Nov 2026 00:00:00 GMT</pubDate>
+      <pubDate>Mon, 09 Nov 2026 00:00:00 GMT</pubDate>
       <category>Spring</category>
       <category>JVM</category>
     </item>
