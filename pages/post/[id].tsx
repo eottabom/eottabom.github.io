@@ -238,7 +238,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
         <Header />
         <div className="max-w-[90rem] mx-auto px-6 py-20 flex gap-16">
           {/* Main content */}
-          <main className="flex-1 prose prose-xl max-w-none">
+          <main className="flex-1 prose prose-xl max-w-none break-keep text-pretty">
             <nav aria-label="breadcrumb" className="not-prose mb-4 flex items-center gap-1.5 text-sm text-gray-500">
               <Link href="/" className="-my-2 py-2 hover:text-blue-600">Home</Link>
               <ChevronRight className="h-3.5 w-3.5 text-gray-400" aria-hidden />
