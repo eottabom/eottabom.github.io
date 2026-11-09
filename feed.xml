@@ -6,9 +6,18 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Sat, 07 Nov 2026 00:23:49 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 09 Nov 2026 09:59:21 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
+    <item>
+      <title>Spring Boot 는 Ready 뒤에도 첫 요청 비용이 남는다 - 시작 과정과 JVM 으로 따라가기</title>
+      <link>https://eottabom.github.io/post/spring-boot-when-ready/</link>
+      <guid isPermaLink="true">https://eottabom.github.io/post/spring-boot-when-ready/</guid>
+      <description>Spring Boot 4.1 의 SpringApplication.run() 을 따라가며 Started 와 Ready 가 무엇이 끝난 시점인지 정리하고, Ready 뒤 첫 요청에 남는 커넥션 풀, 클래스 로딩, JIT 컴파일 비용을 직접 측정해 본다.</description>
+      <pubDate>Sat, 07 Nov 2026 00:00:00 GMT</pubDate>
+      <category>Spring</category>
+      <category>JVM</category>
+    </item>
     <item>
       <title>Kubernetes Probe 이해하기 - Liveness, Readiness, Startup</title>
       <link>https://eottabom.github.io/post/kubernetes-probes/</link>
@@ -180,14 +189,6 @@
       <description>MongoDB에서 skip 기반 deep paging의 성능 문제를 분석하고, _id 기반 Range Query로 개선하는 방법을 벤치마크와 함께 정리한다.</description>
       <pubDate>Sun, 08 Mar 2026 00:00:00 GMT</pubDate>
       <category>Database</category>
-    </item>
-    <item>
-      <title>Quick Start - k6 (with InfluxDB + Grafana)</title>
-      <link>https://eottabom.github.io/post/k6-stack/</link>
-      <guid isPermaLink="true">https://eottabom.github.io/post/k6-stack/</guid>
-      <description>Docker 기반으로 k6 부하 테스트 스택을 구성하고, 대시보드 자동화와 메트릭 영속화를 통해 반복 가능한 성능 테스트 환경을 구축해보자.</description>
-      <pubDate>Tue, 20 Jan 2026 00:00:00 GMT</pubDate>
-      <category>load-test</category>
     </item>
   </channel>
 </rss>

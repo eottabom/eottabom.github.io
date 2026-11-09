@@ -5,25 +5,25 @@
       <loc>https://eottabom.github.io/</loc>
       <changefreq>daily</changefreq>
       <priority>1.0</priority>
-      <lastmod>2026-11-07</lastmod>
+      <lastmod>2026-11-09</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/</loc>
       <changefreq>daily</changefreq>
       <priority>0.9</priority>
-      <lastmod>2026-11-07</lastmod>
+      <lastmod>2026-11-09</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/book/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-11-07</lastmod>
+      <lastmod>2026-11-09</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/side-projects/</loc>
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
-      <lastmod>2026-11-07</lastmod>
+      <lastmod>2026-11-09</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/about/</loc>
@@ -305,6 +305,12 @@
       <changefreq>weekly</changefreq>
       <priority>0.7</priority>
       <lastmod>2026-11-02</lastmod>
+    </url>
+    <url>
+      <loc>https://eottabom.github.io/post/spring-boot-when-ready/</loc>
+      <changefreq>weekly</changefreq>
+      <priority>0.7</priority>
+      <lastmod>2026-11-07</lastmod>
     </url>
     <url>
       <loc>https://eottabom.github.io/post/timeout-settings-guide/</loc>
