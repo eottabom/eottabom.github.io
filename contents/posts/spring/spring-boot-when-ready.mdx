@@ -1,6 +1,6 @@
 ---
 title: "Spring Boot 는 Ready 뒤에도 첫 요청 비용이 남는다 - 시작 과정과 JVM 으로 따라가기"
-date: "2026-11-07"
+date: "2026-11-09"
 tags: ["Spring", "JVM"]
 summary: "The Started log and a passing readiness check do not mean the first request is fast. Follow SpringApplication.run() in Spring Boot 4.1 and measure what the first request still pays for, from the connection pool to JIT compilation."
 description: "Spring Boot 4.1 의 SpringApplication.run() 을 따라가며 Started 와 Ready 가 무엇이 끝난 시점인지 정리하고, Ready 뒤 첫 요청에 남는 커넥션 풀, 클래스 로딩, JIT 컴파일 비용을 직접 측정해 본다."
