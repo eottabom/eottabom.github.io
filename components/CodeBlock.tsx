@@ -1,4 +1,4 @@
-import { Children, isValidElement, useState } from 'react';
+import { Children, isValidElement, useRef, useState } from 'react';
 import { Check, Copy } from 'lucide-react';
 
 function getLanguage(children: React.ReactNode): string {
@@ -10,21 +10,15 @@ function getLanguage(children: React.ReactNode): string {
   return '';
 }
 
-function getCodeText(children: React.ReactNode): string {
-  const codeEl = Children.toArray(children)[0];
-  if (isValidElement(codeEl)) {
-    return Children.toArray(codeEl.props.children).join('');
-  }
-  return '';
-}
-
 export default function CodeBlock(props: any) {
   const [copied, setCopied] = useState(false);
+  // 문법 강조(rehype-prism-plus)가 코드를 span 요소로 쪼개 두므로, children 대신 화면에 그려진 글자를 읽어 복사한다.
+  const preRef = useRef<HTMLPreElement>(null);
   const language = getLanguage(props.children);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(getCodeText(props.children));
+      await navigator.clipboard.writeText(preRef.current?.textContent ?? '');
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (e) {
@@ -45,7 +39,7 @@ export default function CodeBlock(props: any) {
           {copied ? <Check size={13} /> : <Copy size={13} />}
         </button>
       </div>
-      <pre {...props} />
+      <pre ref={preRef} {...props} />
     </div>
   );
 }
