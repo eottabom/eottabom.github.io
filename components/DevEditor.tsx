@@ -9,6 +9,7 @@ import {
   CornerDownLeft,
   FileText,
   Link as LinkIcon,
+  ListOrdered,
   Loader2,
   Palette,
   PenTool,
@@ -19,6 +20,7 @@ import {
   Upload,
 } from 'lucide-react';
 import DrawioEditor from './diagram/DrawioEditor';
+import { STEP_NUMBER_COLORS, stepNumberClassName } from './Highlight';
 
 // Excalidraw 는 크기가 커서 그리기 메뉴로 처음 열 때 불러온다.
 const ExcalidrawEditor = dynamic(() => import('./diagram/ExcalidrawEditor'), { ssr: false });
@@ -30,7 +32,7 @@ const ExcalidrawEditor = dynamic(() => import('./diagram/ExcalidrawEditor'), { s
 type Box = { top: number; left: number; width: number; height: number };
 type Editing = { start: number; end: number; original: string; box: Box; insert: boolean };
 type Meta = { title: string; date: string; updated: string; tags: string[]; summary: string; description: string };
-type Menu = 'type' | 'color' | 'insert' | 'draw' | null;
+type Menu = 'type' | 'color' | 'number' | 'insert' | 'draw' | null;
 type DiagramKind = 'drawio' | 'excalidraw';
 type Diagram = { path: string; kind: DiagramKind; isNew: boolean; anchor: { top: number; left: number; width: number } };
 
@@ -650,6 +652,24 @@ export default function DevEditor({ postId, containerSelector = 'article' }: { p
                   onClick={() => wrap(`<${c.tag}>`, `</${c.tag}>`, '텍스트')}
                 >
                   {c.label}
+                </button>
+              )),
+            )}
+            {dropdown(
+              'number',
+              <>
+                <ListOrdered size={13} /> 번호
+              </>,
+              STEP_NUMBER_COLORS.map((c) => (
+                <button
+                  key={c.color}
+                  type="button"
+                  className={menuItem}
+                  onMouseDown={keepSelection}
+                  // 검정은 기본값이라 color 속성 없이 넣는다. 선택한 글자가 없으면 1 을 넣고 선택해 둔다.
+                  onClick={() => wrap(c.color === 'black' ? '<StepNumber>' : `<StepNumber color="${c.color}">`, '</StepNumber>', '1')}
+                >
+                  <span className={stepNumberClassName(c.color)}>1</span> <span className="ml-1">{c.label}</span>
                 </button>
               )),
             )}

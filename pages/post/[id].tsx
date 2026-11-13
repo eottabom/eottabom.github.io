@@ -7,7 +7,7 @@ import {getAllPostIds, getPostData, getPostsMetaOnly, PostMeta} from '../../lib/
 import Header from '../../components/Header';
 import Seo from '../../components/Seo';
 import Panel from '../../components/Panel';
-import { BlueText, RedText, GreenText } from '../../components/Highlight';
+import { BlueText, RedText, GreenText, StepNumber } from '../../components/Highlight';
 import Cite from '../../components/Cite';
 import { useTocObserver } from '../../lib/useTocObserver';
 import { useEffect, useRef, useState } from 'react';
@@ -150,6 +150,7 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
     BlueText,
     RedText,
     GreenText,
+    StepNumber,
     Tabs,
     Tab,
     Kbd,
