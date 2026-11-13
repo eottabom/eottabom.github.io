@@ -16,6 +16,12 @@ public/feed.xml
 tsconfig.tsbuildinfo
 next-env.d.ts
 
+# 글 그림의 원본 캡처. 개인 정보가 들어 있을 수 있어 올리지 않는다.
+# Excalidraw 그림 원본(.excalidraw)은 개인 정보가 없어서 함께 관리한다.
+originals/**
+!originals/**/
+!originals/**/*.excalidraw
+
 # >>> agent-sync managed (do not edit this block)
 AGENTS.md
 CLAUDE.md
