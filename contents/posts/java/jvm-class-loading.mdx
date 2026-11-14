@@ -64,10 +64,10 @@ initialize 인자에 false 를 넘긴 Class.forName 이나 배열 생성처럼 �
 JVM 이 클래스를 쓸 수 있게 만드는 과정은 아래와 같이 여러 단계로 나뉘는데, 뒤에서 볼 HotSpot 로그에도 단계마다 다른 줄이 찍힌다.
 
 <figure>
-    <img src="/img/post/java/jvm-class-loading/class-lifecycle.excalidraw.svg" alt="클래스가 쓰이기까지의 단계. Loading 다음에 Linking 안의 Verification, Preparation 을 거쳐 Initialization 으로 이어진다. Resolution 은 Linking 아래에 점선 상자로 따로 그렸고, 링크할 때 미리 하거나 그 참조를 처음 쓸 때 해서 초기화 뒤에도 일어날 수 있다고 적었다. 각 단계 아래에 하는 일을, Loading 과 Initialization 아래에는 로그에 찍히는 이름도 적었다" className="mx-auto w-full" style={{ maxWidth: '850px' }} />
+    <img src="/img/post/java/jvm-class-loading/class-lifecycle.excalidraw.svg" alt="클래스가 쓰이기까지의 단계. Loading 다음에 Linking 안의 Verification, Preparation 을 거쳐 Initialization 으로 이어진다. Resolution 은 Linking 상자 안 아래쪽에 점선 상자로 두고 Initialization 으로 가는 화살표와 떼어 놓았으며, 링크할 때 또는 그 참조를 처음 쓸 때 해서 초기화 뒤에도 일어날 수 있다고 적었다. 각 단계 아래에 하는 일을, Loading 과 Initialization 아래에는 로그에 찍히는 이름도 적었다" className="mx-auto w-full" style={{ maxWidth: '810px' }} />
 </figure>
 
-명세가 초기화 전에 끝나 있기를 요구하는 것은 검증과 준비까지라서, 그림에서 해석(Resolution)은 따로 떼어 그렸다. <br />
+명세가 초기화 전에 끝나 있기를 요구하는 것은 검증과 준비까지라서, 그림에서 해석(Resolution)은 Linking 안에 두되 초기화로 가는 화살표와 떼어 그렸다. <br />
 해석은 클래스 파일에 이름으로만 적혀 있는 클래스, 메서드, 필드 참조를 실제 대상에 연결하는 일인데, <br />
 명세는 이를 링크할 때 미리 할 수도, 그 참조를 처음 쓸 때 할 수도 있게 허용해서 초기화가 끝난 뒤에 해석이 일어날 수도 있다.
 
