@@ -7,8 +7,7 @@ description: "HotSpot 은 코드를 인터프리터로 시작해, 자주 부르�
 ---
 
 :::info
-[JVM 클래스 로딩과 초기화](/post/jvm-class-loading) 에서는 처음 실행하는 코드 경로에서 클래스가 로딩되고 초기화되는 시점을 살펴봤다. <br />
-클래스 로딩이 끝난 뒤에도 같은 호출을 반복하면 실행 시간이 더 줄어드는데, 여기에는 HotSpot 의 JIT 컴파일이 영향을 준다. <br />
+Java 는 같은 코드를 반복해서 부르면 실행 시간이 점점 줄어드는데, 여기에는 HotSpot 의 JIT 컴파일이 영향을 준다. <br />
 JDK 25 의 컴파일 로그와 OpenJDK 소스로 Tier 가 언제 바뀌는지, 플래그 기본값과 실제 전환이 어떻게 다른지, <br />
 OSR, inlining, deoptimization 이 어떻게 일어나는지 따라가 보자.
 :::
