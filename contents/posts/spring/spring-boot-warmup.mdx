@@ -1,7 +1,7 @@
 ---
 title: "Spring Boot 는 Ready 여도 첫 요청이 느릴 수 있다 - Warm-up 으로 지연 최소화하기"
 date: "2026-11-23"
-tags: ["Spring", "JVM", "Kubernetes"]
+tags: ["Spring", "JVM", "kubernetes"]
 summary: "A Spring Boot app can be Ready and still be slow on its first requests. Calling the slow API paths once before Ready removes most of that delay."
 description: "Ready 여도 첫 요청은 DB, Redis, 다른 서비스와 처음 연결하느라 느릴 수 있다. Ready 전에 한 번씩 불러 두는 Warm-up 으로 얼마나 줄어드는지 확인해 본다."
 ---
