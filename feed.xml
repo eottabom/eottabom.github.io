@@ -6,7 +6,7 @@
     <atom:link href="https://eottabom.github.io/feed.xml" rel="self" type="application/rss+xml" />
     <description>Java, Spring, gRPC, Kubernetes, Clean Code 등 백엔드 개발 경험과 기술을 공유하는 개발자 블로그</description>
     <language>ko</language>
-    <lastBuildDate>Mon, 23 Nov 2026 11:34:33 GMT</lastBuildDate>
+    <lastBuildDate>Mon, 23 Nov 2026 11:43:28 GMT</lastBuildDate>
     <managingEditor>eottabom@github.io (Eottabom)</managingEditor>
     
     <item>
@@ -17,7 +17,7 @@
       <pubDate>Mon, 23 Nov 2026 00:00:00 GMT</pubDate>
       <category>Spring</category>
       <category>JVM</category>
-      <category>Kubernetes</category>
+      <category>kubernetes</category>
     </item>
     <item>
       <title>JIT 컴파일러와 Tiered Compilation - 같은 코드가 반복될수록 빨라지는 이유</title>
