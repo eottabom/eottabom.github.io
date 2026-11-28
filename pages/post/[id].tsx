@@ -29,6 +29,7 @@ import { MdxTable } from '../../components/MdxTable';
 import { desktopOnly } from '../../components/DesktopOnly';
 import { loadKnowledge } from '../../lib/knowledge/load';
 import { categoryColor } from '../../lib/knowledge/colors';
+import SidebarMultiplexAd from '../../components/SidebarMultiplexAd';
 
 // 모바일에서는 안내 카드로 대신 보여줄 시뮬레이터들. 렌더링마다 새 컴포넌트가 만들어지지 않도록 모듈에서 한 번만 감싼다.
 const desktopOnlyComponents = {
@@ -362,8 +363,13 @@ export default function Post({ postData, relatedPosts, postConcepts }: InferGetS
           </main>
 
           {/* Table of contents */}
+          {/* 오른쪽 열은 본문 높이만큼 늘어난다. 목차는 그 안에서 화면에 붙어 따라오고,
+              세로형 멀티플렉스 광고(화면보다 길다)는 열 맨 아래에 둬서 글 끝 무렵 목차를 밀어 올리며 나타나게 한다. */}
+          <div className="hidden w-60 shrink-0 lg:flex lg:flex-col">
+          {/* 고정 목차는 부모 끝까지 따라오므로, 광고 위쪽만 차지하는 영역으로 감싸 광고와 겹치지 않게 한다. */}
+          <div className="flex-1">
           <aside
-              className="hidden lg:block sticky top-[72px] w-60 h-[calc(100vh-72px)] pl-4 z-40 pb-[120px]"
+              className="sticky top-[72px] h-[calc(100vh-72px)] pl-4 z-40 pb-[120px]"
           >
             <div className="relative h-full">
               {/* Scrollable 목차 영역 */}
@@ -408,6 +414,11 @@ export default function Post({ postData, relatedPosts, postConcepts }: InferGetS
               )}
             </div>
           </aside>
+          </div>
+          <div className="pl-4 pt-10">
+            <SidebarMultiplexAd />
+          </div>
+          </div>
 
 
         </div>

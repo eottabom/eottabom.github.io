@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import { ArrowLeft, Check, Info, Link2, Maximize2, Minimize2, X } from 'lucide-react';
 import Header from '../components/Header';
 import Seo from '../components/Seo';
+import AdSense from '../components/AdSense';
 import DetailPanel from '../components/knowledge/DetailPanel';
 import KnowledgeSearch from '../components/knowledge/KnowledgeSearch';
 import { loadKnowledge } from '../lib/knowledge/load';
@@ -465,6 +466,10 @@ export default function KnowledgePage({ data }: InferGetStaticPropsType<typeof g
                             )}
                         </aside>
                     )}
+                </div>
+                {/* 그래프와 패널을 쓰는 데 방해되지 않도록 틀 바깥 아래에 광고를 하나 둔다. */}
+                <div className="mt-10">
+                    <AdSense />
                 </div>
                 </div>
             </main>
