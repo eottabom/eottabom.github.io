@@ -9,7 +9,8 @@
     "generate:rss": "ts-node --project tsconfig.scripts.json scripts/generate-rss.ts",
     "generate:sitemap": "ts-node --project tsconfig.scripts.json scripts/generate-sitemap.ts",
     "generate:seo": "npm run generate:sitemap && npm run generate:rss",
-    "check:knowledge": "ts-node --project tsconfig.scripts.json scripts/check-knowledge.ts",
+    "check:knowledge": "TS_NODE_PROJECT=tsconfig.scripts.json node --require ts-node/register scripts/check-knowledge.ts",
+    "classify:knowledge": "TS_NODE_PROJECT=tsconfig.scripts.json node --require ts-node/register scripts/classify-knowledge.ts",
     "test": "TS_NODE_PROJECT=tsconfig.scripts.json node --require ts-node/register --test \"lib/**/*.test.ts\""
   },
   "dependencies": {
