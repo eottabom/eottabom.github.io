@@ -1,0 +1,161 @@
+{
+    "kubernetes-probes": [
+        "kubernetes-probe",
+        "liveness-probe",
+        "readiness-probe",
+        "startup-probe",
+        "actuator-health"
+    ],
+    "spring-boot-when-ready": [
+        "spring-boot-startup",
+        "application-started",
+        "application-ready",
+        "dispatcher-servlet",
+        "lazy-initialization",
+        "connection-pool",
+        "class-loading",
+        "jit",
+        "first-request-latency"
+    ],
+    "jvm-class-loading": [
+        "class-loading",
+        "loading",
+        "linking",
+        "initialization"
+    ],
+    "jvm-jit-tiered-compilation": [
+        "jit",
+        "tiered-compilation",
+        "interpreter",
+        "c1-compiler",
+        "c2-compiler",
+        "osr",
+        "inlining",
+        "deoptimization"
+    ],
+    "spring-boot-warmup": [
+        "warm-up",
+        "first-request-latency",
+        "application-ready",
+        "connection-pool",
+        "actuator-health",
+        "readiness-probe"
+    ],
+    "kubernetes-resources-jvm-gc-ergonomics": [
+        "jvm-ergonomics",
+        "pod-resources",
+        "g1gc"
+    ],
+    "g1gc-overview-and-tuning": [
+        "g1gc",
+        "garbage-collection"
+    ],
+    "mongodb-skip-to-range-query": [
+        "offset-pagination",
+        "range-query-pagination"
+    ],
+    "mysql-timestamp-vs-datetime-y2k38": [
+        "y2k38",
+        "mysql-timestamp"
+    ],
+    "ddd-core-concept": [
+        "domain-driven-design",
+        "entity",
+        "value-object",
+        "aggregate",
+        "repository"
+    ],
+    "ddd-fact-misunderstanding": [
+        "domain-driven-design",
+        "cqrs"
+    ],
+    "quick-start-envoy": [
+        "envoy"
+    ],
+    "why-using-grpc": [
+        "http-keep-alive",
+        "head-of-line-blocking",
+        "http-2",
+        "multiplexing",
+        "hpack",
+        "grpc",
+        "protocol-buffers"
+    ],
+    "in-memory": [
+        "in-memory-database",
+        "in-memory-data-grid"
+    ],
+    "about-final": [
+        "effectively-final"
+    ],
+    "gradle-version-catalog": [
+        "gradle-version-catalog"
+    ],
+    "java-application-on-kubernetes": [
+        "pod-resources",
+        "jvm-ergonomics",
+        "garbage-collection",
+        "kubernetes-probe"
+    ],
+    "jvm-tuning": [
+        "jvm-memory-structure",
+        "garbage-collection",
+        "out-of-memory-error"
+    ],
+    "lombok-process": [
+        "lombok",
+        "annotation-processing"
+    ],
+    "lombok-using-points": [
+        "lombok"
+    ],
+    "system-out-println-vs-logger": [
+        "logback-async-appender"
+    ],
+    "thread-dump": [
+        "thread-dump",
+        "deadlock"
+    ],
+    "try-with-resources": [
+        "try-with-resources"
+    ],
+    "istio-ambient-mode-with-gateway-api": [
+        "istio",
+        "istio-ambient-mode",
+        "gateway-api",
+        "envoy"
+    ],
+    "kubernetes-qos": [
+        "pod-qos",
+        "pod-resources"
+    ],
+    "cors-sop-preflight-headers": [
+        "same-origin-policy",
+        "cors",
+        "preflight-request"
+    ],
+    "jpa-determine-entity-is-new": [
+        "jpa-entity-is-new"
+    ],
+    "openfeign-httpurlconnection-to-http-interfaces": [
+        "openfeign",
+        "http-interfaces",
+        "connection-pool"
+    ],
+    "redis-unknownhostexception-dns-cache": [
+        "lettuce",
+        "jvm-dns-cache"
+    ],
+    "timeout-settings-guide": [
+        "socket-timeout",
+        "http-keep-alive",
+        "connection-pool"
+    ],
+    "tomcat-async-keepalive-timeout-bug": [
+        "http-keep-alive",
+        "socket-timeout"
+    ],
+    "url-query-string-invalid-character": [
+        "url-allowed-characters"
+    ]
+}

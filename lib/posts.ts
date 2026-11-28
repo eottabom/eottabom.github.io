@@ -44,7 +44,7 @@ export function getAllMdxFiles(dirPath = postsDirectory): string[] {
   return results;
 }
 
-function extractIdFromFilename(fullPath: string): string {
+export function extractIdFromFilename(fullPath: string): string {
   return path.basename(fullPath, '.mdx');
 }
 

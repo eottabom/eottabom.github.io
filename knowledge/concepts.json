@@ -1,0 +1,734 @@
+[
+    {
+        "id": "class-loading",
+        "name": "클래스 로딩과 초기화",
+        "category": "jvm",
+        "aliases": [
+            "Class Loading",
+            "클래스 로딩"
+        ],
+        "description": "한 클래스는 로딩(Loading), 링킹(Linking), 초기화(Initialization) 순서로 준비되고, 초기화는 조건에 맞는 접근이 있을 때만 일어난다."
+    },
+    {
+        "id": "loading",
+        "name": "로딩",
+        "category": "jvm",
+        "aliases": [
+            "Loading",
+            "클래스 로더",
+            "ClassLoader"
+        ],
+        "description": "클래스 로더는 부모에게 먼저 맡기는 위임 구조로 되어 있어서, JDK 핵심 클래스는 Bootstrap 로더가, 일부 JDK 모듈은 Platform 로더가, 애플리케이션 클래스는 Application 로더가 읽는다."
+    },
+    {
+        "id": "linking",
+        "name": "링킹",
+        "category": "jvm",
+        "aliases": [
+            "Linking",
+            "검증",
+            "Verification",
+            "준비",
+            "Preparation",
+            "해석",
+            "Resolution"
+        ],
+        "description": "검증은 클래스 파일이 타입 규칙을 지키는지 보는 단계이고, 준비 단계에서는 static 필드를 기본값으로만 채워 두며, 해석은 클래스 파일에 이름으로만 적혀 있는 참조를 실제 대상에 연결하는 일이다."
+    },
+    {
+        "id": "initialization",
+        "name": "초기화",
+        "category": "jvm",
+        "aliases": [
+            "Initialization",
+            "클래스 초기화",
+            "static 초기화"
+        ],
+        "description": "초기화는 static 초기값과 static 블록을 실행하는 단계로, 로딩과 달리 언제 일어나는지가 JLS 에 정해져 있다."
+    },
+    {
+        "id": "jit",
+        "name": "JIT 컴파일",
+        "category": "jvm",
+        "aliases": [
+            "JIT",
+            "JIT Compilation",
+            "Just-in-Time Compilation"
+        ],
+        "description": "HotSpot JVM 은 처음에는 바이트코드를 인터프리터로 한 줄씩 해석해 실행하다가, 자주 실행되는 메서드를 기계어로 컴파일한다."
+    },
+    {
+        "id": "tiered-compilation",
+        "name": "Tiered Compilation",
+        "category": "jvm",
+        "aliases": [
+            "단계 컴파일",
+            "Tier"
+        ],
+        "description": "Tiered Compilation 은 인터프리터, C1, C2 를 다섯 단계(Tier)로 나누고, 메서드의 성격과 호출 횟수에 따라 단계를 옮겨 간다."
+    },
+    {
+        "id": "interpreter",
+        "name": "인터프리터",
+        "category": "jvm",
+        "aliases": [
+            "Interpreter",
+            "Tier 0"
+        ],
+        "description": "인터프리터는 바이트코드를 하나씩 해석하며 실행해서, 기계어로 바로 실행할 때보다 느리다."
+    },
+    {
+        "id": "c1-compiler",
+        "name": "C1",
+        "category": "jvm",
+        "aliases": [
+            "C1 Compiler",
+            "C1 컴파일러"
+        ],
+        "description": "C1 은 컴파일이 빨리 끝나는 대신 최적화를 적게 한다."
+    },
+    {
+        "id": "c2-compiler",
+        "name": "C2",
+        "category": "jvm",
+        "aliases": [
+            "C2 Compiler",
+            "C2 컴파일러"
+        ],
+        "description": "C2 는 컴파일에 시간이 더 걸리는 대신 더 빠른 코드를 만든다."
+    },
+    {
+        "id": "osr",
+        "name": "OSR",
+        "category": "jvm",
+        "aliases": [
+            "On-Stack Replacement"
+        ],
+        "description": "실행 중인 메서드의 루프 반복 수를 주된 신호로 컴파일을 요청하고, 컴파일된 코드가 준비되면 돌고 있는 루프를 그 코드로 옮기는 것이다."
+    },
+    {
+        "id": "inlining",
+        "name": "Inlining",
+        "category": "jvm",
+        "aliases": [
+            "인라이닝"
+        ],
+        "description": "자주 부르는 작은 메서드를 호출한 쪽 코드에 합쳐 호출 자체를 없애는 최적화로, JIT 컴파일한 코드가 빨라지는 큰 이유 중 하나다."
+    },
+    {
+        "id": "deoptimization",
+        "name": "Deoptimization",
+        "category": "jvm",
+        "aliases": [
+            "deopt"
+        ],
+        "description": "컴파일된 코드는 타입, 분기, 클래스 구조 같은 가정 위에서 최적화되는데, 그 가정이 깨지면 실행 중이던 프레임은 인터프리터로 돌아가고 그 컴파일 코드는 새 호출에 쓰지 않는다."
+    },
+    {
+        "id": "jvm-ergonomics",
+        "name": "JVM Ergonomics",
+        "category": "jvm",
+        "aliases": [
+            "Ergonomics"
+        ],
+        "description": "JVM은 GC 종류나 Heap 크기를 따로 지정하지 않으면 실행 환경을 보고 기본값을 정하는데, 이걸 ergonomics라고 한다."
+    },
+    {
+        "id": "g1gc",
+        "name": "G1GC",
+        "category": "jvm",
+        "aliases": [
+            "G1",
+            "Garbage-First Garbage Collector"
+        ],
+        "description": "G1GC는 Heap 전체를 동일 크기의 Region으로 나누고, 각 Region이 시점에 따라 Eden, Survivor, Old, Humongous 역할을 한다."
+    },
+    {
+        "id": "spring-boot-startup",
+        "name": "Spring Boot 시작 과정",
+        "category": "spring",
+        "aliases": [
+            "Spring Boot Startup",
+            "SpringApplication.run()"
+        ],
+        "description": "SpringApplication.run() 이 컨텍스트를 refresh 하고 Runner 를 호출한 뒤 Ready 에 이르는 과정으로, Spring Boot 애플리케이션이 준비됐다고 말할 수 있는 시점은 하나가 아니다."
+    },
+    {
+        "id": "application-started",
+        "name": "Started",
+        "category": "spring",
+        "aliases": [
+            "ApplicationStartedEvent",
+            "Application Started"
+        ],
+        "description": "ApplicationStartedEvent 는 컨텍스트 refresh 가 끝난 뒤, Runner 가 호출되기 전에 발행된다. Started 로그는 준비가 끝난 시점보다는 컨텍스트가 뜬 시점으로 읽는 편이 정확하다."
+    },
+    {
+        "id": "application-ready",
+        "name": "Ready",
+        "category": "spring",
+        "aliases": [
+            "ApplicationReadyEvent",
+            "Application Ready"
+        ],
+        "description": "ApplicationReadyEvent 는 Runner 가 모두 호출된 뒤에 발행되고, 이때 Readiness 가 ACCEPTING_TRAFFIC 으로 바뀐다."
+    },
+    {
+        "id": "dispatcher-servlet",
+        "name": "DispatcherServlet",
+        "category": "spring",
+        "aliases": [
+            "load-on-startup"
+        ],
+        "description": "DispatcherServlet 은 서블릿 컨테이너가 처음 요청을 넘길 때 초기화되는데, spring.mvc.servlet.load-on-startup 기본값이 -1 이라 시작할 때 미리 초기화하지 않는다."
+    },
+    {
+        "id": "lazy-initialization",
+        "name": "Lazy Initialization",
+        "category": "spring",
+        "aliases": [
+            "lazy-initialization",
+            "지연 초기화"
+        ],
+        "description": "spring.main.lazy-initialization 을 켜면 빈을 시작할 때 만들지 않고 처음 쓰일 때 만든다."
+    },
+    {
+        "id": "connection-pool",
+        "name": "커넥션 풀",
+        "category": "spring",
+        "aliases": [
+            "Connection Pool",
+            "HikariCP",
+            "HTTP 클라이언트 커넥션 풀"
+        ],
+        "description": "매번 새로 연결하지 않고 다 쓴 연결을 모아뒀다가 재사용하는 통으로, 풀 안의 커넥션은 대기와 사용을 반복하다가 수명이나 유휴 시간 같은 조건에 걸리면 닫혀서 풀에서 빠진다."
+    },
+    {
+        "id": "actuator-health",
+        "name": "Actuator Health",
+        "category": "spring",
+        "aliases": [
+            "Actuator",
+            "health group",
+            "Availability State"
+        ],
+        "description": "Spring Boot 는 애플리케이션의 liveness, readiness 상태를 직접 관리하고 있어서, spring-boot-starter-actuator 의존성만 추가하면 엔드포인트가 준비된다."
+    },
+    {
+        "id": "first-request-latency",
+        "name": "첫 요청 지연",
+        "category": "spring",
+        "aliases": [
+            "First Request Latency",
+            "첫 호출"
+        ],
+        "description": "Ready 전에 DB 나 Redis 연결, 처음 쓸 클래스까지 모두 준비해 두지는 않아서, Ready 뒤 첫 호출이 직접 처리하게 된다."
+    },
+    {
+        "id": "warm-up",
+        "name": "Warm-up",
+        "category": "spring",
+        "aliases": [
+            "Warmup",
+            "워밍업"
+        ],
+        "description": "서버가 시작할 때 한 번 실행되는 ApplicationRunner 에서, 느린 구간이 있는 자기 API 를 한 번씩 호출해 두는 방법이다."
+    },
+    {
+        "id": "kubernetes-probe",
+        "name": "Kubernetes Probe",
+        "category": "kubernetes",
+        "aliases": [
+            "Probe"
+        ],
+        "description": "Probe 가 필요한 건 프로세스는 살아 있지만 교착 상태에 있거나 아직 시작 중이라 요청을 처리하지 못하는 경우다."
+    },
+    {
+        "id": "liveness-probe",
+        "name": "Liveness Probe",
+        "category": "kubernetes",
+        "aliases": [
+            "liveness"
+        ],
+        "description": "liveness 는 프로세스는 살아 있지만 응답하지 못하는 상태를 잡아 재시작한다. 트래픽은 빼지 않는다."
+    },
+    {
+        "id": "readiness-probe",
+        "name": "Readiness Probe",
+        "category": "kubernetes",
+        "aliases": [
+            "readiness"
+        ],
+        "description": "실패하면 Pod 의 Ready 조건이 false 가 되고, EndpointSlice 에서 이 Pod 가 ready=false 로 바뀌어 Service 트래픽 대상에서 빠진다."
+    },
+    {
+        "id": "startup-probe",
+        "name": "Startup Probe",
+        "category": "kubernetes",
+        "aliases": [
+            "startup"
+        ],
+        "description": "한 번 성공하고 나면 더 이상 실행되지 않고, 그때부터 liveness 와 readiness 가 검사를 시작한다."
+    },
+    {
+        "id": "pod-resources",
+        "name": "Pod 리소스",
+        "category": "kubernetes",
+        "aliases": [
+            "resources.limits",
+            "CPU limit",
+            "memory limit",
+            "cgroup"
+        ],
+        "description": "Pod 에 지정한 CPU, 메모리 limits 로, 컨테이너 안에서는 cgroup 파일(cgroup v2 는 cpu.max, memory.max)로 강제된다."
+    },
+    {
+        "id": "jvm-memory-structure",
+        "name": "JVM 메모리 영역",
+        "category": "jvm",
+        "aliases": [
+            "JVM Memory",
+            "Heap",
+            "Thread Stack",
+            "Metaspace"
+        ],
+        "description": "Heap 은 JVM 이 객체 또는 동적 데이터를 저장하는 곳으로, Garbage Collection 이 일어나는 곳이다."
+    },
+    {
+        "id": "garbage-collection",
+        "name": "Garbage Collection",
+        "category": "jvm",
+        "aliases": [
+            "GC",
+            "Minor GC",
+            "Major GC"
+        ],
+        "description": "Minor GC 는 New 영역에서 일어나고, Major GC 는 Old 영역에 있는 모든 객체를 검사해 참조되지 않은 객체를 한번에 삭제하는데, Minor GC 에 비해 시간이 오래 걸리고 실행 중 프로세스가 정지한다."
+    },
+    {
+        "id": "out-of-memory-error",
+        "name": "OutOfMemoryError",
+        "category": "jvm",
+        "aliases": [
+            "OOME",
+            "OOM"
+        ],
+        "description": "Java Heap 공간에 새로운 개체를 생성할 수 없을 때 발생하고, Metaspace 부족처럼 Heap 이 아닌 영역 때문에 발생하기도 한다."
+    },
+    {
+        "id": "thread-dump",
+        "name": "Thread Dump",
+        "category": "jvm",
+        "aliases": [
+            "스레드 덤프",
+            "jstack",
+            "jcmd Thread.print"
+        ],
+        "description": "특정 시점에 JVM 내 모든 스레드의 상태를 텍스트로 스냅샷한 출력으로, 운영 중 부담 없이 여러 번 찍을 수 있다."
+    },
+    {
+        "id": "deadlock",
+        "name": "데드락",
+        "category": "jvm",
+        "aliases": [
+            "Deadlock"
+        ],
+        "description": "Thread-A가 lockA를 잡고 lockB를 기다리고, Thread-B가 lockB를 잡고 lockA를 기다리는 상황이다."
+    },
+    {
+        "id": "jvm-dns-cache",
+        "name": "JVM DNS cache",
+        "category": "jvm",
+        "aliases": [
+            "InetAddress",
+            "networkaddress.cache.ttl",
+            "networkaddress.cache.negative.ttl"
+        ],
+        "description": "Java 의 InetAddress 는 hostname 해석 결과를 cache 하는데, 성공한 lookup 만 cache 하는 것이 아니라 실패한 lookup 도 cache 할 수 있다."
+    },
+    {
+        "id": "effectively-final",
+        "name": "Effectively final",
+        "category": "java",
+        "aliases": [
+            "final"
+        ],
+        "description": "JLS 4.12.4 에서는 컴파일 타임 오류 없이 유효한 프로그램의 매개변수나 지역 변수에 final 을 제거하면 Effectively final 이 된다고 명시하고 있다."
+    },
+    {
+        "id": "try-with-resources",
+        "name": "try-with-resources",
+        "category": "java",
+        "aliases": [
+            "AutoCloseable",
+            "Closeable"
+        ],
+        "description": "파일, 네트워크 연결과 같은 리소스를 자동으로 관리하는 Java 7 기능으로, close 를 잊어 생기는 리소스 누수를 막는다."
+    },
+    {
+        "id": "lombok",
+        "name": "Lombok",
+        "category": "java",
+        "aliases": [],
+        "description": "Lombok 은 개발자가 코드에서 사용할 수 있는 다양한 어노테이션을 제공하는 라이브러리로, 컴파일 단계의 Annotation Processing 에서 수행된다."
+    },
+    {
+        "id": "annotation-processing",
+        "name": "Annotation Processing",
+        "category": "java",
+        "aliases": [
+            "Annotation Processor",
+            "어노테이션 프로세서"
+        ],
+        "description": "어노테이션을 스캔하고 어노테이션 프로세서를 호출하는 단계로, 어노테이션 프로세서가 AST 를 수정하거나 새로운 코드를 삽입한다."
+    },
+    {
+        "id": "logback-async-appender",
+        "name": "Logback AsyncAppender",
+        "category": "java",
+        "aliases": [
+            "Logback",
+            "AsyncAppenderBase"
+        ],
+        "description": "Logback 의 AsyncAppenderBase 는 비동기적으로 로그 이벤트를 처리하는 클래스이다."
+    },
+    {
+        "id": "gradle-version-catalog",
+        "name": "Gradle Version Catalog",
+        "category": "java",
+        "aliases": [
+            "Version Catalog",
+            "libs.versions.toml"
+        ],
+        "description": "의존성 좌표(group, name)와 버전을 gradle/libs.versions.toml 에 모아두기만 하면 Gradle 이 이 파일을 읽어서 libs 라는 접근자를 알아서 만들어준다."
+    },
+    {
+        "id": "jpa-entity-is-new",
+        "name": "JPA 신규 Entity 판단",
+        "category": "spring",
+        "aliases": [
+            "isNew",
+            "Persistable",
+            "persist vs merge"
+        ],
+        "description": "Spring Data JPA 는 JpaEntityInformation 의 isNew(T entity) 로 판단하는데, @Version 필드가 있으면 그 값이 null 인지로, 없으면 @Id 필드가 null 이거나 primitive 타입일 때 0 인지로 판단한다."
+    },
+    {
+        "id": "openfeign",
+        "name": "OpenFeign",
+        "category": "spring",
+        "aliases": [
+            "Feign",
+            "Spring Cloud OpenFeign"
+        ],
+        "description": "인터페이스와 어노테이션 몇 줄만 정의하면 Spring 이 런타임에 프록시 객체를 만들어 실제 HTTP 통신을 대신 처리해주는 선언적(declarative) HTTP 클라이언트다."
+    },
+    {
+        "id": "http-interfaces",
+        "name": "HTTP Interfaces",
+        "category": "spring",
+        "aliases": [
+            "@HttpExchange",
+            "RestClient"
+        ],
+        "description": "Spring Framework 6.0 에 코어로 도입된 선언적 클라이언트 명세로, @HttpExchange, @GetExchange, @PostExchange 등을 쓴다."
+    },
+    {
+        "id": "http-keep-alive",
+        "name": "keep-alive",
+        "category": "network",
+        "aliases": [
+            "Persistent Connection",
+            "지속 연결",
+            "keepAliveTimeout"
+        ],
+        "description": "연결을 끊지 않고 잠깐 열어둬서 다음 요청 때 재사용하게 해주는 것으로, Client 나 Server 가 명시적으로 연결을 끊지 않는 한 연결이 유지된다."
+    },
+    {
+        "id": "socket-timeout",
+        "name": "socket timeout",
+        "category": "network",
+        "aliases": [
+            "read timeout"
+        ],
+        "description": "소켓에서 다음 데이터를 읽을 때까지 기다리는 시간으로, 보통 read timeout 이라 부르지만 클라이언트에 따라 response timeout 과 별도로 관리되기도 한다."
+    },
+    {
+        "id": "head-of-line-blocking",
+        "name": "Head-of-Line Blocking",
+        "category": "network",
+        "aliases": [
+            "HOLB"
+        ],
+        "description": "Client 가 여러 요청을 동시에 보내도 Server 가 순차적으로 처리해서, 첫 번째 요청이 처리되는 동안 다른 요청들이 차단되어 대기하는 문제다."
+    },
+    {
+        "id": "http-2",
+        "name": "HTTP/2",
+        "category": "network",
+        "aliases": [
+            "HTTP 2.0",
+            "RFC 7540"
+        ],
+        "description": "HTTP 1.1의 문제점인 HOLB, Header Overhead, 연결 관리의 비효율성을 해결하기 위해 설계된 프로토콜로, 2015년 5월 RFC 7540 으로 표준화되었다."
+    },
+    {
+        "id": "multiplexing",
+        "name": "Multiplexing",
+        "category": "network",
+        "aliases": [
+            "멀티플렉싱"
+        ],
+        "description": "한 번의 TCP 연결로 요청과 응답을 병렬로 처리하는 방식으로, 각 요청이 독립적으로 처리되어 Head-of-Line Blocking 문제를 해결한다."
+    },
+    {
+        "id": "hpack",
+        "name": "HPACK",
+        "category": "network",
+        "aliases": [
+            "Header 압축"
+        ],
+        "description": "정적 테이블로 자주 사용되는 헤더 필드를 미리 정의해서 참조하고, 동적 테이블로 이전에 전송된 헤더 필드를 저장하고 참조하는 헤더 압축 방식이다."
+    },
+    {
+        "id": "grpc",
+        "name": "gRPC",
+        "category": "network",
+        "aliases": [],
+        "description": "gRPC 는 기본적으로 HTTP/2 기반이고, protobuf(Protocol Buffers)로 JSON 의 성능 문제를 해결했다."
+    },
+    {
+        "id": "protocol-buffers",
+        "name": "Protocol Buffers",
+        "category": "network",
+        "aliases": [
+            "protobuf",
+            ".proto"
+        ],
+        "description": "Google 이 개발한 언어 중립적이고 플랫폼 중립적인 데이터 직렬화 포맷이다."
+    },
+    {
+        "id": "same-origin-policy",
+        "name": "Same-Origin Policy",
+        "category": "network",
+        "aliases": [
+            "SOP",
+            "동일 출처 정책",
+            "Origin"
+        ],
+        "description": "한 출처(Origin)에서 불러온 스크립트는 다른 출처의 자원을 마음대로 읽을 수 없다는 브라우저의 규칙이다."
+    },
+    {
+        "id": "cors",
+        "name": "CORS",
+        "category": "network",
+        "aliases": [
+            "Cross-Origin Resource Sharing"
+        ],
+        "description": "서버가 이 출처는 내 응답을 읽어도 된다고 헤더로 알려주면, 브라우저가 SOP를 예외적으로 풀어주는 방식이다."
+    },
+    {
+        "id": "preflight-request",
+        "name": "Preflight",
+        "category": "network",
+        "aliases": [
+            "Preflighted Request",
+            "OPTIONS"
+        ],
+        "description": "Simple Request 조건 중 하나라도 벗어나면 브라우저가 본 요청 전에 OPTIONS 메서드로 이렇게 보내도 되는지를 먼저 물어보는 요청이다."
+    },
+    {
+        "id": "url-allowed-characters",
+        "name": "URL 허용 문자",
+        "category": "network",
+        "aliases": [
+            "RFC 3986",
+            "RFC 7230",
+            "relaxedQueryChars",
+            "URL 인코딩"
+        ],
+        "description": "request-target 의 틀은 RFC 7230 이 정하지만, 그 안 query 의 문자 규칙은 RFC 3986 을 그대로 참조한다."
+    },
+    {
+        "id": "envoy",
+        "name": "Envoy",
+        "category": "network",
+        "aliases": [
+            "Envoy Proxy",
+            "Listener",
+            "Cluster",
+            "Endpoint"
+        ],
+        "description": "downstream/upstream 개념을 기반으로 Listener, Route, Cluster, Endpoint 를 통해 트래픽을 제어하는 프록시다."
+    },
+    {
+        "id": "offset-pagination",
+        "name": "Offset Pagination",
+        "category": "database",
+        "aliases": [
+            "skip + limit",
+            "OFFSET"
+        ],
+        "description": "skip 은 결과셋의 처음부터 스캔한 뒤 지정한 개수만큼 버리고 나서야 원하는 구간을 반환해서, offset이 커질수록 서버가 읽고 버리는 문서 수가 선형으로 증가한다."
+    },
+    {
+        "id": "range-query-pagination",
+        "name": "Range Query Pagination",
+        "category": "database",
+        "aliases": [
+            "cursor pagination",
+            "Range Query",
+            "커서 기반 pagination"
+        ],
+        "description": "이전 페이지의 마지막 _id를 커서로 저장하고, _id < lastId 조건으로 인덱스 seek 해서 바로 다음 구간을 반환한다."
+    },
+    {
+        "id": "y2k38",
+        "name": "Y2K38",
+        "category": "database",
+        "aliases": [
+            "Year 2038 Problem",
+            "2038년 문제"
+        ],
+        "description": "32비트 signed integer 로 저장한 Unix time 이 2038-01-19 03:14:07 UTC 를 1초라도 넘으면 오버플로우가 발생하고 시간이 음수 구간으로 뒤틀리는 문제다."
+    },
+    {
+        "id": "mysql-timestamp",
+        "name": "MySQL TIMESTAMP",
+        "category": "database",
+        "aliases": [
+            "TIMESTAMP",
+            "DATETIME"
+        ],
+        "description": "MySQL TIMESTAMP는 2038-01-19 03:14:07 UTC 까지만 표현할 수 있고, DATETIME 과의 가장 큰 차이는 타임존 처리 방식이다."
+    },
+    {
+        "id": "in-memory-database",
+        "name": "In Memory Database",
+        "category": "database",
+        "aliases": [
+            "IMDB",
+            "MMDB"
+        ],
+        "description": "메모리에 데이터를 저장하는 데이터베이스로, 휘발성이라는 단점이 있어서 임시 데이터 저장 용도로 주로 사용된다."
+    },
+    {
+        "id": "in-memory-data-grid",
+        "name": "In Memory Data Grid",
+        "category": "database",
+        "aliases": [
+            "IMDG"
+        ],
+        "description": "각각의 메모리를 공유하여 클러스터에서 동작하는 모든 애플리케이션들과 함께 사용할 수 있도록 하는 컴퓨터 클러스터를 의미한다."
+    },
+    {
+        "id": "lettuce",
+        "name": "Lettuce",
+        "category": "database",
+        "aliases": [
+            "Redis Client",
+            "Netty resolver"
+        ],
+        "description": "Lettuce 는 비동기 Redis 클라이언트이고 내부적으로 Netty 를 사용하는데, 기본적으로 JVM 의 InetAddress 를 사용하지 않고 Netty 의 DnsAddressResolverGroup 으로 자체 DNS 캐시를 관리한다."
+    },
+    {
+        "id": "domain-driven-design",
+        "name": "DDD",
+        "category": "architecture",
+        "aliases": [
+            "Domain-Driven Design",
+            "도메인 주도 설계"
+        ],
+        "description": "특정한 방법론이나 아키텍처가 아니라, 복잡한 비즈니스 도메인을 효과적으로 다루기 위해 비즈니스 중심으로 사고하는 방식이다."
+    },
+    {
+        "id": "entity",
+        "name": "엔티티",
+        "category": "architecture",
+        "aliases": [
+            "Entity"
+        ],
+        "description": "식별자로 구분되며 상태 변경이 가능하고, 생명 주기 관리가 필요하며 동일성 비교가 중요하다."
+    },
+    {
+        "id": "value-object",
+        "name": "값 객체",
+        "category": "architecture",
+        "aliases": [
+            "Value Object",
+            "VO"
+        ],
+        "description": "속성이 중요하고 불변성을 가지며, 값이 같으면 동일한 객체로 취급해서 동등성 비교가 핵심이다."
+    },
+    {
+        "id": "aggregate",
+        "name": "어그리게이트",
+        "category": "architecture",
+        "aliases": [
+            "Aggregate"
+        ],
+        "description": "여러 Entity 와 Value Object 를 하나로 묶는 단위다."
+    },
+    {
+        "id": "repository",
+        "name": "리포지토리",
+        "category": "architecture",
+        "aliases": [
+            "Repository"
+        ],
+        "description": "Aggregate 단위로 영속성을 관리하며, 데이터 저장 및 검색을 담당한다."
+    },
+    {
+        "id": "cqrs",
+        "name": "CQRS",
+        "category": "architecture",
+        "aliases": [
+            "Command Query Responsibility Segregation"
+        ],
+        "description": "명령(Command)과 조회(Query)의 책임을 분리하는 아키텍처 패턴으로, 읽기(조회)와 쓰기(명령)를 별도의 모델로 나누어 설계한다."
+    },
+    {
+        "id": "pod-qos",
+        "name": "Pod QoS",
+        "category": "kubernetes",
+        "aliases": [
+            "QoS",
+            "BestEffort",
+            "Burstable",
+            "Guaranteed",
+            "oom_score_adj"
+        ],
+        "description": "Resource Requests 와 Resource Limits 조건을 바탕으로 정해지는 우선순위로, 리소스가 부족하면 QoS 에 따라 어떤 Pod 의 Container 를 Kill 할지 정한다."
+    },
+    {
+        "id": "istio",
+        "name": "Istio",
+        "category": "kubernetes",
+        "aliases": [
+            "Service Mesh",
+            "istiod"
+        ],
+        "description": "쿠버네티스 환경에서 서비스 간 통신을 제어하고, 보안과 관측 기능을 제공하는 Service Mesh 플랫폼이다."
+    },
+    {
+        "id": "istio-ambient-mode",
+        "name": "Istio Ambient mode",
+        "category": "kubernetes",
+        "aliases": [
+            "Ambient",
+            "ztunnel",
+            "waypoint"
+        ],
+        "description": "애플리케이션 Pod에 사이드카를 주입하지 않고, L3/L4와 L7 처리를 서로 다른 컴포넌트(ztunnel, waypoint)로 분리한다."
+    },
+    {
+        "id": "gateway-api",
+        "name": "Gateway API",
+        "category": "kubernetes",
+        "aliases": [
+            "Kubernetes Gateway API",
+            "HTTPRoute"
+        ],
+        "description": "Gateway, HTTPRoute 리소스로 라우팅을 선언하는 쿠버네티스 API로, Istio 도 향후 방향을 이쪽으로 잡고 있다."
+    }
+]

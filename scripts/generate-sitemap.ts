@@ -47,6 +47,8 @@ const generateSitemap = () => {
     const staticPages = [
         { loc: `${BASE_URL}/`, changefreq: 'daily', priority: '1.0', lastmod: today },
         { loc: `${BASE_URL}/post/`, changefreq: 'daily', priority: '0.9', lastmod: today },
+        // 글이 늘면 개념과 연결도 함께 바뀌므로 글 목록과 같은 주기로 둔다. ?concept= 같은 주소는 canonical 이 /knowledge/ 라 따로 넣지 않는다.
+        { loc: `${BASE_URL}/knowledge/`, changefreq: 'weekly', priority: '0.8', lastmod: today },
         { loc: `${BASE_URL}/book/`, changefreq: 'weekly', priority: '0.7', lastmod: today },
         { loc: `${BASE_URL}/side-projects/`, changefreq: 'weekly', priority: '0.7', lastmod: today },
         { loc: `${BASE_URL}/about/`, changefreq: 'monthly', priority: '0.5' },

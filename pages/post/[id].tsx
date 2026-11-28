@@ -27,6 +27,8 @@ import JvmErgonomicsSimulator from '../../components/JvmErgonomicsSimulator';
 import { headingComponents } from '../../components/HeadingAnchor';
 import { MdxTable } from '../../components/MdxTable';
 import { desktopOnly } from '../../components/DesktopOnly';
+import { loadKnowledge } from '../../lib/knowledge/load';
+import { categoryColor } from '../../lib/knowledge/colors';
 
 // 모바일에서는 안내 카드로 대신 보여줄 시뮬레이터들. 렌더링마다 새 컴포넌트가 만들어지지 않도록 모듈에서 한 번만 감싼다.
 const desktopOnlyComponents = {
@@ -84,15 +86,24 @@ export const getStaticProps = async ({ params }: { params: any }) => {
               post.tags?.some((tag) => postData.tags?.includes(tag))
       );
 
+  // knowledge/articles.json 에 이 글이 있을 때만 개념을 넘긴다. 없으면 빈 배열이라 영역을 그리지 않는다.
+  const knowledge = loadKnowledge();
+  const conceptIds = knowledge.articles.find((article) => article.id === postData.id)?.concepts ?? [];
+  const postConcepts = conceptIds.flatMap((conceptId) => {
+    const concept = knowledge.concepts.find((item) => item.id === conceptId);
+    return concept ? [{ id: concept.id, name: concept.name, category: concept.category }] : [];
+  });
+
   return {
     props: {
       postData,
       relatedPosts,
+      postConcepts,
     },
   };
 };
 
-export default function Post({ postData, relatedPosts }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Post({ postData, relatedPosts, postConcepts }: InferGetStaticPropsType<typeof getStaticProps>) {
   const [toc, activeId] = useTocObserver();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showScrollHint, setShowScrollHint] = useState(false);
@@ -281,8 +292,29 @@ export default function Post({ postData, relatedPosts }: InferGetStaticPropsType
             </article>
             <DevEditor postId={postData.id} />
             <Giscus />
-            {relatedPosts.length > 0 && (
+            {postConcepts.length > 0 && (
                 <div className="mt-20 p-6 border rounded-2xl bg-gray-50 shadow-sm">
+                  <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
+                    🧩 <span>이 글의 개념</span>
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-5">개념을 누르면 지식 그래프에서 그 개념과 이어진 개념, 글을 볼 수 있어요.</p>
+                  <ul className="not-prose m-0 flex list-none flex-wrap gap-2 p-0">
+                    {postConcepts.map((concept) => (
+                        <li key={concept.id} className="m-0 p-0 before:hidden">
+                          <Link
+                              href={`/knowledge/?concept=${concept.id}`}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-full no-underline transition hover:border-gray-400 hover:text-gray-900"
+                          >
+                            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: categoryColor(concept.category) }} aria-hidden />
+                            {concept.name}
+                          </Link>
+                        </li>
+                    ))}
+                  </ul>
+                </div>
+            )}
+            {relatedPosts.length > 0 && (
+                <div className={`${postConcepts.length > 0 ? 'mt-6' : 'mt-20'} p-6 border rounded-2xl bg-gray-50 shadow-sm`}>
                   <h2 className="text-xl font-bold flex items-center gap-2 mb-6">
                     🏷️ <span>같은 태그의 글 보기</span>
                   </h2>

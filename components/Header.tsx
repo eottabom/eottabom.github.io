@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Home, FileText, BookOpen, Bookmark, FlaskConical, Wrench, User, FolderKanban, type LucideIcon } from "lucide-react";
+import { Home, FileText, BookOpen, Bookmark, FlaskConical, Wrench, User, FolderKanban, Network, type LucideIcon } from "lucide-react";
 import ScrollProgressBar from "./ScrollProgressBar";
 import TranslateButton from "./TranslateButton";
 
@@ -24,6 +24,7 @@ export default function Header() {
     const items: { href: string; label: string; icon: LucideIcon; newTab?: boolean }[] = [
         { href: "/", label: "Home", icon: Home },
         { href: "/post", label: "Posts", icon: FileText },
+        { href: "/knowledge", label: "Knowledge", icon: Network },
         { href: "/book", label: "Books", icon: BookOpen },
         { href: "/side-projects", label: "Side Projects", icon: FolderKanban },
         { href: "/link", label: "Read/Keep", icon: Bookmark },

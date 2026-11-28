@@ -1,0 +1,30 @@
+[
+    {
+        "id": "jvm",
+        "name": "JVM"
+    },
+    {
+        "id": "spring",
+        "name": "Spring"
+    },
+    {
+        "id": "kubernetes",
+        "name": "Kubernetes"
+    },
+    {
+        "id": "java",
+        "name": "Java"
+    },
+    {
+        "id": "network",
+        "name": "Network"
+    },
+    {
+        "id": "database",
+        "name": "Database"
+    },
+    {
+        "id": "architecture",
+        "name": "Architecture"
+    }
+]
