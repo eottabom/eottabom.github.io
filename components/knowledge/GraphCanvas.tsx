@@ -30,7 +30,9 @@ const ZOOM_STEP = 1.25;
 const CONCEPT_EDGE_COLOR = '#cbd5e1';
 const ARTICLE_EDGE_COLOR = '#cbd5e1';
 const ARROW_COLOR = '#94a3b8';
-const MAX_FIT_ZOOM = 1.15;
+// 화면에 맞출 때 이보다 크게 키우지 않는다. 노드가 아주 적을 때 지나치게 커지는 것만 막고,
+// 패널을 닫거나 전체 화면으로 넓혔을 때는 그래프가 충분히 커지도록 여유 있게 잡는다.
+const MAX_FIT_ZOOM = 1.5;
 
 const CAPTION_ID = '__center-caption';
 
@@ -108,7 +110,8 @@ const STYLESHEET: cytoscape.StylesheetJson = [
             shape: 'ellipse',
             width: 92,
             height: 92,
-            'background-color': '#ffffff',
+            // 블로그 프로필 이미지와 같은 연두색 바탕. 고양이 이미지는 배경이 투명이라 이 색 위에 그려진다.
+            'background-color': '#b8e2c0',
             'background-image': HUB_IMAGE,
             // contain 이면 background-width 가 무시되므로 none 으로 두고 크기를 직접 정한다. 이미지는 정사각형이라 비율이 유지된다.
             'background-fit': 'none',
@@ -290,7 +293,8 @@ export default function GraphCanvas({ subgraph, relatedNodeIds, centerCaption, s
             // 분야를 강조할 때만 그 분야의 글 제목을 가로로, 화면에서 읽히는 크기로 보여준다.
             style: preview ? [...STYLESHEET, { selector: 'node', style: { label: '' } }, PREVIEW_LABEL_STYLE, ...PREVIEW_LABEL_SIDE_STYLES] : STYLESHEET,
             layout: { name: 'preset' },
-            minZoom: MIN_ZOOM,
+            // 미리보기는 사용자가 확대, 축소하지 않으므로 좁은 모바일 카드에도 그래프가 다 들어가도록 최소 배율을 더 낮춘다.
+            minZoom: preview ? 0.1 : MIN_ZOOM,
             maxZoom: MAX_ZOOM,
             boxSelectionEnabled: false,
             // preview 는 마운트할 때 정해지고 바뀌지 않으므로 생성 옵션으로만 쓴다.
@@ -403,10 +407,26 @@ export default function GraphCanvas({ subgraph, relatedNodeIds, centerCaption, s
             }
         });
 
+        // 그래프 영역 크기가 바뀌면(상세 패널 열고 닫기, 전체 화면, 창 크기 조절) 캔버스만 맞추지 않고
+        // 그래프도 새 크기에 다시 맞춰서, 넓어진 영역만큼 그래프가 커지게 한다.
+        // ResizeObserver 는 감시를 시작하자마자 한 번 불리는데, 그때는 노드가 가운데에서 퍼지는 애니메이션 중이라
+        // 그래프가 작게 잡혀 지나치게 확대된다. 그래서 크기가 실제로 바뀐 경우에만 맞추고, 맞추기 전에 애니메이션을 끝 위치로 보낸다.
         let frame = 0;
+        let lastSize = { width: container.clientWidth, height: container.clientHeight };
         const observer = new ResizeObserver(() => {
+            const size = { width: container.clientWidth, height: container.clientHeight };
+            if (size.width === lastSize.width && size.height === lastSize.height) {
+                return;
+            }
+            lastSize = size;
             cancelAnimationFrame(frame);
-            frame = requestAnimationFrame(() => cy.resize());
+            frame = requestAnimationFrame(() => {
+                cy.resize();
+                if (cy.nodes().nonempty() && cy.width() > 0 && cy.height() > 0) {
+                    cy.nodes().stop(true, true);
+                    fitGraph(cy, !preview);
+                }
+            });
         });
         observer.observe(container);
 
