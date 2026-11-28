@@ -525,7 +525,7 @@ export const formatReviewMarkdown = (input: ClassifyReportInput): string => {
     const removedSet = new Set(merge.removedIds);
 
     const statusLabel = merge.status === 'updated'
-        ? (isDryRun ? '변경 제안 있음 (dry-run)' : 'Draft PR 반영 준비 완료')
+        ? (isDryRun ? '변경 제안 있음 (dry-run)' : 'PR 반영 준비 완료')
         : merge.status === 'unchanged'
             ? '기존 매핑과 동일 (변경 없음)'
             : '일치하는 기존 개념 없음 (articles.json 미수정)';
@@ -595,7 +595,7 @@ export const formatReviewMarkdown = (input: ClassifyReportInput): string => {
     lines.push('### 검토 체크리스트');
     lines.push('- [ ] `knowledge/articles.json` 의 개념 연결이 글 내용과 맞는지 확인');
     lines.push('- [ ] 불필요한 개념 제거 또는 누락된 기존 개념 추가');
-    lines.push('- [ ] `check-knowledge` PR 체크 통과 확인 후 Ready for review 전환 및 Merge');
+    lines.push('- [ ] `check-knowledge` PR 체크 통과 확인 후 Merge');
     lines.push('');
 
     return lines.join('\n');
@@ -630,7 +630,7 @@ export const formatBatchReviewMarkdown = (input: BatchReportInput): string => {
         `| 대상 범위 | ${escapeMarkdownCell(targetLabel)} (${items.length}편) |`,
         `| 모델 | \`${model}\` |`,
         `| 병합 정책 | \`${mergePolicy}\` |`,
-        `| 실행 모드 | ${isDryRun ? 'dry-run (파일 미수정)' : 'apply (Draft PR 반영)'} |`,
+        `| 실행 모드 | ${isDryRun ? 'dry-run (파일 미수정)' : 'apply (PR 반영)'} |`,
         `| 결과 요약 | 변경 ${updatedCount}편, 동일 ${unchangedCount}편, 일치 없음 ${noMatchCount}편, 오류 ${errorCount}편 |`,
         `| check:knowledge | ${checkErrors.length === 0 ? '통과' : `실패 (${checkErrors.length}건)`} |`,
         '',
@@ -711,7 +711,7 @@ export const formatBatchReviewMarkdown = (input: BatchReportInput): string => {
     lines.push('### 검토 체크리스트');
     lines.push('- [ ] `knowledge/articles.json` 의 개념 연결이 각 글 내용과 맞는지 확인');
     lines.push('- [ ] 불필요한 개념 제거 또는 누락된 기존 개념 추가');
-    lines.push('- [ ] `check-knowledge` PR 체크 통과 확인 후 Ready for review 전환 및 Merge');
+    lines.push('- [ ] `check-knowledge` PR 체크 통과 확인 후 Merge');
     lines.push('');
 
     return lines.join('\n');

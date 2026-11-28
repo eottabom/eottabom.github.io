@@ -90,7 +90,7 @@ jobs:
               event_type: "blog-knowledge-classify",
               client_payload: {
                 article_ids: $ids,
-                mode: "draft-pr",
+                mode: "pr",
                 merge_policy: "append",
                 source_sha: $sha
               }
