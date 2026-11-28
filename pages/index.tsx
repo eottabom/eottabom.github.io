@@ -9,6 +9,12 @@ import { catImages } from '../lib/mainImage';
 import BookCard from '../components/BookCard';
 import { getBooksMetaOnly, BookMeta } from '../lib/books';
 import { useEffect, useState } from 'react';
+import KnowledgePreview from '../components/knowledge/KnowledgePreview';
+import { loadKnowledge } from '../lib/knowledge/load';
+import { createKnowledgeIndex } from '../lib/knowledge/query';
+import { buildOverview } from '../lib/knowledge/subgraph';
+import type { Subgraph } from '../lib/knowledge/subgraph';
+import type { CategoryCount } from '../components/knowledge/CategoryBars';
 
 type Post = {
     id: string;
@@ -22,6 +28,8 @@ type Post = {
 type HomeProps = {
     allPostsData: Post[];
     latestBook?: BookMeta | null;
+    knowledgeOverview: Subgraph;
+    knowledgeCategories: CategoryCount[];
 };
 
 function shuffle<T>(array: T[]): T[] {
@@ -39,21 +47,30 @@ export const getStaticProps: GetStaticProps<HomeProps> = async () => {
     const books = getBooksMetaOnly?.() ?? [];
     const latestBook = books.length > 0 ? books[0] : null;
 
+    // 지식 그래프 전체 보기에 그릴 노드와 선, 분야별 개념 수만 빌드할 때 골라 넘긴다. 전체 knowledge 데이터(설명, 근거)는 메인에 싣지 않는다.
+    const knowledge = loadKnowledge();
+    const knowledgeOverview = buildOverview(createKnowledgeIndex(knowledge), null);
+    const knowledgeCategories = knowledge.categories.map((category) => ({
+        id: category.id,
+        name: category.name,
+        count: knowledge.concepts.filter((concept) => concept.category === category.id).length,
+    }));
+
     return {
         props: {
             allPostsData,
             latestBook,
+            knowledgeOverview,
+            knowledgeCategories,
         },
     };
 };
 
-// 날짜 내림차순 비교 (undefined 안전)
-const byDesc = (a?: string, b?: string) =>
-    new Date(b ?? '1970-01-01').getTime() - new Date(a ?? '1970-01-01').getTime();
-
 export default function Home({
                                  allPostsData,
                                  latestBook,
+                                 knowledgeOverview,
+                                 knowledgeCategories,
                              }: HomeProps) {
     if (!allPostsData.length) {
         return (
@@ -70,16 +87,7 @@ export default function Home({
     // 최신 글(작성일 기준)
     const [latest, ...restAll] = allPostsData;
 
-    // 최근 업데이트 글(업데이트일 없으면 작성일로 대체)
-    const updatedSorted = [...allPostsData].sort((a, b) =>
-        byDesc(a.updated ?? a.date, b.updated ?? b.date)
-    );
-    const updatedPost =
-        updatedSorted.find((p) => p.id !== latest.id) ?? updatedSorted[0];
-
-    const rest = restAll
-        .filter((post) => post.id !== updatedPost.id)
-        .slice(0, 3);
+    const rest = restAll.slice(0, 3);
 
     const [bgImages, setBgImages] = useState<string[]>(
         () => Array(rest.length).fill('')
@@ -161,6 +169,9 @@ export default function Home({
 
                 <div className="bg-gray-50 pt-32 pb-20 px-4">
                     <main className="max-w-4xl mx-auto px-4 pb-32 space-y-24">
+                        {/* Knowledge Graph 미리보기 */}
+                        <KnowledgePreview subgraph={knowledgeOverview} categories={knowledgeCategories} />
+
                         {/* Latest Post */}
                         <section>
                             <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
@@ -186,38 +197,6 @@ export default function Home({
                                 className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded transition"
                             >
                                 Continue Reading →
-                            </Link>
-                        </section>
-
-                        {/* Recently Updated */}
-                        <section>
-                            <span className="inline-block px-3 py-1 text-xs font-semibold rounded-full bg-white text-gray-500 uppercase tracking-wide">
-                                Recently Updated
-                            </span>
-
-                            <h2 className="mt-4 text-3xl font-bold text-gray-900">
-                                {updatedPost.title}
-                            </h2>
-
-                            <p className="mt-2 text-sm text-gray-500">
-                                Updated: {updatedPost.updated ?? updatedPost.date}
-                            </p>
-
-                            <p className="mt-4 text-lg text-gray-600 leading-relaxed">
-                                {updatedPost.summary || 'No summary provided.'}
-                            </p>
-
-                            {updatedPost.description && (
-                                <p className="mt-2 text-base text-gray-500 leading-relaxed">
-                                    {updatedPost.description}
-                                </p>
-                            )}
-
-                            <Link
-                                href={`/post/${updatedPost.id}`}
-                                className="inline-block mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-2 rounded transition"
-                            >
-                                Read Updated Post →
                             </Link>
                         </section>
 
