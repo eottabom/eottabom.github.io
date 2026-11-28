@@ -1,6 +1,4 @@
 import type { GetStaticProps } from "next";
-import Link from "next/link";
-import { Home } from "lucide-react";
 import Header from "../components/Header";
 import ProjectCard from "../components/ProjectCard";
 import Seo from "../components/Seo";
@@ -35,8 +33,9 @@ export default function ProjectsPage({ projects }: ProjectsPageProps) {
                 description="개인 프로젝트를 카드 형태로 모아두고, 각 프로젝트의 배경과 구현 내용을 정리한 페이지."
                 jsonLd={jsonLd}
             />
-            <div className="bg-white text-black">
-                <Header />
+            <Header />
+            {/* 다른 목록 페이지(Posts, Knowledge)와 같은 히어로 */}
+            <div className="bg-gradient-to-b from-sky-50 via-emerald-50/40 to-white text-gray-800">
                 <div className="mx-auto w-full px-4 py-14 text-center sm:px-6 lg:px-8">
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Side Projects</h1>
                     <p className="mt-2 text-sm text-gray-400">
@@ -45,25 +44,18 @@ export default function ProjectsPage({ projects }: ProjectsPageProps) {
                 </div>
             </div>
 
-            <main className="mx-auto max-w-6xl px-6 pb-20">
+            <main className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
                 {projects.length === 0 ? (
                     <p className="text-zinc-500">아직 등록된 프로젝트가 없습니다.</p>
                 ) : (
-                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    // 프로젝트 수가 적어서 2열로 넓게 보여준다.
+                    <div className="grid gap-6 md:grid-cols-2">
                         {projects.map((project) => (
                             <ProjectCard key={project.slug} project={project} />
                         ))}
                     </div>
                 )}
             </main>
-
-            <Link
-                href="/"
-                className="fixed bottom-6 right-6 z-50 rounded-lg border border-gray-300 bg-white p-3 shadow-md transition hover:shadow-lg"
-                aria-label="홈으로 가기"
-            >
-                <Home className="h-6 w-6 text-gray-800" />
-            </Link>
         </>
     );
 }

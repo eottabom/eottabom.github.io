@@ -6,29 +6,86 @@
       "date": "2026-03-22",
       "status": "active",
       "summary": "여러 CLI 에이전트를 터미널 창 여러 개 대신 한 화면에서 띄워두고 쓰려고 만든 개인 도구",
-      "description": "Claude Code, Codex CLI, Gemini CLI를 한 화면에서 띄우고, 세션 상태를 보며 입력까지 보낼 수 있는 로컬 작업 공간. 매일 여러 에이전트를 함께 쓰면서 늘어나는 터미널 창을 정리하려고 직접 만든 도구로, 브라우저와 Electron 데스크톱 앱 모두 지원.",
+      "description": "여러 CLI 에이전트 세션을 한 화면에서 보고, 바로 입력까지 보내는 로컬 작업 공간\n에이전트 여러 개를 같이 쓰다 늘어나는 터미널 창을 정리하려고 만들었다.\n브라우저와 macOS 데스크톱 앱(Electron)에서 모두 쓸 수 있다.",
       "problem": [
-        "에이전트마다 터미널 창이 늘어나, 어떤 세션이 작업 중이고 어떤 세션이 입력 대기인지 파악 불가",
-        "같은 지시를 여러 에이전트에 보내거나 결과를 비교할 때마다 창 전환 필요"
+        "창 관리 부담: 에이전트마다 터미널 창이 늘어나, 어떤 세션이 작업 중이고 어떤 세션이 입력을 기다리는지 한눈에 알 수 없음",
+        "반복되는 창 전환: 같은 지시를 여러 에이전트에 보내거나 결과를 비교할 때마다 창을 옮겨 다녀야 함"
       ],
       "approach": [
-        "node-pty로 에이전트 세션을 만들고 WebSocket으로 출력을 스트리밍",
-        "React와 xterm.js로 터미널 화면을 그리고, 세션 상태를 도트 아바타로 표시",
-        "같은 화면을 브라우저와 Electron 앱에서 모두 사용"
+        "PTY 실행: node-pty로 에이전트를 실제 터미널처럼 실행하고, 출력은 WebSocket으로 화면에 실시간 전달",
+        "터미널 화면: React와 xterm.js로 세션별 터미널을 그리고, working, idle 상태를 도트 아바타로 표시",
+        "화면과 서버 분리: 같은 화면을 브라우저와 Electron 앱에서 그대로 쓰도록 서버와 화면을 나눔"
       ],
       "tags": ["Node.js", "TypeScript", "React", "Electron", "WebSocket"],
       "features": [
-        "Claude Code, Codex CLI, Gemini CLI, Bash 세션 생성, 종료, 재연결",
-        "WebSocket 실시간 출력 스트리밍",
-        "여러 세션 동시 실행과 브로드캐스트 입력",
-        "세션별 working/idle 상태를 도트 아바타로 표시",
-        "세로 정렬, 좌우 분할 레이아웃 전환과 Ctrl + 숫자 단축키로 세션 이동",
-        "브라우저와 Electron 데스크톱 앱(macOS) 지원"
+        "세션 관리: Claude Code, Codex, Gemini, Bash 세션 생성, 종료, 재연결",
+        "실시간 출력: WebSocket으로 터미널 출력 스트리밍",
+        "브로드캐스트: 같은 입력을 여러 세션에 한 번에",
+        "상태 아바타: working, idle 상태를 도트 아바타로",
+        "레이아웃: 세로, 좌우 분할과 Ctrl + 숫자로 이동",
+        "실행 환경: 브라우저와 macOS 앱(Electron)"
       ],
       "thumbnail": "https://raw.githubusercontent.com/eottabom/agent-space/main/videos/agent-space-demo.gif",
-      "techStack": ["Node.js", "Express", "ws", "node-pty", "React", "Vite", "Electron", "Tailwind CSS"],
+      "techStack": ["Node.js", "Express", "ws", "node-pty", "React", "Vite", "xterm.js", "Electron", "Tailwind CSS"],
       "github": "https://github.com/eottabom/agent-space",
-      "aiAssisted": true
+      "aiAssisted": true,
+      "architecture": {
+        "summary": "화면(브라우저나 Electron 창)과 로컬 Node 서버를 WebSocket 하나로 잇고, 서버가 PTY로 띄운 CLI 에이전트의 입출력을 그대로 중계한다. 세션 상태는 서버 메모리에만 두는 단순한 구조라 별도 저장소가 없다.",
+        "layers": [
+          {
+            "name": "Client",
+            "nodes": [
+              { "name": "브라우저", "detail": "localhost:3000에서 바로 사용", "icon": "globe" },
+              { "name": "Electron 앱", "detail": "같은 화면을 macOS 데스크톱 앱으로 포장", "icon": "monitor" },
+              { "name": "React + xterm.js", "detail": "세션별 터미널, 도트 아바타, 레이아웃 전환", "icon": "window" }
+            ],
+            "flow": "WebSocket: 키 입력, 세션 명령 ↔ 터미널 출력, 상태"
+          },
+          {
+            "name": "Node 서버",
+            "nodes": [
+              { "name": "Express + ws", "detail": "HTTP와 WebSocket을 받는 진입점", "icon": "server" },
+              { "name": "Session Registry", "detail": "실행 중인 세션과 working, idle 상태를 메모리에서 관리", "icon": "layers" },
+              { "name": "Agent Resolver", "detail": "에이전트 종류와 옵션을 CLI 명령으로 변환", "icon": "workflow" }
+            ],
+            "flow": "node-pty: 프로세스 실행, 입력 전달 ↔ 출력 수신"
+          },
+          {
+            "name": "CLI 에이전트 (PTY 프로세스)",
+            "nodes": [
+              { "name": "Claude Code", "detail": "claude", "icon": "terminal" },
+              { "name": "Codex CLI", "detail": "codex", "icon": "terminal" },
+              { "name": "Gemini CLI", "detail": "gemini", "icon": "terminal" },
+              { "name": "Bash", "detail": "일반 셸", "icon": "terminal" }
+            ]
+          }
+        ],
+        "steps": [
+          { "name": "세션 생성 요청", "detail": "툴바에서 에이전트와 옵션을 골라 WebSocket으로 생성 명령을 보낸다" },
+          { "name": "명령 변환", "detail": "Agent Resolver가 에이전트 종류와 자동 승인, 디버그, 추가 인자 옵션을 CLI 명령으로 바꾼다" },
+          { "name": "PTY 실행", "detail": "node-pty가 CLI 에이전트를 실제 터미널처럼 띄우고, Session Registry에 세션을 등록한다" },
+          { "name": "출력 스트리밍", "detail": "에이전트 출력이 WebSocket으로 화면의 xterm.js 터미널에 실시간으로 그려진다" },
+          { "name": "입력 전달", "detail": "터미널에서 친 키 입력이나 브로드캐스트 입력이 같은 길을 거꾸로 거쳐 PTY로 들어간다" }
+        ]
+      },
+      "sections": [
+        {
+          "title": "How It Works",
+          "items": [
+            "세션 설정: 툴바의 에이전트 버튼을 누르면 설정 창에서 세션 이름, 작업 디렉터리, 자동 승인, 디버그 모드, 추가 CLI 인자를 정해 실행",
+            "자동 승인 옵션: 에이전트별 옵션으로 바뀜 (Claude --dangerously-skip-permissions, Codex --full-auto, Gemini --yolo)",
+            "터미널 관리: 헤더에서 세션 이름을 바로 고치고, 최소화하면 하단 독으로 내려가며, Kill All로 모든 세션을 한 번에 종료"
+          ]
+        },
+        {
+          "title": "Run and Distribution",
+          "items": [
+            "로컬 실행: node-backend에서 npm run launch로 서버를 띄워 브라우저로 접속하고, npm run electron:dev로 데스크톱 앱 실행",
+            "배포: macOS(Apple Silicon) 앱을 GitHub Releases로 배포",
+            "필요 환경: Node.js 18 이상과 사용할 CLI 에이전트"
+          ]
+        }
+      ]
     },
     {
       "slug": "istio-headlamp-plugin",
@@ -36,26 +93,26 @@
       "date": "2026-09-18",
       "status": "active",
       "summary": "Headlamp에서 Istio 설정을 편집기 없이 읽고, Ambient 모드 구성을 확인하려고 만든 개인 플러그인",
-      "description": "Headlamp에서 Istio 리소스의 spec을 상세 화면에서 바로 보여주고, Ambient 모드의 Waypoint, ztunnel 상태와 L4/L7 정책 적용 위치까지 확인할 수 있는 플러그인. Istio 설정 하나 보려고 매번 Edit를 여는 불편함에서 시작한 개인 프로젝트로, Artifact Hub 배포와 Headlamp 공식 plugins 저장소 External plugin 목록 등재까지 진행.",
+      "description": "Istio spec과 Ambient L7 정책 적용 위치를 Headlamp에서 바로 확인하는 플러그인\n설정 하나를 보려고 매번 Edit를 여는 불편함에서 시작했다.\nArtifact Hub에 배포했고, Headlamp 공식 External plugin 목록에도 올라가 있다.",
       "problem": [
-        "상세 화면에 spec이 없어, DestinationRule 설정 하나 확인에도 매번 Edit 필요",
-        "Ambient 모드에서 L7 AuthorizationPolicy가 ztunnel에 걸려 트래픽이 막혀도 UI에서 확인 불가"
+        "spec이 안 보이는 상세 화면: 메타데이터와 상태만 보여줘서, DestinationRule 설정 하나를 확인하려 해도 매번 Edit를 열어야 함",
+        "트래픽을 모두 막는 L7 정책: Ambient 모드에서 L7 AuthorizationPolicy가 waypoint가 아닌 ztunnel에 걸리면 트래픽을 모두 막는데(fail closed), UI에서는 알 수 없음",
+        "아무 데도 적용되지 않는 정책: targetRef가 waypoint 없는 Service를 가리키면 정책이 적용되지 않는데, 겉으로는 정상처럼 보임"
       ],
       "approach": [
-        "리소스 레지스트리 하나로 사이드바, 라우트, 목록, 상세 페이지를 모두 생성",
-        "주요 필드는 타입별 섹션, 나머지는 재귀 렌더러로 그려 새 버전 필드도 표시",
-        "분석 로직은 순수 함수로 분리해 Istio 1.30.1 Ambient 클러스터 fixture로 테스트",
-        "kind 클러스터와 Playwright E2E로 실제 Headlamp 화면에서 검증"
+        "리소스 레지스트리: 레지스트리 하나로 사이드바, 라우트, 목록, 상세 페이지를 모두 생성",
+        "두 단계 렌더링: 주요 필드는 타입별 섹션으로, 나머지는 재귀 렌더러로 그려 더 새로운 Istio 버전의 필드도 빠짐없이 표시",
+        "순수 함수 분석: 적용 위치 판정 같은 분석 로직을 순수 함수로 분리해 Istio 1.30.1 Ambient 클러스터 fixture로 테스트",
+        "실화면 검증: kind 클러스터와 Playwright E2E로 실제 Headlamp 화면에서 검증"
       ],
       "tags": ["TypeScript", "React", "Kubernetes", "Istio", "Headlamp"],
       "features": [
-        "DestinationRule, ServiceEntry, VirtualService, AuthorizationPolicy 등 Istio 리소스별 spec 상세 화면과 Full spec 렌더러",
-        "Mesh Overview(컨트롤 플레인 버전, ztunnel/istio-cni 상태)와 Waypoints 화면",
-        "L7 AuthorizationPolicy의 실제 적용 위치(waypoint/ztunnel) 확인 및 fail closed 경고",
-        "엔드포인트 없는 STATIC ServiceEntry 등 아무 효과 없는 구성 경고",
-        "Headlamp 기본 Service, Pod, Namespace 화면에 Istio 정보와 Ambient/Sidecar Mesh 컬럼 추가",
-        "Istio 1.2x, 1.3x 지원 및 클러스터에 설치된 CRD만 사이드바에 노출",
-        "GitHub Release, GHCR 이미지, Artifact Hub로 배포"
+        "Spec 상세 화면: 리소스별 spec 섹션과 Full spec",
+        "Mesh Overview, Waypoints: 컨트롤 플레인, ztunnel, istio-cni 상태와 Waypoint 현황",
+        "L7 적용 위치 판정: waypoint, ztunnel, 미적용 중 어디인지 판정하고 경고",
+        "효과 없는 구성 경고: 엔드포인트 없는 ServiceEntry 같은 구성 표시",
+        "기본 페이지 확장: Service, Pod, Namespace 화면에 Istio 섹션 추가",
+        "설치된 CRD만 노출: 클러스터에 있는 CRD만 사이드바에 표시"
       ],
       "thumbnail": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/demo.gif",
       "techStack": ["TypeScript", "React", "Headlamp Plugin SDK", "Istio", "Kubernetes", "kind", "Playwright", "Docker", "GitHub Actions"],
@@ -63,6 +120,80 @@
       "links": [
         { "label": "Artifact Hub", "url": "https://artifacthub.io/packages/headlamp/istio-headlamp-plugin/istio-headlamp-plugin" },
         { "label": "Headlamp Plugins #1334", "url": "https://github.com/headlamp-k8s/plugins/pull/1334" }
+      ],
+      "architecture": {
+        "summary": "Headlamp가 불러오는 플러그인이 Headlamp를 거쳐 클러스터 리소스를 읽기 권한으로만 조회하고, 그 결과를 리소스별 상세 화면, Ambient 분석 화면, Headlamp 기본 페이지의 Istio 섹션으로 그린다. 읽지 못한 정보는 추측하지 않고 화면에 그대로 알린다.",
+        "layers": [
+          {
+            "name": "Headlamp UI",
+            "nodes": [
+              { "name": "Istio 사이드바", "detail": "설치된 CRD만 메뉴로 노출", "icon": "panel" },
+              { "name": "목록과 상세", "detail": "리소스별 spec 섹션과 Full spec", "icon": "list" },
+              { "name": "Mesh Overview, Waypoints", "detail": "Ambient 구성과 상태", "icon": "network" },
+              { "name": "기본 페이지 섹션", "detail": "Service, Pod, Namespace 화면에 추가", "icon": "window" }
+            ],
+            "flow": "화면 등록 ↔ 리소스 조회 요청"
+          },
+          {
+            "name": "Plugin 코어",
+            "nodes": [
+              { "name": "리소스 레지스트리", "detail": "사이드바, 라우트, 목록, 상세를 한 곳에서 생성하고 API 버전별로 이어서 조회", "icon": "tree" },
+              { "name": "Spec 렌더러", "detail": "타입별 섹션과 재귀 렌더러", "icon": "code" },
+              { "name": "Ambient 분석", "detail": "Waypoint 등록 확인, L7 정책 적용 위치 판정, 효과 없는 구성 경고", "icon": "search" }
+            ],
+            "flow": "Headlamp를 거친 읽기 전용 Kubernetes API 조회"
+          },
+          {
+            "name": "Kubernetes 클러스터",
+            "nodes": [
+              { "name": "Istio CRD", "detail": "networking, security, telemetry, extensions", "icon": "boxes" },
+              { "name": "Gateway API", "detail": "Gateway (waypoint 포함)", "icon": "gateway" },
+              { "name": "기본 리소스", "detail": "Namespace, Service, Pod, Deployment", "icon": "container" },
+              { "name": "Ambient 데이터 플레인", "detail": "ztunnel, istio-cni DaemonSet", "icon": "cpu" }
+            ]
+          }
+        ],
+        "steps": [
+          { "name": "메뉴 등록", "detail": "클러스터에 설치된 Istio CRD를 확인해, 있는 것만 사이드바와 라우트로 등록한다" },
+          { "name": "리소스 조회", "detail": "AuthorizationPolicy 같은 리소스를 열면 Headlamp를 거쳐 읽는다. Istio가 제공하는 API 버전을 차례로 시도한다" },
+          { "name": "Spec 그리기", "detail": "모델링한 필드는 타입별 섹션으로, 나머지는 재귀 렌더러로 그리고 마지막에 Full spec을 붙인다" },
+          { "name": "적용 위치 판정", "detail": "targetRef, selector와 Waypoint, Service, Namespace의 use-waypoint 라벨을 함께 읽어 L7 정책이 어디서 적용되는지 판정한다" },
+          { "name": "결과 표시", "detail": "판정 결과와 경고를 보여주고, 읽지 못한 정보가 있으면 판단할 수 없다고 표시한다" }
+        ]
+      },
+      "screenshots": [
+        { "src": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/mesh-overview.png", "caption": "Mesh Overview" },
+        { "src": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/destinationrule.png", "caption": "DestinationRule 상세" },
+        { "src": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/authorizationpolicies.png", "caption": "AuthorizationPolicy 목록" },
+        { "src": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/l7-enforcement.png", "caption": "L7 적용 위치 판정" },
+        { "src": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/waypoints.png", "caption": "Waypoints" },
+        { "src": "https://raw.githubusercontent.com/eottabom/istio-headlamp-plugin/main/docs/images/service-context.png", "caption": "Service 화면의 Istio 섹션" }
+      ],
+      "sections": [
+        {
+          "title": "Design Principles",
+          "items": [
+            "spec 우선: 모든 상세 페이지 끝에 Full spec을 둬서 리소스의 어떤 필드도 숨기지 않음",
+            "추측하지 않기: 권한이 없거나 메시 상태를 읽지 못하면 적용 위치를 단정하지 않고 판단할 수 없다고 표시",
+            "설치된 것만: 클러스터에 실제로 있는 CRD만 사이드바에 보여주고, Istio가 제공하는 모든 API 버전을 등록해 차례로 조회"
+          ]
+        },
+        {
+          "title": "Install and Distribution",
+          "items": [
+            "Headlamp 데스크톱: GitHub Release의 플러그인 tar.gz를 플러그인 디렉터리에 풀어서 설치",
+            "클러스터 안 Headlamp: GHCR 이미지 ghcr.io/eottabom/istio-headlamp-plugin을 init container로 붙여 플러그인 복사",
+            "Plugin Catalog: Artifact Hub에 등록되어 데스크톱 Plugin Catalog에서 Istio로 검색해 설치"
+          ]
+        },
+        {
+          "title": "Compatibility",
+          "items": [
+            "지원 버전: Istio 1.2x, 1.3x (networking.istio.io v1, v1beta1, v1alpha3 등 버전별로 이어서 조회)",
+            "Sidecar 전용 메시: 그대로 동작하고, ztunnel이 없으면 Ambient 화면이 그 이유를 설명",
+            "관리형 Istio: AKS add-on처럼 컨트롤 플레인 네임스페이스가 다른 환경도 istiod Deployment를 찾아 대응"
+          ]
+        }
       ]
     }
   ]
