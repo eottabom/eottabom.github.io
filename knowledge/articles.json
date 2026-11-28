@@ -39,7 +39,9 @@
         "application-ready",
         "connection-pool",
         "actuator-health",
-        "readiness-probe"
+        "readiness-probe",
+        "loading",
+        "jit"
     ],
     "kubernetes-resources-jvm-gc-ergonomics": [
         "jvm-ergonomics",
