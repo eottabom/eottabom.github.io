@@ -22,6 +22,9 @@ originals/**
 !originals/**/
 !originals/**/*.excalidraw
 
+# 글 윤문 스킬이 남기는 작업 폴더
+_workspace/
+
 # >>> agent-sync managed (do not edit this block)
 AGENTS.md
 CLAUDE.md
