@@ -6,14 +6,16 @@ import {
     buildClassifyMessages,
     classifyArticleWithGemma,
     extractJsonText,
+    formatBatchReviewMarkdown,
     formatReviewMarkdown,
     mergeArticleConcepts,
     parseClassifyResponse,
     prepareArticleBody,
+    resolveTargetArticleIds,
     serializeArticlesJson,
     validateProposedConcepts,
 } from './classify';
-import type { ClassifyArticleInput, CompletionRequester } from './classify';
+import type { ArticleCatalogEntry, ClassifyArticleInput, CompletionRequester } from './classify';
 import type { Concept } from './types';
 
 const SAMPLE_CONCEPTS: Concept[] = [
@@ -253,3 +255,83 @@ test('formatReviewMarkdown 은 변경 표와 참고 메모, 체크리스트를 �
     assert.ok(markdown.includes('새 개념 후보는 수동 검토 필요'));
     assert.ok(markdown.includes('check-knowledge'));
 });
+
+test('resolveTargetArticleIds 는 latest, unmapped, all, explicit 모드를 각각 정확히 선택한다', () => {
+    const catalog: ArticleCatalogEntry[] = [
+        { id: 'old-mapped', title: '오래된 글', date: '2026-01-01', updated: null },
+        { id: 'mid-unmapped', title: '중간 글', date: '2026-05-01', updated: null },
+        { id: 'updated-latest', title: '최근 수정 글', date: '2026-02-01', updated: '2026-11-28' },
+    ];
+    const mapped = new Set(['old-mapped', 'updated-latest']);
+
+    assert.deepEqual(
+        resolveTargetArticleIds({ mode: 'latest', explicitIds: [], allArticles: catalog, mappedArticleIds: mapped }),
+        ['updated-latest'],
+    );
+    assert.deepEqual(
+        resolveTargetArticleIds({ mode: 'unmapped', explicitIds: [], allArticles: catalog, mappedArticleIds: mapped }),
+        ['mid-unmapped'],
+    );
+    assert.deepEqual(
+        resolveTargetArticleIds({ mode: 'all', explicitIds: [], allArticles: catalog, mappedArticleIds: mapped, limit: 2 }),
+        ['updated-latest', 'mid-unmapped'],
+    );
+    assert.deepEqual(
+        resolveTargetArticleIds({
+            mode: 'latest',
+            explicitIds: ['old-mapped', 'mid-unmapped'],
+            allArticles: catalog,
+            mappedArticleIds: mapped,
+        }),
+        ['old-mapped', 'mid-unmapped'],
+    );
+});
+
+test('formatBatchReviewMarkdown 은 다건 분류 시 요약 테이블과 접이식 상세를 생성한다', () => {
+    const conceptsById = new Map(SAMPLE_CONCEPTS.map((concept) => [concept.id, concept]));
+    const validation = validateProposedConcepts({
+        proposed: [{ id: 'liveness-probe', reason: '핵심 설명' }],
+        validConceptIds: new Set(conceptsById.keys()),
+    });
+    const merge = mergeArticleConcepts({
+        articles: {},
+        articleId: SAMPLE_ARTICLE.id,
+        proposedIds: ['liveness-probe'],
+        policy: 'replace',
+    });
+
+    const markdown = formatBatchReviewMarkdown({
+        items: [
+            { article: SAMPLE_ARTICLE, merge, validation, notes: null, error: null },
+            {
+                article: { ...SAMPLE_ARTICLE, id: 'second-post', title: '두 번째 글' },
+                merge: {
+                    status: 'no_match',
+                    nextArticles: {},
+                    previousIds: [],
+                    proposedIds: [],
+                    finalIds: [],
+                    addedIds: [],
+                    removedIds: [],
+                    keptIds: [],
+                },
+                validation: { validConcepts: [], invalidIds: [], duplicateIds: [] },
+                notes: '매칭 없음',
+                error: null,
+            },
+        ],
+        conceptsById,
+        mergePolicy: 'replace',
+        model: 'gemma-4-26b-a4b-it',
+        isDryRun: false,
+        checkErrors: [],
+        targetLabel: '전체 블로그 글 재분류',
+    });
+
+    assert.ok(markdown.includes('전체 블로그 글 재분류 (2편)'));
+    assert.ok(markdown.includes('변경 1편, 동일 0편, 일치 없음 1편, 오류 0편'));
+    assert.ok(markdown.includes('<details>'));
+    assert.ok(markdown.includes('<code>kubernetes-probes</code>'));
+    assert.ok(markdown.includes('`liveness-probe`'));
+});
+

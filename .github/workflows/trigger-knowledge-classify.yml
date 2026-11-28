@@ -1,0 +1,111 @@
+name: "🕸️ Trigger Knowledge Classify"
+
+# main 브랜치에 블로그 글(.mdx)이 추가 또는 수정되면 변경된 글 ID를 추출해
+# eottabom/engineering-log 의 맥미니 Gemma 분류 워크플로우로 repository_dispatch 를 보낸다.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "contents/posts/**/*.mdx"
+
+permissions:
+  contents: read
+
+jobs:
+  dispatch:
+    name: Dispatch changed posts to Gemma classifier
+    if: ${{ !contains(toJson(github.event.commits), '[skip ci]') && !contains(toJson(github.event.commits), '[ci skip]') }}
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      HAS_APP_SECRET: ${{ secrets.CODE_BOT_APP_ID != '' && secrets.CODE_BOT_PRIVATE_KEY != '' }}
+      HAS_PAT_SECRET: ${{ secrets.ENGINEERING_LOG_DISPATCH_TOKEN != '' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Extract added or modified post IDs
+        id: posts
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [ "${BEFORE_SHA}" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            CHANGED=$(git diff-tree --no-commit-id --name-only --diff-filter=AM -r "${AFTER_SHA}" -- "contents/posts")
+          else
+            CHANGED=$(git diff --name-only --diff-filter=AM "${BEFORE_SHA}" "${AFTER_SHA}" -- "contents/posts")
+          fi
+
+          ARTICLE_IDS=$(
+            while IFS= read -r file; do
+              case "${file}" in
+                *.mdx) basename "${file}" .mdx ;;
+              esac
+            done <<< "${CHANGED}" | sort -u | paste -sd ',' -
+          )
+
+          echo "article_ids=${ARTICLE_IDS}" >> "$GITHUB_OUTPUT"
+          echo "추출된 게시글 ID: ${ARTICLE_IDS:-없음}"
+
+      - name: Check dispatch secret configuration
+        if: steps.posts.outputs.article_ids != '' && env.HAS_APP_SECRET != 'true' && env.HAS_PAT_SECRET != 'true'
+        env:
+          ARTICLE_IDS: ${{ steps.posts.outputs.article_ids }}
+        run: |
+          {
+            echo "## 자동 분류 트리거 건너뜀 (시크릿 미설정)"
+            echo ""
+            echo "- 감지된 게시글 ID: \`${ARTICLE_IDS}\`"
+            echo "- \`eottabom.github.io\` 저장소 Secrets 에 \`CODE_BOT_APP_ID\` 와 \`CODE_BOT_PRIVATE_KEY\` (또는 \`ENGINEERING_LOG_DISPATCH_TOKEN\`)를 등록하면 글 푸시 시 자동으로 Gemma 분류가 실행됩니다."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Issue eottabom-code-agent token
+        id: bot
+        if: steps.posts.outputs.article_ids != '' && env.HAS_APP_SECRET == 'true'
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CODE_BOT_APP_ID }}
+          private-key: ${{ secrets.CODE_BOT_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: engineering-log
+
+      - name: Dispatch to engineering-log
+        if: steps.posts.outputs.article_ids != '' && (env.HAS_APP_SECRET == 'true' || env.HAS_PAT_SECRET == 'true')
+        env:
+          DISPATCH_TOKEN: ${{ steps.bot.outputs.token || secrets.ENGINEERING_LOG_DISPATCH_TOKEN }}
+          ARTICLE_IDS: ${{ steps.posts.outputs.article_ids }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          PAYLOAD=$(jq -n \
+            --arg ids "${ARTICLE_IDS}" \
+            --arg sha "${SOURCE_SHA}" \
+            '{
+              event_type: "blog-knowledge-classify",
+              client_payload: {
+                article_ids: $ids,
+                mode: "draft-pr",
+                merge_policy: "append",
+                source_sha: $sha
+              }
+            }')
+
+          curl -sS -f -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${DISPATCH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/eottabom/engineering-log/dispatches" \
+            -d "${PAYLOAD}"
+
+          {
+            echo "## Gemma 지식 그래프 분류 트리거 완료"
+            echo ""
+            echo "- 대상 게시글: \`${ARTICLE_IDS}\`"
+            echo "- 트리거 대상: \`eottabom/engineering-log\` (\`blog-knowledge-classify\`)"
+          } >> "$GITHUB_STEP_SUMMARY"

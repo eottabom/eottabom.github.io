@@ -9,6 +9,9 @@ import { articleUrl } from './types';
 export const MERGE_POLICIES = ['append', 'replace'] as const;
 export type MergePolicy = (typeof MERGE_POLICIES)[number];
 
+export const TARGET_MODES = ['article', 'latest', 'unmapped', 'all'] as const;
+export type TargetMode = (typeof TARGET_MODES)[number];
+
 export const DEFAULT_GEMMA_URL = 'http://127.0.0.1:42644/v1';
 export const DEFAULT_GEMMA_MODEL = 'gemma-4-26b-a4b-it';
 export const DEFAULT_MAX_CONCEPTS = 6;
@@ -36,6 +39,31 @@ export interface ClassifyArticleInput {
     description: string | null;
     tags: string[];
     content: string;
+}
+
+export interface ArticleCatalogEntry {
+    id: string;
+    title: string;
+    date: string;
+    updated: string | null;
+}
+
+export interface BatchArticleReportItem {
+    article: ClassifyArticleInput;
+    merge: MergeResult | null;
+    validation: ValidationSummary | null;
+    notes: string | null;
+    error: string | null;
+}
+
+export interface BatchReportInput {
+    items: readonly BatchArticleReportItem[];
+    conceptsById: ReadonlyMap<string, Concept>;
+    mergePolicy: MergePolicy;
+    model: string;
+    isDryRun: boolean;
+    checkErrors: string[];
+    targetLabel: string;
 }
 
 export interface ProposedConcept {
@@ -132,6 +160,62 @@ const isRecord = (value: unknown): value is Record<string, unknown> => {
 
 export const isMergePolicy = (value: string): value is MergePolicy => {
     return MERGE_POLICIES.includes(value as MergePolicy);
+};
+
+export const isTargetMode = (value: string): value is TargetMode => {
+    return TARGET_MODES.includes(value as TargetMode);
+};
+
+const compareCatalogByRecency = (a: ArticleCatalogEntry, b: ArticleCatalogEntry): number => {
+    const aRecent = a.updated ?? a.date;
+    const bRecent = b.updated ?? b.date;
+    const recentOrder = bRecent.localeCompare(aRecent);
+    if (recentOrder !== 0) {
+        return recentOrder;
+    }
+    const dateOrder = b.date.localeCompare(a.date);
+    if (dateOrder !== 0) {
+        return dateOrder;
+    }
+    return a.id.localeCompare(b.id);
+};
+
+export const resolveTargetArticleIds = (params: {
+    mode: TargetMode;
+    explicitIds: readonly string[];
+    allArticles: readonly ArticleCatalogEntry[];
+    mappedArticleIds: ReadonlySet<string>;
+    limit?: number | null;
+}): string[] => {
+    const { mode, explicitIds, allArticles, mappedArticleIds, limit } = params;
+    const existingIds = new Set(allArticles.map((article) => article.id));
+
+    if (explicitIds.length > 0) {
+        const cleaned = uniqueOrdered(explicitIds.map((id) => id.trim()).filter((id) => id !== ''));
+        const missing = cleaned.filter((id) => !existingIds.has(id));
+        if (missing.length > 0) {
+            throw new Error(`게시글을 찾지 못했다: ${missing.join(', ')}`);
+        }
+        return limit != null ? cleaned.slice(0, limit) : cleaned;
+    }
+
+    if (mode === 'article') {
+        throw new Error('--article <게시글-id> 또는 --latest, --unmapped, --all 중 하나가 필요하다');
+    }
+
+    const sorted = [...allArticles].sort(compareCatalogByRecency);
+    if (mode === 'latest') {
+        const count = limit ?? 1;
+        return sorted.slice(0, count).map((article) => article.id);
+    }
+    if (mode === 'unmapped') {
+        const unmapped = sorted.filter((article) => !mappedArticleIds.has(article.id));
+        const selected = limit != null ? unmapped.slice(0, limit) : unmapped;
+        return selected.map((article) => article.id);
+    }
+
+    const selected = limit != null ? sorted.slice(0, limit) : sorted;
+    return selected.map((article) => article.id);
 };
 
 // 코드 블록이 길면 본문 맥락이 묻히고 토큰이 낭비되므로 앞부분만 남긴다.
@@ -510,6 +594,122 @@ export const formatReviewMarkdown = (input: ClassifyReportInput): string => {
 
     lines.push('### 검토 체크리스트');
     lines.push('- [ ] `knowledge/articles.json` 의 개념 연결이 글 내용과 맞는지 확인');
+    lines.push('- [ ] 불필요한 개념 제거 또는 누락된 기존 개념 추가');
+    lines.push('- [ ] `check-knowledge` PR 체크 통과 확인 후 Ready for review 전환 및 Merge');
+    lines.push('');
+
+    return lines.join('\n');
+};
+
+export const formatBatchReviewMarkdown = (input: BatchReportInput): string => {
+    const { items, conceptsById, mergePolicy, model, isDryRun, checkErrors, targetLabel } = input;
+    if (items.length === 1 && items[0].error === null && items[0].merge !== null && items[0].validation !== null) {
+        return formatReviewMarkdown({
+            article: items[0].article,
+            conceptsById,
+            mergePolicy,
+            validation: items[0].validation,
+            merge: items[0].merge,
+            notes: items[0].notes,
+            model,
+            isDryRun,
+            checkErrors,
+        });
+    }
+
+    const updatedCount = items.filter((item) => item.error === null && item.merge?.status === 'updated').length;
+    const unchangedCount = items.filter((item) => item.error === null && item.merge?.status === 'unchanged').length;
+    const noMatchCount = items.filter((item) => item.error === null && item.merge?.status === 'no_match').length;
+    const errorCount = items.filter((item) => item.error !== null).length;
+
+    const lines: string[] = [
+        `## 지식 그래프 개념 분류 제안 (${escapeMarkdownCell(targetLabel)})`,
+        '',
+        '| 항목 | 내용 |',
+        '| :--- | :--- |',
+        `| 대상 범위 | ${escapeMarkdownCell(targetLabel)} (${items.length}편) |`,
+        `| 모델 | \`${model}\` |`,
+        `| 병합 정책 | \`${mergePolicy}\` |`,
+        `| 실행 모드 | ${isDryRun ? 'dry-run (파일 미수정)' : 'apply (Draft PR 반영)'} |`,
+        `| 결과 요약 | 변경 ${updatedCount}편, 동일 ${unchangedCount}편, 일치 없음 ${noMatchCount}편, 오류 ${errorCount}편 |`,
+        `| check:knowledge | ${checkErrors.length === 0 ? '통과' : `실패 (${checkErrors.length}건)`} |`,
+        '',
+    ];
+
+    if (items.length > 0) {
+        lines.push('### 게시글별 요약');
+        lines.push('| 게시글 | 결과 | 추가 | 제거 | 유지 | 비고 |');
+        lines.push('| :--- | :--- | :--- | :--- | :--- | :--- |');
+        for (const item of items) {
+            const link = `[${escapeMarkdownCell(item.article.id)}](${articleUrl(item.article.id)})`;
+            if (item.error !== null || item.merge === null) {
+                lines.push(`| ${link} | 오류 | 없음 | 없음 | 없음 | ${escapeMarkdownCell(item.error ?? '알 수 없는 오류')} |`);
+                continue;
+            }
+            const statusText = item.merge.status === 'updated'
+                ? '변경'
+                : item.merge.status === 'unchanged'
+                    ? '동일'
+                    : '일치 없음';
+            const remarks: string[] = [];
+            if (item.validation && item.validation.invalidIds.length > 0) {
+                remarks.push(`미존재 ID: ${item.validation.invalidIds.join(', ')}`);
+            }
+            if (item.notes !== null) {
+                remarks.push(item.notes);
+            }
+            const remarkText = remarks.length > 0 ? escapeMarkdownCell(remarks.join(' / ')) : '-';
+            lines.push(
+                `| ${link} | ${statusText} | ${formatInlineIds(item.merge.addedIds)} | ` +
+                    `${formatInlineIds(item.merge.removedIds)} | ${formatInlineIds(item.merge.keptIds)} | ${remarkText} |`,
+            );
+        }
+        lines.push('');
+    }
+
+    const detailedItems = items.filter((item) => item.error === null && item.merge !== null && item.validation !== null && item.merge.status === 'updated');
+    if (detailedItems.length > 0) {
+        lines.push('### 변경 게시글 상세 근거');
+        for (const item of detailedItems) {
+            const merge = item.merge as MergeResult;
+            const validation = item.validation as ValidationSummary;
+            const reasonById = new Map(validation.validConcepts.map((entry) => [entry.id, entry.reason]));
+            const addedSet = new Set(merge.addedIds);
+            const removedSet = new Set(merge.removedIds);
+            const detailIds = uniqueOrdered([...merge.finalIds, ...merge.removedIds]);
+
+            lines.push(`<details>`);
+            lines.push(`<summary><code>${item.article.id}</code> (${escapeMarkdownCell(item.article.title)})</summary>`);
+            lines.push('');
+            lines.push('| 개념 ID | 개념명 | 구분 | 추천 근거 |');
+            lines.push('| :--- | :--- | :--- | :--- |');
+            for (const id of detailIds) {
+                const concept = conceptsById.get(id);
+                const name = concept ? escapeMarkdownCell(concept.name) : id;
+                const kind = addedSet.has(id) ? '추가' : removedSet.has(id) ? '제거 제안' : '유지';
+                const reason = reasonById.get(id) ?? (removedSet.has(id) ? '이번 분류 결과에 미포함' : '기존 연결 유지');
+                lines.push(`| \`${id}\` | ${name} | ${kind} | ${escapeMarkdownCell(reason)} |`);
+            }
+            if (item.notes !== null) {
+                lines.push('');
+                lines.push(`> 참고 메모: ${escapeMarkdownCell(item.notes)}`);
+            }
+            lines.push('');
+            lines.push('</details>');
+            lines.push('');
+        }
+    }
+
+    if (checkErrors.length > 0) {
+        lines.push('### check:knowledge 오류');
+        for (const error of checkErrors) {
+            lines.push(`- ${error}`);
+        }
+        lines.push('');
+    }
+
+    lines.push('### 검토 체크리스트');
+    lines.push('- [ ] `knowledge/articles.json` 의 개념 연결이 각 글 내용과 맞는지 확인');
     lines.push('- [ ] 불필요한 개념 제거 또는 누락된 기존 개념 추가');
     lines.push('- [ ] `check-knowledge` PR 체크 통과 확인 후 Ready for review 전환 및 Merge');
     lines.push('');
