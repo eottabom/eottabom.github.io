@@ -276,7 +276,8 @@ export default function KnowledgePage({ data }: InferGetStaticPropsType<typeof g
                                 onSelect={handleSearchSelect}
                             />
                         </div>
-                        <nav aria-label="분야 필터" className="flex justify-start gap-1.5 lg:justify-center overflow-x-auto px-1 pb-0.5">
+                        {/* 가로 스크롤(overflow-x-auto)은 세로도 잘라내므로, 위아래 여백을 둬서 버튼 모서리와 포커스 테두리가 잘리지 않게 한다. */}
+                        <nav aria-label="분야 필터" className="flex justify-start gap-1.5 lg:justify-center overflow-x-auto px-1 py-1">
                             {[{ id: null, name: 'All' }, ...data.categories].map((category) => {
                                 const isActive = categoryFilter === category.id;
                                 const count = category.id === null
